@@ -224,8 +224,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // 初始化所有编辑器
-  function initEditors() {
-    if (!window.wangEditor) return;
+  async function initEditors() {
+    if (!window.TiptapEditorFactory) return;
     var editors = {};
 
     for (var i = 0; i < articleData.chapters.length; i++) {
@@ -235,17 +235,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var safeId = section.id.replace(/\./g, '_');
 
         try {
-          var editor = window.wangEditor.createEditor({
+          var editor = await window.TiptapEditorFactory.createEditor({
             selector: '#editor-content-' + safeId,
-            html: '<p>' + section.content + '</p>',
-            config: { placeholder: '请输入内容' },
-            mode: 'default'
+            toolbarSelector: '#writer-toolbar-' + safeId
           });
-          window.wangEditor.createToolbar({
-            editor: editor,
-            selector: '#writer-toolbar-' + safeId,
-            mode: 'default'
-          });
+          editor.setHtml('<p>' + section.content + '</p>');
           editors[section.id] = editor;
         } catch (e) {
           console.error('编辑器加载失败', e);
@@ -256,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // 打开单个小节编辑器
-  function openSingleEditor(sectionId, content) {
+  async function openSingleEditor(sectionId, content) {
     closeSingleEditor();
 
     var wrapper = document.querySelector('.section-wrapper[data-section-id="' + sectionId + '"]');
@@ -279,17 +273,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     wrapper.appendChild(editorDiv);
 
-    if (window.wangEditor) {
-      currentEditor = window.wangEditor.createEditor({
+    if (window.TiptapEditorFactory) {
+      currentEditor = await window.TiptapEditorFactory.createEditor({
         selector: '#single-content',
-        html: '<p>' + content + '</p>',
-        mode: 'default'
+        toolbarSelector: '#single-toolbar'
       });
-      window.wangEditor.createToolbar({
-        editor: currentEditor,
-        selector: '#single-toolbar',
-        mode: 'default'
-      });
+      currentEditor.setHtml('<p>' + content + '</p>');
       currentEditingSectionId = sectionId;
     }
 

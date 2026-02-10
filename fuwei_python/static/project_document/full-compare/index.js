@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     createEditorContainers();
 
                     // 初始化编辑器
-                    initializeEditors();
+                    await initializeEditors();
                 } else {
                     console.error('没有获取到小节数据');
                     flash('未找到小节内容', 'error');
@@ -415,7 +415,8 @@ document.addEventListener('DOMContentLoaded', function () {
         comparisonColumn.innerHTML = '';
 
         // 为每个小节创建编辑器容器
-        sections.forEach((section, index) => {
+        for (let index = 0; index < sections.length; index++) {
+            const section = sections[index];
             const sectionId = section.id || `section-${index + 1}`;
             const safeId = sectionId.replace(/[\.\s]/g, '_');
 
@@ -426,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // 右侧AI润色编辑器容器
             const comparisonCard = createEditorCard(section, index, 'diff', safeId);
             comparisonColumn.appendChild(comparisonCard);
-        });
+        }
     }
 
     // 创建编辑器卡片
@@ -573,20 +574,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 初始化编辑器
-    function initializeEditors() {
+    async function initializeEditors() {
         // 初始化左侧原文编辑器
-        initSectionEditors('original', 'originalContent');
+        await initSectionEditors('original', 'originalContent');
 
         // 初始化右侧AI润色编辑器
-        initSectionEditors('diff', 'polishedContent');
+        await initSectionEditors('diff', 'polishedContent');
     }
 
     // 初始化小节编辑器（修改了uploadImage配置）
-    function initSectionEditors(prefix, contentField) {
+    async function initSectionEditors(prefix, contentField) {
         const sections = pageData.sections;
         if (!sections || sections.length === 0) return;
 
-        sections.forEach((section, index) => {
+        for (let index = 0; index < sections.length; index++) {
+            const section = sections[index];
             const sectionId = section.id || `section-${index + 1}`;
             const safeId = sectionId.replace(/[\.\s]/g, '_');
 
@@ -610,102 +612,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const sanitizedContent = sanitizeHtmlContent(content);
 
             // 如果wangEditor可用，使用富文本编辑器
-            if (window.wangEditor && window.wangEditor.createEditor) {
+            if (window.TiptapEditorFactory) {
                 try {
                     // 清空容器
                     editorContainer.innerHTML = '';
 
-                    // 自定义粘贴处理器
-                    const customPasteHandler = (editor, event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-
-                        const clipboardData = event.clipboardData || window.clipboardData;
-                        if (!clipboardData) return;
-
-                        let text = clipboardData.getData('text/plain') || '';
-                        let html = clipboardData.getData('text/html') || '';
-
-                        // 如果没有HTML但有文本，检查是否为Markdown
-                        if (!html && text) {
-                            if (markdownProcessor.isMarkdown && markdownProcessor.isMarkdown(text)) {
-                                html = markdownProcessor.markdownToHtml
-                                    ? markdownProcessor.markdownToHtml(text)
-                                    : marked.parse(text);
-                                console.log('Markdown已转换为HTML');
-                                flash('Markdown格式已自动转换为HTML');
-                            }
-                        }
-
-                        // 如果有HTML，使用dangerouslyInsertHtml
-                        if (html) {
-                            try {
-                                if (editor.dangerouslyInsertHtml) {
-                                    editor.dangerouslyInsertHtml(html);
-                                } else if (editor.insertHTML) {
-                                    editor.insertHTML(html);
-                                } else if (editor.commands && editor.commands.insertHTML) {
-                                    editor.commands.insertHTML(html);
-                                }
-                            } catch (error) {
-                                console.error('插入HTML失败:', error);
-                            }
-                        } else if (text) {
-                            if (editor.insertText) {
-                                editor.insertText(text);
-                            }
-                        }
-
-                        return false;
-                    };
-
-                    // 创建编辑器（添加uploadImage配置）
-                    const editor = window.wangEditor.createEditor({
+                    // 创建 Tiptap 编辑器
+                    const editor = await window.TiptapEditorFactory.createEditor({
                         selector: `#${prefix}-editor-${safeId}`,
-                        html: sanitizedContent,
-                        config: {
-                            placeholder: '请输入内容...',
-                            hoverbarKeys: {
-                                text: { menuKeys: [] }
-                            },
-                            autoFocus: false,
-                            // 禁用默认的粘贴处理，使用自定义处理器
-                            customPaste: customPasteHandler,
-                            // 添加uploadImage配置，参考preview-review/index.js
-                            MENU_CONF: {
-                                uploadImage: {
-                                    server: '/user/aiVal/upload_pic', // 图片上传接口
-                                    fieldName: 'file',
-                                    maxFileSize: 5 * 1024 * 1024, // 5MB
-                                    maxNumberOfFiles: 5, // 最多上传5张图片
-                                    headers: {
-                                        'X-CSRF-Token': getCSRFToken()
-                                    },
-                                    customInsert: function (res, insertFn) {
-                                        if (res.code == 1 || res.code === 200) {
-                                            insertFn(res.url || res.data.url); // 插入图片URL
-                                        } else {
-                                            flash(res.msg || '上传失败', 'error');
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        mode: 'default'
+                        toolbarSelector: `#${prefix}-toolbar-${safeId}`
                     });
-
-                    // 创建工具栏（参考preview-review/index.js的工具栏配置）
-                    window.wangEditor.createToolbar({
-                        editor: editor,
-                        selector: `#${prefix}-toolbar-${safeId}`,
-                        config: {
-                            excludeKeys: [
-                                'group-video',
-                                'fullScreen'
-                            ]
-                        },
-                        mode: 'default'
-                    });
+                    editor.setHtml(sanitizedContent || '<p></p>');
 
                     // 存储编辑器实例
                     section[`${prefix}Editor`] = editor;
@@ -722,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // 如果没有富文本编辑器，直接显示内容
                 editorContainer.innerHTML = sanitizedContent || '<p>（暂无内容）</p>';
             }
-        });
+        }
     }
 
     // 同步编辑器内容到数据模型（重要：在切换状态和保存时调用）
@@ -730,7 +647,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const sections = pageData.sections;
         if (!sections || sections.length === 0) return;
 
-        sections.forEach((section, index) => {
+        for (let index = 0; index < sections.length; index++) {
+            const section = sections[index];
             const sectionId = section.id || `section-${index + 1}`;
             const safeId = sectionId.replace(/[\.\s]/g, '_');
 
@@ -769,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
-        });
+        }
     }
 
     // 获取编辑器内容数组（新增：返回每个小节的内容数组）
@@ -779,7 +697,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const contents = [];
 
-        sections.forEach((section, index) => {
+        for (let index = 0; index < sections.length; index++) {
+            const section = sections[index];
             let content = '';
 
             if (prefix === 'original') {
@@ -831,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function () {
             content = processEditorContent(content);
 
             contents.push(content || '');
-        });
+        }
 
         return contents;
     }
@@ -869,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 设置编辑模式
-    function setEditMode(side, enabled) {
+    async function setEditMode(side, enabled) {
         if (!pageEl) return;
 
         // 重要：退出编辑状态时，同步编辑器内容到数据模型
@@ -895,9 +814,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (enabled) {
             // 进入编辑模式时，初始化对应侧的编辑器
             if (side === 'left') {
-                initSectionEditors('original', 'originalContent');
+                await initSectionEditors('original', 'originalContent');
             } else if (side === 'right') {
-                initSectionEditors('diff', 'polishedContent');
+                await initSectionEditors('diff', 'polishedContent');
             }
         } else {
             // 退出编辑模式时，更新浏览状态显示
@@ -906,23 +825,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 切换编辑模式
-    function toggleEditMode(side) {
+    async function toggleEditMode(side) {
         const className = side === 'left' ? 'compare-edit-left' : 'compare-edit-mode';
         const next = pageEl ? !pageEl.classList.contains(className) : true;
-        setEditMode(side, next);
+        await setEditMode(side, next);
     }
 
     // 编辑按钮事件
     if (editBtn) {
-        editBtn.addEventListener('click', function () {
-            toggleEditMode('right');
+        editBtn.addEventListener('click', async function () {
+            await toggleEditMode('right');
         });
     }
 
     // 编辑图标事件
     if (editIcons && editIcons.length) {
         editIcons.forEach(function (icon) {
-            icon.addEventListener('click', function (event) {
+            icon.addEventListener('click', async function (event) {
                 if (event && typeof event.stopPropagation === 'function') {
                     event.stopPropagation();
                 }
@@ -930,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     event.preventDefault();
                 }
                 const side = icon.getAttribute('data-side') === 'left' ? 'left' : 'right';
-                toggleEditMode(side);
+                await toggleEditMode(side);
             });
         });
     }

@@ -519,9 +519,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // ==================== 编辑器相关函数 ====================
-  function initEditors() {
-    if (!window.wangEditor) {
-      console.error('wangEditor未加载');
+  async function initEditors() {
+    if (!window.TiptapEditorFactory) {
+      console.error('TiptapEditorFactory未加载');
       return;
     }
 
@@ -535,45 +535,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
           // 创建编辑器实例
-          var editor = window.wangEditor.createEditor({
+          var editor = await window.TiptapEditorFactory.createEditor({
             selector: '#editor-content-' + safeId,
-            html: section.content || '<p></p>',
-            config: {
-              placeholder: '请输入内容...',
-              MENU_CONF: {
-                uploadImage: {
-                  server: '/user/aiVal/upload_pic', // 图片上传接口
-                  fieldName: 'file',
-                  maxFileSize: 5 * 1024 * 1024, // 5MB
-                  maxNumberOfFiles: 5, // 最多上传5张图片
-                  headers: {
-                    'X-CSRF-Token': getCSRFToken()
-                  },
-                  customInsert: function (res, insertFn) {
-                    if (res.code == 1 || res.code === 200) {
-                      insertFn(res.url || res.data.url); // 插入图片URL
-                    } else {
-                      flash(res.msg || '上传失败', 'error');
-                    }
-                  }
-                }
-              }
-            },
-            mode: 'default'
+            toolbarSelector: '#writer-toolbar-' + safeId
           });
-
-          // 创建工具栏
-          window.wangEditor.createToolbar({
-            editor: editor,
-            selector: '#writer-toolbar-' + safeId,
-            config: {
-              excludeKeys: [
-                'group-video',
-                'fullScreen'
-              ]
-            },
-            mode: 'default'
-          });
+          editor.setHtml(section.content || '<p></p>');
 
           allEditors[section.id] = editor;
         } catch (e) {
@@ -583,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function openSingleEditor(sectionId, content) {
+  async function openSingleEditor(sectionId, content) {
     closeSingleEditor();
 
     var wrapper = document.querySelector('.section-wrapper[data-section-id="' + sectionId + '"]');
@@ -608,45 +574,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     wrapper.appendChild(editorDiv);
 
-    if (window.wangEditor) {
-      currentEditor = window.wangEditor.createEditor({
+    if (window.TiptapEditorFactory) {
+      currentEditor = await window.TiptapEditorFactory.createEditor({
         selector: '#single-content',
-        html: content || '<p></p>',
-        config: {
-          placeholder: '请输入内容...',
-          MENU_CONF: {
-            uploadImage: {
-              server: '/user/aiVal/upload_pic', // 图片上传接口
-              fieldName: 'file',
-              maxFileSize: 5 * 1024 * 1024, // 5MB
-              maxNumberOfFiles: 5, // 最多上传5张图片
-              headers: {
-                'X-CSRF-Token': getCSRFToken()
-              },
-              customInsert: function (res, insertFn) {
-                if (res.code == 1 || res.code === 200) {
-                  insertFn(res.url || res.data.url); // 插入图片URL
-                } else {
-                  flash(res.msg || '上传失败', 'error');
-                }
-              }
-            }
-          }
-        },
-        mode: 'default'
+        toolbarSelector: '#single-toolbar'
       });
-
-      window.wangEditor.createToolbar({
-        editor: currentEditor,
-        selector: '#single-toolbar',
-        config: {
-          excludeKeys: [
-            'group-video',
-            'fullScreen'
-          ]
-        },
-        mode: 'default'
-      });
+      currentEditor.setHtml(content || '<p></p>');
 
       currentEditingSectionId = sectionId;
     }
