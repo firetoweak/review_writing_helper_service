@@ -35,11 +35,13 @@ document.addEventListener('DOMContentLoaded', function () {
      * @param {Event} event 粘贴事件
      */
     function customPasteHandler(editor, event) {
+        if (!editor || !event) return false;
+
         event.preventDefault();
         event.stopPropagation();  // 阻止事件冒泡
 
         const clipboardData = event.clipboardData || window.clipboardData;
-        if (!clipboardData) return;
+        if (!clipboardData) return false;
 
         let text = clipboardData.getData('text/plain') || '';
         let html = clipboardData.getData('text/html') || '';
@@ -57,7 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // 如果有HTML，使用dangerouslyInsertHtml
+        const commandSource = editor.instance || editor;
+
+        // 如果有HTML，优先插入HTML
         if (html) {
             try {
                 // 只使用一种方法插入，避免重复
@@ -65,8 +69,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     editor.dangerouslyInsertHtml(html);
                 } else if (editor.insertHTML) {
                     editor.insertHTML(html);
-                } else if (editor.commands && editor.commands.insertHTML) {
-                    editor.commands.insertHTML(html);
+                } else if (commandSource.commands && commandSource.commands.insertContent) {
+                    commandSource.commands.insertContent(html);
+                } else if (commandSource.commands && commandSource.commands.insertHTML) {
+                    commandSource.commands.insertHTML(html);
                 }
             } catch (error) {
                 console.error('插入HTML失败:', error);
@@ -75,10 +81,38 @@ document.addEventListener('DOMContentLoaded', function () {
             // 如果没有HTML，直接插入文本
             if (editor.insertText) {
                 editor.insertText(text);
+            } else if (commandSource.commands && commandSource.commands.insertContent) {
+                commandSource.commands.insertContent(text);
             }
         }
 
-        return false;  // 防止默认行为
+        return true;  // 已处理粘贴行为
+    }
+
+    // 销毁并清理当前页面所有小节编辑器，避免容器重建导致实例泄漏
+    function destroySectionEditors() {
+        const prefixes = ['original', 'diff'];
+
+        prefixes.forEach((prefix) => {
+            if (Array.isArray(pageData.editors[prefix])) {
+                pageData.editors[prefix].forEach((editor) => {
+                    if (editor && typeof editor.destroy === 'function') {
+                        try {
+                            editor.destroy();
+                        } catch (error) {
+                            console.warn(`销毁编辑器失败: ${prefix}`, error);
+                        }
+                    }
+                });
+            }
+            pageData.editors[prefix] = [];
+        });
+
+        if (!Array.isArray(pageData.sections)) return;
+        pageData.sections.forEach((section) => {
+            section.originalEditor = null;
+            section.diffEditor = null;
+        });
     }
 
     // ==================== 主要功能 ====================
@@ -405,6 +439,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const sections = pageData.sections;
         if (!sections || sections.length === 0) return;
 
+        // 先销毁旧编辑器，避免重建容器后残留事件/实例
+        destroySectionEditors();
+
         // 左侧原文列
         const originalColumn = document.querySelector('.original-column');
         // 右侧AI润色列
@@ -597,13 +634,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!editorContainer || !toolbarContainer) {
                 console.warn(`编辑器容器未找到: ${prefix}-editor-${safeId} 或 ${prefix}-toolbar-${safeId}`);
-                return;
+                continue;
             }
 
             // 如果编辑器已经存在，跳过初始化
             if (section[`${prefix}Editor`]) {
                 console.log(`编辑器已存在，跳过: ${prefix}-editor-${safeId}`);
-                return;
+                continue;
             }
 
             let content = section[contentField] || '';
@@ -620,7 +657,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     // 创建 Tiptap 编辑器
                     const editor = await window.TiptapEditorFactory.createEditor({
                         selector: `#${prefix}-editor-${safeId}`,
-                        toolbarSelector: `#${prefix}-toolbar-${safeId}`
+                        toolbarSelector: `#${prefix}-toolbar-${safeId}`,
+                        editorProps: {
+                            handlePaste(view, event) {
+                                return customPasteHandler(editor, event);
+                            }
+                        }
                     });
                     editor.setHtml(sanitizedContent || '<p></p>');
 
