@@ -194,6 +194,7 @@
         markdownExtension
       ],
       content: '',
+      editorProps: config.editorProps || {},
       onUpdate() {
         if (typeof config.onChange === 'function') config.onChange();
       }
