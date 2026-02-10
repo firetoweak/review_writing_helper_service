@@ -54,7 +54,7 @@ class MarkdownProcessor {
             // 确保marked库已加载
             if (typeof marked === 'undefined') {
                 console.warn('marked库未加载，将使用简易转换');
-                return simpleMarkdownToHtml(markdown);
+                return MarkdownProcessor.simpleMarkdownToHtml(markdown);
             }
 
             // 配置marked选项
@@ -69,6 +69,7 @@ class MarkdownProcessor {
             return marked.parse(markdown);
         } catch (error) {
             console.error('Markdown转换失败:', error);
+            console.warn('降级解析路径触发');
             // 转换失败时返回原始文本
             return markdown;
         }
