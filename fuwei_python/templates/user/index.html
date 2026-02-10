@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>锋矢AI蓝军</title>
+    <!-- Bootstrap CSS -->
+    {% include "user/base.html" %}
+
+</head>
+<body>
+    <!-- 顶部背景图 -->
+    <div class="background-container">
+        <!-- 背景在CSS中设置 -->
+    </div>
+
+    {% include "components/header.html" %}
+
+    <!-- 主要内容 -->
+    <main class="main" >
+        <!-- 标题部分 -->
+        <section class="hero-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 text-center">
+                        <div class="logo-large mb-4"></div>
+                        <h1 class="main-title">精确评估并提升企业工作质量</h1>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 产品卡片部分 -->
+        <section class="product-cards" {% if env=="dev" or env=="local" %} style="margin-top: 0px;margin-bottom: 20px" {% endif %}>
+            <div class="container" style="position: relative;">
+                <div class="row justify-content-center" style="position: relative;">
+                    <!-- 产品需求管理卡片 -->
+                    <div class="col-lg-4 mb-4" style="position: relative;"
+                         {% if s1==1 %}
+                            onclick="location.href='/user/aiVal/list?type=1'"
+                         {% else %}
+                             {% if g.user_type=='mobile'%}
+                             onclick="location.href='/user/aiVal/list?type=1'"
+                             {% endif %}
+                         {% endif %}
+                    >
+                        <div class="card product-card card-active" style="position: relative">
+                            <div class="card-status">
+                                {% if s1==1 %}
+                                正常使用
+                                {% else %}
+                                    {% if g.user_type=='mobile'%}
+                                    免费试用
+                                    {% else %}
+                                    暂无权限
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/card-image-1.png" alt="产品需求管理" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品需求管理</h3>
+                                        <span class="card-badge">AI评估</span>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">需求描述质量</span>
+                                        <span class="feature-item">需求分析质量</span>
+                                        <span class="feature-item">需求决策质量</span>
+                                        <span class="feature-item">需求验证质量</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 产品缺陷管理卡片 -->
+                    <div class="col-lg-4 mb-4"
+                         {% if s0==1 %}
+                            onclick="location.href='/user/aiVal/list?type=0'"
+                         {% else %}
+                             {% if g.user_type=='mobile'%}
+                             onclick="location.href='/user/aiVal/list?type=0'"
+                             {% endif %}
+                         {% endif %}
+                    >
+                        <div class="card product-card card-free">
+                            <div class="card-status">
+                                {% if s0==1 %}
+                                正常使用
+                                {% else %}
+                                    {% if g.user_type=='mobile'%}
+                                    免费试用
+                                    {% else %}
+                                    暂无权限
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/card-image-2.png" alt="产品缺陷管理" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品缺陷管理</h3>
+                                        <span class="card-badge">AI评估</span>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">缺陷描述质量</span>
+                                        <span class="feature-item">原因分析质量</span>
+                                        <span class="feature-item">解决措施质量</span>
+                                        <span class="feature-item">回归测试质量</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 产品立项质量卡片 -->
+                    <div class="col-lg-4 mb-4"
+                         {% if s2==1 %}
+                         onclick="location.href='/user/lxAiVal/list?type=2'"
+                         {% else %}
+                             onclick="showlinkUs()"
+                         {% endif %}
+
+                    >
+                        <div class="card product-card card-coming">
+                            <div class="card-status">
+                                {% if s2==1 %}
+                                正常使用
+                                {% else %}
+                                内测招募
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/card-image-3.png" alt="产品立项质量" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品立项质量</h3>
+                                        <span class="card-badge">AI评估</span>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">市场机会分析质量</span>
+                                        <span class="feature-item">产品价值设定质量</span>
+                                        <span class="feature-item">产品包定义质量</span>
+                                        <span class="feature-item">执行策略输出质量</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 空白占位列 -->
+                    <div class="col-lg-4 mb-4"></div>
+
+                    <!-- 产品缺陷跟踪系统卡片 -->
+                    <div class="col-lg-4 mb-4" style="position: relative;">
+<!--                    {% if s0==1 %}onclick="location.href='/defect/role_proxy'"{% else %}{% if g.user_type=='mobile'%}onclick="location.href='/defect/role_proxy'"{% endif %}{% endif %}-->
+                        <div class="card product-card card-active" style="position: relative">
+                            <div class="card-status">
+                                {% if s0==1 %}
+                                正常使用
+                                {% else %}
+                                    {% if g.user_type=='mobile'%}
+                                    免费试用
+                                    {% else %}
+                                    暂无权限
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="card-body" div_tag="defect">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/defect/p1_01.png" alt="产品缺陷跟踪系统" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品缺陷跟踪系统(DTS)</h3>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">全流程缺陷管理</span>
+                                        <span class="feature-item">AI评审过程质量</span>
+                                        <span class="feature-item">不止于记录缺陷</span>
+                                        <span class="feature-item">致力于指导改进</span>
+                                    </div>
+                                    {% if s0==1 %}
+                                    <div class="card-start-button" style="display:none">
+                                        <span class="feature-item"><a href="/defect/role_proxy">标准版</a></span>
+                                        <span class="feature-item"><a href="/defect/role_proxy?defect_type=simplified2">简化版</a></span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 产品立项写作与评审卡片 -->
+                    <div class="col-lg-4 mb-4"
+                         onclick="showProjectWritingDialog()"
+                    >
+                        <div class="card product-card card-coming">
+                            <div class="card-status">
+                                {% if s3==1 %}
+                                正常使用
+                                {% else %}
+                                内测招募
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/card-image-3.png" alt="产品立项写作与评审" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品立项写作与评审</h3>
+                                        <span class="card-badge">AI辅助</span>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">立项文档智能生成</span>
+                                        <span class="feature-item">结构化写作指导</span>
+                                        <span class="feature-item">多维度质量评审</span>
+                                        <span class="feature-item">AI优化建议</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 空白占位列 -->
+                    <div class="col-lg-4 mb-4"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 产品立项写作与评审对话框 -->
+    <div class="modal fade" id="projectWritingModal" tabindex="-1" aria-labelledby="projectWritingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                    <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                        <div class="flex items-center justify-center">
+                            <span style="margin-top: 2px;">产品立项写作与评审</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-custom-md" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+            </div>
+
+                <div class="modal-body">
+                    <div class="d-grid gap-3">
+                        <a href="/project_document/outline-draft" class="btn btn-primary btn-lg">全新写作</a>
+                        <a href="/project_document/project-documents-list" class="btn btn-outline-primary btn-lg">继续进度</a>
+                        <a href="/project_document/projectWriting/review" class="btn btn-outline-primary btn-lg">评审文件</a>
+                        <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">退出</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    {% include "user/footer.html" %}
+
+    <!-- 模态框遮罩 -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    {% include "user/base_js.html" %}
+    {% include "user/base_toast.html" %}
+<script>
+    function showlinkUs() {
+        $('#contactUsLink').click()
+    }
+
+    function showProjectWritingDialog() {
+        // 使用Bootstrap的Modal组件显示对话框
+        var projectWritingModal = new bootstrap.Modal(document.getElementById('projectWritingModal'), {
+            keyboard: true
+        });
+        projectWritingModal.show();
+    }
+</script>
+</body>
+</html>

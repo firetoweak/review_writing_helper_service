@@ -1,0 +1,245 @@
+{% include "components/confirm_win.html" %}
+{% include "components/timing_confirm.html" %}
+<script>
+        {% if request.args.get('ai_done_act', '')!=""  %}
+            {%    set AiDonedefectId =defect.id    %}
+            {% if request.args.get('from_page', '')==""  %}
+                {%    set is_create =False    %}
+            {% else  %}
+                {%    set is_create =True    %}
+            {% endif %}
+    window.addEventListener('load',function() {
+            let ai_done_act = "{{ request.args.get('ai_done_act', '') }}"
+            let self_ai_done= "{{ self_ai_done }}"
+            var valDoneModal = new bootstrap.Modal(document.getElementById('valDoneModal'));
+            var valDoneModal2 = new bootstrap.Modal(document.getElementById('valDoneModal2'));
+            var valDoneModal3 = new bootstrap.Modal(document.getElementById('valDoneModal3'));
+            let stage_type = "{{ request.args.get('stage_type', 'stage_type') }}"
+            let changed_items = "{{ request.args.get('changed_items', '') }}"
+            $('#timeComfirmWinContinueAdd').click(function (){
+                location.href = '/defect/create'
+            })
+            var is_change_audit = "{{ request.args.get('is_change', '') }}"
+            if(ai_done_act==="audit"){
+                if(is_change_audit!==""||self_ai_done==="") {
+                    //$('#valDoneModal').modal('show')
+                    valDoneModal.show();
+                }
+            }else if(ai_done_act==="self"){
+                //$('#valDoneModal').modal('show')
+                valDoneModal.show();
+            }else{
+                //$('#valDoneModal').modal('show')
+                valDoneModal.show();
+            }
+            let url = ""
+            if(stage_type==="simplified2"){
+                 url = "/defect/ai_done2/"+ai_done_act+"/{{AiDonedefectId}}?is_change_audit="+is_change_audit+"&changed_items="+changed_items
+            }
+            else{
+                 url = "/defect/ai_done/"+ai_done_act+"/{{AiDonedefectId}}?is_change_audit="+is_change_audit+"&request_stage_type="+stage_type
+            }
+            $.ajax({
+                type: "POST",
+                url: url,
+                contentType: "application/json;charset=UTF-8",
+                async: true,
+                success: function (data) {
+                    if (ai_done_act === "self") {
+                        if(stage_type==="simplified2"){
+                            let now_step = 0
+                            {% if  is_create %}
+                            const descriptionContent = getDescriptionContent_create() || "";
+                            if(descriptionContent!==""){
+                                now_step = 0
+                            }
+                            {% else %}
+                            const descriptionContent = getDescriptionContent() || "";
+                            if(descriptionContent!==""){
+                                now_step = 0
+                            }
+                            const analysisContent = getAnalysisContent() || "";
+                            if(analysisContent!==""){
+                                now_step = 1
+                            }
+                            const solutionContent = getSolutionContent() || "";
+                            if(solutionContent!==""){
+                                now_step = 2
+                            }
+                            const regressionContent = getRegressionContent() || "";
+                            if(regressionContent!==""){
+                                now_step = 3
+                            }
+                            {% endif %}
+                            let valDoneModalResult3 =
+                                `
+                            <table class="ai-val-detail-tb-content">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 10%;">评估项</th>
+                                        <th style="width: 40%;">
+                                            <div class="flex justify-content-between">
+                                                <span>内容</span>
+                                            </div>
+                                        </th>
+                                        <th style="width: 40%;">AI 建议 <img src="/static/images/aival/start.svg" alt="AI" class="ai-icon" style="width: 14px; height: 14px; margin-left: 4px;"></th>
+                                        <th style="width: 10%;">评分 (满分10分)</th>
+                                    </tr>
+                                </thead>
+                            <tbody class="ai-val-tr">
+                        `
+                            if(now_step>=0){
+                                valDoneModalResult3 =valDoneModalResult3+`
+                                <tr>
+                                    <td id="content_type0">产品缺陷描述</td>
+                                    <td id="defect_description">
+                                        ${descriptionContent}
+                                    </td>
+                                    <td id="AI_advice_for_description">
+                                                 ${data.data[0][0]}
+                                     </td>
+                                    <td id="description_score" class="score score-blue">
+                                                ${data.data[0][1]}
+                                    </td>
+                                </tr>
+                                `
+                                if(data.self_show[0]===1){
+                                    $('#AI_advice_for_description').html(data.data[0][0]+"<br><p style='font-size: small;color: red'>（自评建议）</p>")
+                                    $('#description_score').html(`<p style='font-size: small;color: black'>自评得分:${data.data[0][1]}</p>`)
+                                    $('#description_score').attr("class","")
+                                }
+                            }
+                            if(now_step>=1){
+                                valDoneModalResult3 =valDoneModalResult3+`
+                                <tr>
+                                    <td id="content_type1">原因分析</td>
+                                    <td id="defect_description">
+                                        ${analysisContent}
+                                    </td>
+                                    <td id="AI_advice_for_description">
+                                                 ${data.data[1][0]}
+                                     </td>
+                                    <td id="description_score" class="score score-blue">
+                                                ${data.data[1][1]}
+                                    </td>
+                                </tr>
+                                `
+                               if(data.self_show[1]===1){
+                                    $('#AI_advice_for_analysis').html(data.data[1][0]+"<br><p style='font-size: small;color: red'>（自评建议）</p>")
+                                    $('#analysis_score').html(`<p style='font-size: small;color: black'>自评得分:${data.data[1][1]}</p>`)
+                                    $('#analysis_score').attr("class","")
+                                }
+                            }
+                            if(now_step>=2){
+                                valDoneModalResult3 =valDoneModalResult3+`
+                                <tr>
+                                    <td id="content_type2">解决措施</td>
+                                    <td id="defect_description">
+                                        ${solutionContent}
+                                    </td>
+                                    <td id="AI_advice_for_description">
+                                                 ${data.data[2][0]}
+                                     </td>
+                                    <td id="description_score" class="score score-blue">
+                                                ${data.data[2][1]}
+                                    </td>
+                                </tr>
+                                `
+                                if(data.self_show[2]===1){
+                                    $('#AI_advice_for_solution').html(data.data[2][0]+"<br><p style='font-size: small;color: red'>（自评建议）</p>")
+                                    $('#solution_score').html(`<p style='font-size: small;color: black'>自评得分:${data.data[2][1]}</p>`)
+                                    $('#solution_score').attr("class","")
+
+                                }
+                            }
+                            if(now_step===3){
+                                valDoneModalResult3 =valDoneModalResult3+`
+                                <tr>
+                                    <td id="content_type3">回归测试</td>
+                                    <td id="defect_description">
+                                        ${regressionContent}
+                                    </td>
+                                    <td id="AI_advice_for_description">
+                                                 ${data.data[3][0]}
+                                     </td>
+                                    <td id="description_score" class="score score-blue">
+                                                ${data.data[3][1]}
+                                    </td>
+                                </tr>
+                                `
+                                if(data.self_show[3]===1){
+                                    $('#AI_advice_for_test_result').html(data.data[3][0]+"<br><p style='font-size: small;color: red'>（自评建议）</p>")
+                                    $('#test_result_score').html(`<p style='font-size: small;color: black'>自评得分:${data.data[3][1]}</p>`)
+                                    $('#test_result_score').attr("class","")
+
+                                }
+                            }
+                            valDoneModalResult3 = valDoneModalResult3+`
+                                </tbody>
+                            </table>
+                            `
+                            valDoneModal.hide();
+                            valDoneModal3.show();
+                            $('#valDoneModalResult3').html(valDoneModalResult3);
+                        }
+                        else {
+                            let resultContent = data.data[data.current_step][0] + "<br><b id='score_self'>AI评估得分：</b>" + data.data[data.current_step][1];
+                            let resultContent2 = data.data[data.current_step][0];
+                            let ai_score = data.data[data.current_step][1];
+
+                            // 根据ai_score的值确定CSS类
+                            let scoreClass = 'score-red';
+                            if (ai_score >= 8) {
+                                scoreClass = 'score-green';
+                            } else if (ai_score >= 6) {
+                                scoreClass = 'score-blue';
+                            }
+                            let scoreResult = "<span id='score_self'>AI评估得分：</span>" +
+                             '<span class="large-score ' + scoreClass + '">' + ai_score + '</span>';
+
+                            $('#alert_win').html(resultContent);
+                            $(window).scrollTop(0);
+                            let currentTime = $('#timer').text();
+                            valDoneModal.hide();
+                            valDoneModal2.show();
+                            $('#timer2').html(scoreResult);
+                            $('#valDoneModalResult').html(resultContent2);
+                      }
+                    } else {
+                        if(stage_type==="stage_type"){
+                             location.href = "/defect/{{AiDonedefectId}}"
+                        }else{
+                             location.href = "/defect/simplified2/{{AiDonedefectId}}"
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    const responseData = JSON.parse(xhr.responseText);
+                    console.log(responseData);
+                    if(xhr.status===401 || xhr.status===409){
+                        alert(responseData.error)
+                        if(stage_type==="stage_type"){
+                             location.href = "/defect/{{AiDonedefectId}}"
+                        }else{
+                             location.href = "/defect/simplified2/{{AiDonedefectId}}"
+                        }
+                    }
+                    else if(xhr.status===405){
+                        setTimeout(function() {
+                            $('#NoMoney').modal('show')
+                            $('#valDoneModal').modal('hide');
+                        }, 2000);
+                    }
+                    else {
+                        alert("评估失败，请重新提交")
+                        if(stage_type==="stage_type"){
+                             location.href = "/defect/{{AiDonedefectId}}"
+                        }else{
+                             location.href = "/defect/simplified2/{{AiDonedefectId}}"
+                        }
+                    }
+                }
+            })
+    })
+    {% endif %}
+</script>

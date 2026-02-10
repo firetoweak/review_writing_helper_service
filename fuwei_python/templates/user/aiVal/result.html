@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI评估 - 锋矢AI蓝军</title>
+    {% include "user/base.html" %}
+    <link href="{{ url_for('static', filename='css/ai-val.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='lib/wang-editor/style.css') }}" rel="stylesheet" type="text/css">
+    <style>
+        body {
+            font-family: 'PingFang SC', sans-serif;
+            color: #222222;
+        }
+
+            .editor-container,
+            .editor-container .w-e-text-container,
+            .editor-container .w-e-text {
+                background-color: #F6FAFF !important;
+            }
+            .toolbar-container .w-e-toolbar {
+                background-color: #F6FAFF !important;
+            }
+            .ai-dialog-right-header {
+                width: 100%;
+                height: 72px;
+                border-radius: 16px 16px 0 0;
+                background-image: url(/static/images/login/login-top-bg.png);
+                background-position: center center;
+                background-size: 100% 130%;   /* 宽高都100%，图片会被等比拉伸填满div */
+                background-repeat: no-repeat;
+                position: relative;
+            }
+            .ai-dialog-right-header-title {
+                width: 90px;
+                height: 24px;
+                font-family: PingFang SC;
+                font-weight: 600;
+                font-size: 16px;
+                line-height: 24px;
+                letter-spacing: 0px;
+                text-align: left;
+                position: absolute;
+                top: 24px;
+                left: 24px;
+            }
+            .ai-dialog-right-header-status {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                font-family: PingFang SC;
+                font-weight: 400;
+                font-size: 14px;
+                line-height: 22px;
+                letter-spacing: 0%;
+                color:#1FAC78;
+            }
+            .ai-dialog-right-content-top{
+                background: linear-gradient(134.51deg, #E5F4FF 0%, #EFE7FF 100.86%);
+                width: 343px;
+                height: 104px;
+                margin-top: 15px;
+                border-radius: 16px;
+                padding: 10px;
+            }
+            .ai-dialog-box{
+                width: 100%;
+                height: 650px;
+                margin-top: 15px;
+                margin-left: 10px;
+            }
+        .ai-val-detail-status2 {
+            font-size: 13px;
+            color: #409EFF; /* Blue text for status */
+            border-radius: 20px;
+            margin-right: auto; /* Pushes refresh button to the right */
+            width: 70px;
+            height: 20px;
+            text-align: center;
+            font-family: PingFang SC;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    {% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    <section class="banner">
+        <div class="banner-content">
+            <div class="d-flex align-items-center mb-3">
+                <h1 class="banner-title mb-0">AI 提问</h1>
+                <div class="ml-2" style="color: #217EFD;">
+                    <i class="layui-icon layui-icon-chart" style="font-size: 25px;"></i>
+                </div>
+            </div>
+            <p class="banner-subtitle">与锋矢 AI 蓝军深度交流你的问题</p>
+            <div style="width: 380px;height: 300px;position: absolute;right: 10%;top: 20%;">
+                <img src="/static/images//aiVAl/banner4.svg" alt="" style="width: 100%;height: 100%;">
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item">首页</li>
+                <li class="breadcrumb-item">产品缺陷管理</li>
+                <li class="breadcrumb-item active">AI评估</li>
+            </ol>
+        </nav>
+    </div>
+    <div id="tb_container" style="max-width: 1280px;margin: 20px auto 0 auto;display: flex;">
+            <div class="ai-val-detail-table" style="width: 865px; flex:2.1;margin-right: 20px;">
+                <div class="ai-val-detail-header">
+                    <span class="ai-val-detail-id">ID: {{item.id}}</span>
+                    <span class="ai-val-detail-status2"> </span>
+                    <span class="ai-val-detail-status-del">删除</span>
+                    <span class="ai-val-detail-status-end" onclick="location.href='/user/aiVal/question?id={{item.id}}&type={{g.type}}'">提问</span>
+                </div>
+                <table class="ai-val-detail-tb-content">
+                    <thead>
+                    <tr>
+                        <th style="width: 10%;">评估项</th>
+                        <th style="width: 40%;">内容</th>
+                        <th style="width: 40%;">AI 建议 <img src="/static/images/aival/start.svg" alt="AI" class="ai-icon"></th>
+                        <th style="width: 10%;">评分 (满分10分)</th>
+                    </tr>
+                    </thead>
+                    <tbody id="ai-val-tr">
+                    <tr>
+                        <td>{{pageShow['step1']}}</td>
+                        <td>{{item.step1|safe}} </td>
+                        <td> {{item.ai_step1|safe}}</td>
+                        <td class="score score-green" >{% if item.state>0 %} {{item.step1_score}}{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>{{pageShow['step2']}}</td>
+                        <td>{{item.step2|safe}}</td>
+                        <td>{{item.ai_step2|safe}}</td>
+                        <td class="score score-blue">{% if item.state>0 %} {{item.step2_score}}{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>{{pageShow['step3']}}</td>
+                        <td>{{item.step3|safe}}</td>
+                        <td>{{item.ai_step3|safe}}</td>
+                        <td class="score score-purple">{% if item.state>0 %} {{item.step3_score}}{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>{{pageShow['step4']}}</td>
+                        <td>{{item.step4|safe}}</td>
+                        <td>{{item.ai_step4|safe}}</td>
+                        <td class="score score-red" >{% if item.state>0 %} {{item.step4_score}}{% endif %}</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="ai-dialog-right"  style=" height: 812px; flex:0.9;border-radius: 16px;border: 2px solid #E9EFF8">
+                <div class="ai-dialog-right-header">
+                    <div class="ai-dialog-right-header-title">锋矢AI蓝军</div>  
+                    <div class="ai-dialog-right-header-status"> <span style="font-size: 14px; margin-right: 4px;">●</span>会话中</span>
+                </div>
+            </div>
+            <div class="ai-dialog-box" style="position: relative;">
+                <div class="ai-dialog-right-content-top">
+                    <img src="/static/images//fengchi_tag.svg" alt="" style="margin-right: 10px;">
+                    <span style="font-family: PingFang SC;font-weight: 600; font-size: 18px; line-height: 28px; letter-spacing: 0px;">你好，我是锋矢AI蓝军</span>
+                    <div style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 130%;letter-spacing: 2px;text-align: justify; margin-top: 10px;color: #557496;">
+                        基于AI模型，帮你精确评估并提升企业工作质量，请提出你的问题吧～
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; width: 343px;">
+                    <div id="content1" style="word-break: break-all; text-align: right; max-width:343px; width:auto; height: auto; margin-top: 10px; padding: 10px; border-radius: 16px; background: linear-gradient(180deg, #F2F7FF 0%, #FFFFFF 101.32%); box-sizing: border-box;">
+                        1111111111111111111
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-start; width: 343px;">
+                    <div id="content2" style="word-break: break-all; text-align: left; max-width:343px; width:auto; height: auto; margin-top: 10px; padding: 10px; border-radius: 16px;background: linear-gradient(134.51deg, #E5F4FF 0%, #EFE7FF 100.86%); box-sizing: border-box;">
+                        22222222222222222222222222222222222222222
+                    </div>
+                </div>
+            </div>
+            <div class="ai-dialog-right-content-bottom" style="height: 56px;border: 1px solid #C0D7F4;width: 90%;margin: 0 auto;border-radius: 16px;display: flex;align-items: center;justify-content: space-between;padding: 0 15px;">
+                <input type="text" placeholder="请输入问题" style="border: none; outline: none; width: 90%; height: 100%; padding: 0 15px; font-size: 14px; background-color: transparent;">
+                <img src="/static/images//aiVAl/button_send.svg" alt="" style="width: 24px; height: 24px; cursor: pointer;">
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width: 1280px;margin: 20px auto 0 auto;">
+        <div style="width: 800px; height:100;margin: 0 auto;">
+            <img src="/static/images//aiVAl/split_page.svg" alt="" style="width: 100%;height: 100%;">
+        </div>
+    </div>
+    <div style="max-width: 1280px;margin: 20px auto 0 auto;">
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;font-family: PingFang SC;font-weight: 600;font-size: 24px;line-height: 36px;letter-spacing: 0%;vertical-align: middle;">
+            <img src="/static/images//fengchi_tag.svg" alt="" style="margin-right: 10px;">你的产品缺陷是?
+        </div>
+    
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px; border-right: 1px solid #e6dcdd; border-top: none; border-bottom: none; border-left: none; border-radius: 8px;">
+            <div id="tb1" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e1" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;font-family: PingFang SC;font-weight: 600;font-size: 24px;line-height: 36px;letter-spacing: 0%;vertical-align: middle;">
+            <img src="/static/images//fengchi_tag.svg" alt="" style="margin-right: 10px;">你的原因分析是?
+        </div>
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px; border: 1px solid #e6dcdd;border-radius: 8px;">
+            <div id="tb2" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e2" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;font-family: PingFang SC;font-weight: 600;font-size: 24px;line-height: 36px;letter-spacing: 0%;vertical-align: middle;">
+            <img src="/static/images//fengchi_tag.svg" alt="" style="margin-right: 10px;">你的解决措施是？
+        </div>
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px; border: 1px solid #e6dcdd;border-radius: 8px;">
+            <div id="tb3" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e3" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;font-family: PingFang SC;font-weight: 600;font-size: 24px;line-height: 36px;letter-spacing: 0%;vertical-align: middle;">
+            <img src="/static/images//fengchi_tag.svg" alt="" style="margin-right: 10px;">你的回归测试结果是？
+        </div>
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px; border: 1px solid #e6dcdd;border-radius: 8px;">
+            <div id="tb4" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e4" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+    </div>
+    <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+            <button class="btn-batch mr-3" style="width: 86px;">取消</button>
+            <button class="ok-btn" style="width: 400px;" >重新AI评估 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+        </div>
+    </div>
+
+    <!-- 登录弹框背景遮罩 -->
+<footer class="footer">
+    <div class="container">
+        <!-- 快捷入口 -->
+        <div class="quick-links text-center">
+            <span class="quick-links-title">快捷入口：</span>
+            <a href="#" class="quick-link">首页</a>
+            <a href="#" class="quick-link">API开放平台</a>
+            <a href="#" class="quick-link">产品立项</a>
+            <a href="#" class="quick-link">产品需求管理</a>
+            <a href="#" class="quick-link">产品缺陷管理</a>
+            <a href="#" class="quick-link">用户管理</a>
+            <a href="#" class="quick-link" id="contactUsFooterLink">联系我们</a>
+        </div>
+        
+        <hr class="footer-divider">
+        
+        <!-- 版权信息 -->
+        <div class="copyright text-center">
+            <div class="d-inline-flex align-items-center">
+                <span>Copyright ©2025</span>
+                <div class="d-flex align-items-center ms-2">
+                    <span class="company-name">锋矢科技</span>
+                </div>
+            </div>
+            <div class="mt-1 " onclick="location.href='https://beian.miit.gov.cn/'"  style="cursor: pointer">粤ICP备2023062980号</div>
+        </div>
+    </div>
+</footer>
+
+    {% include "user/base_js.html" %}
+    {% include "user/base_toast.html" %}
+    <script src="{{ url_for('static', filename='lib/wang-editor/index.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/public_editor.js')}}"></script>
+    <script>
+        // $(document).ready(function() {
+        //     // 卡片点击效果
+        //     $('.ai-card-btn').click(function() {
+        //         const cardTitle = $(this).closest('.ai-card').find('.ai-card-title').text();
+        //         alert('开始' + cardTitle);
+        //         // 这里可以添加跳转到评估详情页面的逻辑
+        //     });
+
+            // // Header滚动效果
+            // $(window).scroll(function() {
+            //     const header = $('.header');
+            //     const scrollPosition = $(this).scrollTop();
+            //     const scrollThreshold = 50; // 滚动阈值
+
+            //     if (header.length) { // 确保header元素存在
+            //         if (scrollPosition > scrollThreshold) {
+            //             header.addClass('header-scrolled');
+            //         } else {
+            //         }
+            //     }
+            // });
+        //     const { createEditor, createToolbar } = window.wangEditor
+        //         const editorConfig = {
+        //             placeholder: '请输入...',
+        //             MENU_CONF: {
+        //                 uploadImage: {
+        //                     server: '/user/aiVal/upload_pic', // 替换为你的图片上传接口地址
+        //                     fieldName: 'file', // 上传文件的字段名（与后端一致）
+        //                     maxFileSize: 5 * 1024 * 1024, // 5MB
+        //                     maxNumberOfFiles: 1, // 最多上传 5 张图片
+        //                     customInsert(res, insertFn) {
+        //                         if (res.code == 1) {
+        //                             insertFn(res.url); // 插入图片 URL
+        //                         } else {
+        //                             alert(res.msg || '上传失败');
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         const toolbarConfig = {
+        //             toolbarKeys: ['uploadImage'] // 只保留上传图片按钮
+        //         };
+        //         const editor1 = createEditor({
+        //             selector: '#e1',
+        //             html: '',
+        //             config: { ...editorConfig },
+        //             mode: 'simple', // or 'simple'
+        //         })
+        //         createToolbar({
+        //             editor:editor1,
+        //             selector: '#tb1',
+        //             config: toolbarConfig,
+        //             mode: 'simple', // or 'simple'
+        //         })
+
+        // });
+    </script>
+</body>
+</html> 

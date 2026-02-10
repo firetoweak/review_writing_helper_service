@@ -1,0 +1,204 @@
+<!-- platforms.html -->
+{% extends "tech_group/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>平台管理 - {{ tech_group.name }}</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('tech_group.get_tech_groups') }}">技术族</a></li>
+                <li class="breadcrumb-item active">{{ tech_group.name }}</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="{{ url_for('tech_group.get_tech_groups') }}" class="btn btn-secondary me-2">
+            <i class="bi bi-arrow-left"></i> 返回上一级
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#platformModal"
+                onclick="resetPlatformForm()">
+            <i class="bi bi-plus-circle"></i> 新增
+        </button>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>类型</th>
+            <th>描述</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for platform in platforms %}
+        <tr>
+            <td>{{ platform.id }}</td>
+            <td>{{ platform.name }}</td>
+            <td>{{ platform.type }}</td>
+            <td>{{ platform.description or '' }}</td>
+            <td>
+                <a href="{{ url_for('tech_group.get_projects', platform_id=platform.id) }}" class="btn btn-sm btn-info">
+                    <i class="bi bi-list"></i> 查看项目
+                </a>
+                <button class="btn btn-sm btn-warning"
+                        data-bs-toggle="modal"
+                        data-bs-target="#platformModal"
+                        onclick="editPlatform({{ platform.id }}, '{{ platform.name }}', '{{ platform.type }}', '{{ platform.description or '' }}')">
+                    <i class="bi bi-pencil"></i> 编辑
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deletePlatform({{ platform.id }}, '{{ platform.name }}')">
+                    <i class="bi bi-trash"></i> 删除
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 平台模态框 -->
+<div class="modal fade" id="platformModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="platformModalTitle">新增平台</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="platformForm">
+                <input type="hidden" name="tech_group_id" value="{{ tech_group.id }}">
+                <input type="hidden" id="platformId" name="id" value="">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">名称</label>
+                        <input type="text" class="form-control" id="platformName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">类型</label>
+                        <input type="text" class="form-control" id="platformType" name="type" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">描述</label>
+                        <textarea class="form-control" id="platformDescription" name="description"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 重置表单
+    function resetPlatformForm() {
+        document.getElementById('platformModalTitle').innerText = '新增平台';
+        document.getElementById('platformId').value = '';
+        document.getElementById('platformName').value = '';
+        document.getElementById('platformType').value = '';
+        document.getElementById('platformDescription').value = '';
+    }
+
+    // 编辑平台
+    function editPlatform(id, name, type, description) {
+        document.getElementById('platformModalTitle').innerText = '编辑平台';
+        document.getElementById('platformId').value = id;
+        document.getElementById('platformName').value = name;
+        document.getElementById('platformType').value = type;
+        document.getElementById('platformDescription').value = description;
+    }
+
+    // 删除平台
+    function deletePlatform(id, name) {
+        if (confirm(`确定要删除平台"${name}"吗？此操作不可恢复。`)) {
+            fetch(`/tech_group/platforms/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                // 首先检查HTTP状态码
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || `服务器错误: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 成功删除后刷新页面
+                alert(data.message || '删除成功');
+                window.location.reload();
+            })
+            .catch(error => {
+                alert('删除失败: ' + error.message);
+            });
+        }
+    }
+
+    // 处理平台表单提交
+    document.getElementById('platformForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // 表单验证
+        const nameInput = document.getElementById('platformName');
+        const typeInput = document.getElementById('platformType');
+
+        if (!nameInput.value.trim()) {
+            alert('平台名称不能为空');
+            nameInput.focus();
+            return;
+        }
+
+        if (!typeInput.value.trim()) {
+            alert('平台类型不能为空');
+            typeInput.focus();
+            return;
+        }
+
+        const formData = new FormData(this);
+        const platformId = document.getElementById('platformId').value;
+        const url = platformId ? `/tech_group/platforms/${platformId}` : '/tech_group/platforms';
+        const method = platformId ? 'PUT' : 'POST';
+        const action = platformId ? '更新' : '创建';
+
+        // 显示加载状态
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+        submitBtn.disabled = true;
+
+        fetch(url, {
+            method: method,
+            body: formData
+        })
+        .then(response => {
+            // 首先检查HTTP状态码
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || `服务器错误: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`${action}成功`);
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('platformModal'));
+            modal.hide();
+            // 刷新页面
+            window.location.reload();
+        })
+        .catch(error => {
+            alert(`${action}失败: ` + error.message);
+        })
+        .finally(() => {
+            // 恢复按钮状态
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+{% endblock %}

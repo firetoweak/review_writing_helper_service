@@ -1,0 +1,62 @@
+    {% if get_role_select_session()=="公司管理员"  %}
+
+    {% elif get_role_select_session()=="全板块管理员" %}
+        <div class="tab-buttons">
+            <div class="tab-btn  tab-btn1{% if get_url_path()== "/product_line/versions" or  get_url_path()== "/tech_group/projects" %} active{% endif %}"  >
+                <a href="/product_line/versions?defect_type={{ request.values.get('defect_type') }}">项目与管理员信息管理</a>
+            </div>
+            <div class="tab-btn{% if get_url_path()== "/defect_level/levels" %} active{% endif %}">
+                <a href="/defect_level/levels?defect_type={{ request.values.get('defect_type') }}">DI值计算规则</a>
+            </div>
+            <div class="tab-btn{% if get_url_path()== "/template/manage" %} active{% endif %}">
+               <a href="/template/manage?defect_type={{ request.values.get('defect_type') }}">描述模板</a>
+            </div>
+            <div class="tab-btn{% if get_url_path()== "/global_settings/global_viewer/list" %} active{% endif %}">
+                <a href="/global_settings/global_viewer/list?defect_type={{ request.values.get('defect_type') }}">全板块查阅人</a>
+            </div>
+            <div class="tab-btn tab-btn2{% if get_url_path()== "/defect/exception_handling_defect_list" %} active{% endif %}">
+                <a href="/defect/exception_handling_defect_list?defect_type={{ request.values.get('defect_type') }}">异常处理</a>
+            </div>
+        </div>
+    {% elif get_role_select_session()=="全板块查阅人" %}
+        <div class="tab-buttons">
+            <div class="tab-btn tab-btn1{% if get_url_path()== "/defect/statistics"%} active{% endif %}" data-tab="pending">
+                <a href="/defect/statistics?defect_type={{ request.values.get('defect_type') }}">统计分析</a>
+            </div>
+            <div class="tab-btn tab-btn2{% if get_url_path()== "/defect/"%} active{% endif %}" data-tab="processed">
+                <a href="/defect/?defect_type={{ request.values.get('defect_type') }}">缺陷单记录</a>
+                <span class="status-badge" id="totalDefectNum">({{ get_defects_num() }})</span>
+            </div>
+        </div>
+    {% elif get_role_select_session()=="项目管理员" %}
+
+    {% elif get_role_select_session()=="项目查阅人" %}
+         <div class="tab-buttons">
+            <div class="tab-btn tab-btn1{% if get_url_path()== "/defect/statistics"%} active{% endif %}" data-tab="pending">
+                <a href="/defect/statistics?defect_type={{ request.values.get('defect_type') }}">统计分析</a>
+            </div>
+            <div class="tab-btn tab-btn2{% if get_url_path()== "/defect/"%} active{% endif %}" data-tab="processed">
+                <a href="/defect/?defect_type={{ request.values.get('defect_type') }}">缺陷单记录</a>
+                <span class="status-badge" id="totalDefectNum">({{ get_defects_num() }})</span>
+            </div>
+        </div>
+        {% else %}
+           <div class="tab-buttons">
+                <div class="tab-btn tab-btn1 {% if (filters|default({})).get('deal_status') in ['pending', ''] %}active{% endif %}"   data-tab="pending">
+                    待处理缺陷
+                    <span class="status-badge">{% if (pending_num|default(0))>=100 %}(99+){% else %} ({{ pending_num|default(0) }}) {% endif %}</span>
+                </div>
+                <div class="tab-btn tab-btn2 {% if (filters|default({})).get('deal_status') == 'processed' %}active{% endif %}" data-tab="processed">
+                    处理记录
+                    <span class="status-badge">{% if (processed_num|default(0))>=100 %}(99+){% else %} ({{ processed_num|default(0) }}) {% endif %}</span>
+                </div>
+           </div>
+        {% endif %}
+
+
+    <script>
+        window.addEventListener('load', function() {
+            $('.operation-bar').css("gap","0px")
+            $('.operation-bar').css("justify-content","flex-start")
+        })
+    </script>

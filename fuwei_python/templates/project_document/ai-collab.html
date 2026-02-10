@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>codefun</title>
+    {% include "project_document/base.html" %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/ai-collab/index.css')}}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/ai-collab/index.js')}}"></script>
+  </head>
+  <body>
+    <div class="flex-col page scrollbar-custom">
+      <div class="flex-row items-center relative header-bar">
+        <img class="header-icon" src="/static/project_document/images/ai-collab/illustration-ai-collab.png" />
+        <span class="header-link back-link-label">返回写作</span>
+      </div>
+      <div class="flex-col content-wrapper">
+        <div class="flex-row justify-center items-center">
+          <div class="flex-col original-card">
+            <div class="flex-col justify-start items-start self-stretch relative card-header">
+              <img class="shrink-0 card-header-bg" src="/static/project_document/images/common/bg-card-header.png" />
+              <span class="card-label card-label-position-left">原文内容</span>
+              <img class="edit-icon" id="edit-original" src="/static/project_document/images/ai-collab/icon-edit.svg" />
+            </div>
+            <span class="mt-space-twenty-two self-start section-title section-title-gradient">1.1 这是章节标题</span>
+            <!-- 富文本工具栏（原文） -->
+            <div class="writing-toolbar" id="original-toolbar-wrapper" style="display: none;">
+              <div id="original-toolbar" class="toolbar-container"></div>
+            </div>
+            <div class="mt-space-twenty-two flex-col self-stretch card-content" id="original-content">
+              <span class="content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+                <br />
+                <br />
+              </span>
+              <span class="mt-space-twenty-four content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+                <br />
+                <br />
+              </span>
+              <span class="mt-space-twenty-four content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+                <br />
+                <br />
+              </span>
+              <span class="mt-space-twenty-four content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+              </span>
+            </div>
+          </div>
+          <img class="ml-space-twenty-four divider-graphic" src="/static/project_document/images/common/illustration-bar.png" />
+          <div class="ml-space-twenty-four flex-col ai-card">
+            <div class="flex-col justify-start items-start self-stretch relative card-header">
+              <img class="shrink-0 card-header-bg" src="/static/project_document/images/common/bg-card-header.png" />
+              <span class="card-label card-label-position-right">AI生成内容</span>
+              <img class="edit-icon" id="edit-ai" src="/static/project_document/images/ai-collab/icon-edit.svg" />
+            </div>
+            <span class="mt-space-twenty-two self-start section-title section-title-gradient">1.1 这是章节标题</span>
+            <!-- 富文本工具栏（AI生成） -->
+            <div class="writing-toolbar" id="ai-toolbar-wrapper" style="display: none;">
+              <div id="ai-toolbar" class="toolbar-container"></div>
+            </div>
+            <div class="mt-space-twenty-two flex-col self-stretch card-content" id="ai-content">
+              <span class="content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+                <br />
+                <br />
+              </span>
+              <span class="mt-space-twenty-four content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+                <br />
+                <br />
+              </span>
+              <span class="mt-space-twenty-four content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+                <br />
+                <br />
+              </span>
+              <span class="mt-space-twenty-four content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+                <br />
+                <br />
+              </span>
+              <span class="mt-space-twenty-four content-text content-justify">
+                这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。这是一段工作输出文字描述。
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-space-twenty-four flex-row justify-between action-buttons">
+          <div class="flex-col justify-start items-center action-primary" data-action="use-original">
+            <span class="action-label">按左框内容确定替换</span>
+          </div>
+          <div class="flex-col justify-start items-center action-secondary" data-action="discard">
+            <span class="action-label action-secondary-text">放弃替换</span>
+          </div>
+          <div class="flex-col justify-start items-center action-primary" data-action="use-ai">
+            <span class="action-label">按右框内容确定替换</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

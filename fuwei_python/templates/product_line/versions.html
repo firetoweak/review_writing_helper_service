@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>版本管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .table-hover tbody tr:hover {
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+        .search-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .badge-supported {
+            background-color: #198754;
+        }
+        .badge-unsupported {
+            background-color: #6c757d;
+        }
+        .hierarchy-link {
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .action-buttons .btn {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-primary"><i class="bi bi-box-seam"></i> 版本管理系统</h1>
+            <a href="/product_line/hierarchy" class="btn btn-outline-primary">
+                <i class="bi bi-diagram-3"></i> 查看层级结构
+            </a>
+        </div>
+
+        <!-- 搜索区域 -->
+        <div class="search-box">
+            <h5 class="mb-3"><i class="bi bi-search"></i> 搜索筛选</h5>
+            <form id="searchForm" method="GET" action="/product_line/versions">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="product_line_name" class="form-label">产品线名称</label>
+                        <select class="form-select" id="product_line_name" name="product_line_name">
+                            <option value="">全部产品线</option>
+                            {% for line in product_lines %}
+                            <option value="{{ line.name }}"
+                                {% if request.args.get('product_line_name') == line.name %}selected{% endif %}>
+                                {{ line.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="product_name" class="form-label">产品名称</label>
+                        <select class="form-select" id="product_name" name="product_name">
+                            <option value="">全部产品</option>
+                            {% for product in products %}
+                            <option value="{{ product.name }}"
+                                {% if request.args.get('product_name') == product.name %}selected{% endif %}>
+                                {{ product.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="version_number" class="form-label">版本号</label>
+                        <input type="text" class="form-control" id="version_number" name="version_number"
+                               value="{{ request.args.get('version_number', '') }}" placeholder="输入版本号">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> 搜索
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearSearch()">
+                            <i class="bi bi-arrow-clockwise"></i> 重置
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> 版本列表</h5>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVersionModal">
+                <i class="bi bi-plus-circle"></i> 新增版本
+            </button>
+        </div>
+
+        <!-- 版本表格 -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>版本号</th>
+                                <th>代码名称</th>
+                                <th>产品名称</th>
+                                <th>产品线</th>
+                                <th>发布日期</th>
+                                <th>支持状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for version in versions %}
+                            <tr>
+                                <td class="fw-bold">{{ version.id }}</td>
+                                <td>
+                                    <span class="badge bg-info text-dark">{{ version.version_number }}</span>
+                                </td>
+                                <td>{{ version.code_name or '-' }}</td>
+                                <td>{{ version.product_name }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ version.product_line_name }}</span>
+                                </td>
+                                <td>{{ version.release_date or '未设置' }}</td>
+                                <td>
+                                    {% if version.is_supported %}
+                                    <span class="badge bg-success">支持中</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">已停止支持</span>
+                                    {% endif %}
+                                </td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary edit-version"
+                                            data-id="{{ version.id }}"
+                                            data-version-number="{{ version.version_number }}"
+                                            data-code-name="{{ version.code_name }}"
+                                            data-product_name="{{ version.product_name }}"
+                                            data-product_line_name="{{ version.product_line_name }}"
+                                            data-release-date="{{ version.release_date }}"
+                                            data-is-supported="{{ version.is_supported }}"
+                                            data-product-id="{{ version.product_id }}">
+                                        <i class="bi bi-pencil"></i> 编辑
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-version"
+                                            data-id="{{ version.id }}"
+                                            data-version-number="{{ version.version_number }}">
+                                        <i class="bi bi-trash"></i> 删除
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <i class="bi bi-inbox display-4 text-muted"></i>
+                                    <p class="mt-3 text-muted">暂无版本数据</p>
+                                    <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addVersionModal">
+                                        <i class="bi bi-plus-circle"></i> 创建新版本
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增版本模态框 -->
+    <div class="modal fade" id="addVersionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> 新增版本</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addVersionForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="versionNumber" class="form-label">版本号 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="versionNumber" name="version_number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="codeName" class="form-label">代码名称</label>
+                                    <input type="text" class="form-control" id="codeName" name="code_name" placeholder="可选">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="product" class="form-label">产品 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="product" name="product_id" required>
+                                <option value="">请选择产品</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }} ({{ product.product_line_name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="releaseNotes" class="form-label">发布说明</label>
+                            <textarea class="form-control" id="releaseNotes" name="release_notes" rows="3" placeholder="输入版本发布说明..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="releaseDate" class="form-label">发布日期</label>
+                                    <input type="date" class="form-control" id="releaseDate" name="release_date">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">支持状态</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="isSupported" name="is_supported" value="true" checked>
+                                        <label class="form-check-label" for="isSupported">当前支持</label>
+                                    </div>
+                                    <input type="hidden" name="is_supported" value="false">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存版本</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑版本模态框 -->
+    <div class="modal fade" id="editVersionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title"><i class="bi bi-pencil"></i> 编辑版本</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editVersionForm">
+                    <input type="hidden" id="editVersionId" name="id">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editVersionNumber" class="form-label">版本号 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editVersionNumber" name="version_number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editCodeName" class="form-label">代码名称</label>
+                                    <input type="text" class="form-control" id="editCodeName" name="code_name" placeholder="可选">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editProduct" class="form-label">产品 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="editProduct" name="product_id" required>
+                                <option value="">请选择产品</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }} ({{ product.product_line_name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editReleaseNotes" class="form-label">发布说明</label>
+                            <textarea class="form-control" id="editReleaseNotes" name="release_notes" rows="3" placeholder="输入版本发布说明..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editReleaseDate" class="form-label">发布日期</label>
+                                    <input type="date" class="form-control" id="editReleaseDate" name="release_date">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">支持状态</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="editIsSupported" name="is_supported" value="true">
+                                        <label class="form-check-label" for="editIsSupported">当前支持</label>
+                                    </div>
+                                    <input type="hidden" name="is_supported" value="false">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">更新版本</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 搜索表单重置
+        function clearSearch() {
+            document.getElementById('product_line_name').value = '';
+            document.getElementById('product_name').value = '';
+            document.getElementById('version_number').value = '';
+            document.getElementById('searchForm').submit();
+        }
+
+        // 处理复选框值
+        function setupCheckboxHandlers() {
+            // 新增表单
+            const addCheckbox = document.getElementById('isSupported');
+            const addHidden = document.querySelector('#addVersionForm input[type="hidden"][name="is_supported"]');
+
+            addCheckbox.addEventListener('change', function() {
+                addHidden.value = this.checked ? 'true' : 'false';
+            });
+
+            // 编辑表单
+            const editCheckbox = document.getElementById('editIsSupported');
+            const editHidden = document.querySelector('#editVersionForm input[type="hidden"][name="is_supported"]');
+
+            editCheckbox.addEventListener('change', function() {
+                editHidden.value = this.checked ? 'true' : 'false';
+            });
+        }
+
+        // 编辑版本
+        document.querySelectorAll('.edit-version').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const versionNumber = button.getAttribute('data-version-number');
+                const codeName = button.getAttribute('data-code-name') || '';
+                const releaseNotes = button.getAttribute('data-release-notes') || '';
+                const releaseDate = button.getAttribute('data-release-date') || '';
+                const isSupported = button.getAttribute('data-is-supported') === 'True';
+                const productId = button.getAttribute('data-product-id');
+
+                document.getElementById('editVersionId').value = id;
+                document.getElementById('editVersionNumber').value = versionNumber;
+                document.getElementById('editCodeName').value = codeName;
+                document.getElementById('editReleaseNotes').value = releaseNotes;
+                document.getElementById('editReleaseDate').value = releaseDate;
+                document.getElementById('editIsSupported').checked = isSupported;
+                document.querySelector('#editVersionForm input[type="hidden"][name="is_supported"]').value = isSupported;
+                document.getElementById('editProduct').value = productId;
+
+                const modal = new bootstrap.Modal(document.getElementById('editVersionModal'));
+                modal.show();
+            });
+        });
+
+        // 删除版本
+        document.querySelectorAll('.delete-version').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const versionNumber = button.getAttribute('data-version-number');
+
+                if (confirm(`确定要删除版本"${versionNumber}"吗？此操作不可恢复。`)) {
+                    fetch(`/product_line/versions/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('删除成功');
+                            window.location.reload();
+                        } else {
+                            alert('删除失败: ' + (data.error || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('请求失败: ' + error.message);
+                    });
+                }
+            });
+        });
+
+        // 表单提交处理 - 新增版本
+        document.getElementById('addVersionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/product_line/versions', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('版本创建成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 编辑版本
+        document.getElementById('editVersionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = document.getElementById('editVersionId').value;
+
+            try {
+                const response = await fetch(`/product_line/versions/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('版本更新成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + (result.error || '未知错误'));
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            setupCheckboxHandlers();
+        });
+    </script>
+</body>
+</html>

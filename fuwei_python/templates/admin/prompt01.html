@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+    {% include "admin/base.html" %}
+    <link href="{{ url_for('static', filename='lib/wang-editor/style.css') }}" rel="stylesheet" type="text/css">
+    <body class="skin-blue">
+        {% include "admin/header.html" %}
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+            <aside class="right-side">
+                <section class="content-header">
+                    <h1>
+                        {% if type==0 %}
+                        缺陷
+                        {% else %}
+                        需求
+                        {% endif %}
+                        prompt管理
+                        <small>Preview page</small>
+                    </h1>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        {% if type==0 %}
+                        <li class="active">缺陷prompt</li>
+                        {% else %}
+                        <li class="active">需求prompt</li>
+                        {% endif %}
+                    </ol>
+                </section>
+                <div style="float: left;width: 100%;">
+                    <div >
+                        <button class="btn btn-primary" style="margin: auto;margin-top: 20px" id="add" onclick="location.href='/admin/prompt?menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}&type={{type}}&add=1'">新增</button>
+                    </div>
+                    <div style="float: left;width: 30%;margin-top: 5px">
+                        <table class="table table-bordered" style="margin-bottom: 5px">
+                            <tbody>
+                            <tr>
+                                <th style="width: 80%;">prompt名称</th>
+                                <th  style="width: 20%">操作</th>
+                            </tr>
+                            {% for item in items %}
+                            <tr>
+                                <td>
+                                    <a href="/admin/prompt?id={{item.id}}&menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}&type={{type}}&page={{ page }}"
+                                       {% if doc_id==item.id %} style="color:red" {% endif %}
+                                    >
+                                        {{item.file_name}}
+                                    </a>
+                                </td>
+                                <td><a class="demand" style="cursor:pointer"   data-id="{{item.id}}" >上传修改</a></td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <ul class="pagination pagination-sm no-margin pull-left">
+                            {{ pagination.links }}
+                        </ul>
+                    </div>
+                    <div style="float: left;width: 70%;">
+                        {% if doc_id>0  or add=='1' %}
+                        <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                            <b style="color: red">评分规则：</b>
+                            <textarea  id ="markdown" class="form-control" rows="20" style="width: 100%;margin-right: 0px" placeholder="请填写评分规则">{{markdown}} </textarea>
+                        </div>
+                        <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                            <b style="color: red">指令：</b>
+                            <textarea  id ="cammand" class="form-control" rows="20" style="width: 100%;margin-right: 0px" placeholder="请填写指令">{{cammand}}</textarea>
+                        </div>
+                        <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                            <b style="color: red">标题：</b>
+                            <input type="text"   id ="file_name" class="form-control" style="width: 50%;margin-right: 0px" placeholder="标题" value="{{file_name}}">
+                        </div>
+                        <div style="width: 100%;float: right;text-align: center">
+                            <button class="btn btn-danger" style="margin: auto;margin-top: 20px" id="editorDone">提交</button>
+                        </div>
+                        {%else%}
+                        请点选左边列表文档
+                        {% endif %}
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </body>
+</html>
+
+<script src="{{ url_for('static', filename='lib/wang-editor/index.js')}}"></script>
+
+
+<script>
+    layui.use(['jquery', 'layer','upload'], function(){
+        var $ = layui.jquery;
+        var upload = layui.upload;
+
+
+
+        $('.demand').each(function() {
+            var elem = $(this); // 当前按钮
+            var id = $(this).attr('data-id');
+            upload.render({
+                elem: elem, // 直接传入 jQuery 对象或 DOM 元素
+                url: '/admin/upload?id='+id+'&upload_type=val',
+                accept: 'file',
+                before: function() {
+                    layer.load();
+                },
+                done: function(res) {
+                    layer.closeAll();
+                    layer.msg(res.msg || '上传成功');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                },
+                error: function() {
+                    layer.closeAll();
+                    layer.msg('上传失败');
+                }
+            });
+        });
+    })
+
+$('#editorDone').click(function (){
+    let  markdown = $('#markdown').val()
+    let id = "{{doc_id}}"
+    let cammand = $('#cammand').val()
+    let file_name = $('#file_name').val()
+    $.ajax({
+        type: "POST",
+        url: "/admin/prompt",
+        contentType: "application/json;charset=UTF-8",
+        data: JSON.stringify({
+            markdown: markdown,
+            id:id,
+            cammand:cammand,
+            type: "{{type}}",
+            file_name:file_name
+        }),
+        async: false,
+        success: function (data) {
+            alert("修改成功")
+            location.reload()
+        }
+    })
+})
+</script>

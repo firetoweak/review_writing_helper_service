@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目成员管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+    <style>
+        .user-row {
+            display: flex;
+            align-items: center;
+            margin-right: 4rem;
+            justify-content: space-between;
+            white-space: nowrap;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: block;
+            align-items: center;
+            min-width: 0;
+            /* 允许文本截断 */
+            flex: 1;
+        }
+
+        .user-avatar {
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .user-details>div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-email {
+            flex-shrink: 0;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            white-space: nowrap;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .no-users {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .config-btn {
+            margin-right: 5px;
+        }
+
+        /* 新增：禁用按钮样式 */
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+            /*pointer-events: none;*/
+        }
+
+        .table-container .layui-table tbody td {
+            border-bottom: 1px solid #e6e6e6 !important;
+            /* 为单元格添加下边框 */
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        .pagination-container {
+            margin-top: 20px;
+            padding: 15px 0;
+            border-top: 1px solid #e6e6e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+        .pagination .page-link {
+            color: #007bff;
+            border: 1px solid #dee2e6;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .pagination .page-link:hover {
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .pagination-container .d-flex {
+                flex-direction: column;
+                gap: 15px !important;
+            }
+
+            .pagination-container .text-muted {
+                order: 1;
+                text-align: center;
+            }
+
+            .pagination-container .d-flex.align-items-center {
+                order: 3;
+                justify-content: center;
+                width: 100%;
+            }
+        }
+
+        /* 表单控件样式调整 */
+        .form-select-sm,
+        .form-control-sm {
+            font-size: 0.875rem;
+        }
+
+        #gotoPageInput {
+            -moz-appearance: textfield;
+        }
+
+        #gotoPageInput::-webkit-outer-spin-button,
+        #gotoPageInput::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    {% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item">
+                    {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a> {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+                </li>
+                <li class="breadcrumb-item active">
+                    项目成员管理
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <!-- 显示Flash消息 -->
+    {% include "defect/show_flash.html" %}
+    <div class="container-main">
+        <div class="role-selector">
+            {% include "components/roles_menu.html" %}
+            {% include "components/defect_message.html" %}
+        </div>
+        <!-- 操作栏 - 包含切换按钮和搜索区域 -->
+        <div class="operation-bar" style="justify-content: space-between;">
+             {{ get_right_style(0)|safe }}
+            <!-- 切换按钮 -->
+            {% include "components/user_menus.html" %}
+        </div>
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <!-- 主内容区 -->
+                <div class="col-lg-12">
+                    <div class="main-content p-4">
+                        <!-- 页面标题 -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h4 class="mb-0">项目成员管理</h4>
+                        </div>
+
+                        <!-- 统计卡片 -->
+                        <div class="row mb-4" style="display:none">
+                            <div class="col-md-3 mb-3">
+                                <div class="stat-card bg-primary text-white p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 id="techGroupCount">0</h5>
+                                            <p class="mb-0">技术族数量</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-diagram-3 fs-1 opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="stat-card bg-success text-white p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 id="productLineCount">0</h5>
+                                            <p class="mb-0">产品线数量</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-layers fs-1 opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="stat-card bg-warning text-white p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 id="projectAdminCount">0</h5>
+                                            <p class="mb-0">项目管理员</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-person-check fs-1 opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="stat-card bg-info text-white p-3">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h5 id="totalMembers">0</h5>
+                                            <p class="mb-0">总成员数</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-people fs-1 opacity-50"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 搜索和筛选区域 -->
+                        <div class="filter-section mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="search-box">
+                                        <i class="bi bi-search"></i>
+                                        <input type="text" class="input-border" id="searchKeyword"
+                                            placeholder="搜索成员姓名、邮箱或手机号">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select" id="typeFilter">
+                                        <option value="all">全部类型</option>
+                                        <option value="product_line">产品线</option>
+                                        <option value="tech_group">技术族</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select" id="roleTypeFilter">
+                                        <option value="">全部角色</option>
+                                        <option value="project_admin">项目管理员</option>
+                                        <option value="project_viewer">项目查阅人</option>
+                                        {% if request.args.get('defect_type') != 'simplified2' %}
+                                        <option value="dev_manager">开发主管</option>
+                                        <option value="test_manager">测试经理</option>
+<!--                                        <option value="developer">开发人员</option>-->
+<!--                                        <option value="tester">测试人员</option>-->
+                                        {% endif %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2" style="display:none">
+                                    <select class="form-select" id="userStatusFilter">
+                                        <option value="">全部状态</option>
+                                        <option value="1">已加入</option>
+                                        <option value="0">未加入</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100" id="resetFilters">重置筛选</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 成员列表 -->
+                        <div class="table-container">
+                            <table class="layui-table" lay-size="sm">
+                                <thead>
+                                    <tr>
+                                        <th width="5%">类型</th>
+                                        <th width="30%">项目/版本</th>
+                                        <th width="10%">角色</th>
+                                        <th width="45%">成员信息</th>
+                                        <th width="10%">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="memberTableBody">
+                                    <!-- 数据将通过JavaScript动态加载 -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 分页控件 -->
+                        <div class="pagination-placeholder" id="paginationContainer">
+                            <!-- 分页将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+     <!-- 配置项目角色弹窗 -->
+    <div class="modal fade" id="batchInviteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:900px;">
+            <div class="modal-content" style="border-radius:16px;">
+                <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                    <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                        <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                            <div class="flex items-center justify-center">
+                                <img src="/static/images/defect/p2_03.png" alt="图标" class="invite-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;">
+                                <span style="margin-top: 2px;">添加角色成员</span>
+                            </div>
+                            <!-- 项目信息（项目/版本）和角色信息 -->
+                            <div>
+                                <span id="configEntityPath" style="width: 10%; font-size:14px;color:#666;"></span>
+                                <span id="configRoleName" style="width: 10%; font-size:14px;color:#666;"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="this.blur()" aria-label="Close" style="font-size:20px;"></button>
+                </div>
+                <div class="modal-body" style="padding: 0 40px;margin-top: 34px;">
+                    <!-- 邀请人员列表容器 -->
+                    <div id="inviteeMembersContainer">
+                        <!-- 第一个邀请人员项（默认） -->
+                        <div class="invitee-item" data-item-index="1">
+                            <!-- 移除按钮放在右上角 -->
+                            <div style="text-align: right; margin-bottom: 10px;">
+                                <button type="button" class="remove-invitee-btn" style="color: #FE6380;border: 1px solid #FE6380;background: #fff;border-radius: 100px;padding: 3px 8px 1px;font-size: 12px;cursor: pointer;display: none;">移除</button>
+                            </div>
+                            <!-- 人员搜索区域和姓名显示区域（同一行） -->
+                            <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                                <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                    <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                        <span style="color: red;">*</span> 请选择处理人的 Email 账号，平台将会通知他
+                                    </label>
+                                    <div style="position: relative;">
+                                        <input type="text" class="form-control invitee-search layui-input" placeholder="搜索成员" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                                        <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 12px;top: 50%;transform: translateY(-50%);width: 16px;height: 16px;">
+                                        <!-- 下拉框 -->
+                                        <div class="invitee-dropdown" style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 200px;overflow-y: auto;">
+                                            <!-- 动态生成搜索结果 -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="width: 50%;">
+                                    <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">姓名</label>
+                                    <div class="selected-invitee-name" style="width: 100%;height: 40px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #E6F0FD;color: #7288AE;display: flex;align-items: center;">
+                                        通过Email账号搜索成员，此处将会自动填充姓名
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 添加被邀请人按钮 -->
+                    <div class="add-invitee-section flex items-center justify-center" style="border: 1px dashed #217efd;border-radius: 8px;padding:6px 15px;text-align: center;margin: 20px 0;cursor: pointer;transition: all 0.3s;">
+                        <div class="addicon">
+                            <img src="/static/images/defect/news_add.png">
+                        </div>
+                        <div class="add-text">添加成员</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="drawer-buttons" style="width: 60%;height: 40px;display: flex;justify-content: center;align-items: center;gap: 20px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" onclick="this.blur()" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button class="ok-btn" id="confirmBatchInvite" onclick="this.blur()" style="width: 140px;background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);border: none;">保存 (<span id="inviteeCount">1</span>)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 确认移除邀请人员弹窗 -->
+    <div class="modal fade" id="removeInviteeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+            <div class="modal-content" style="border-radius:16px;width: 80%;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px 24px;">
+                <div style="position: absolute;right: 42%;top:-12%"><img src="/static/images/logo-icon.svg" alt="科技" class="logo-icon"></div>
+                <div class="text-center">
+                    <div style="font-size:20px;font-weight:600;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">确定移除？</div>
+                    <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" onclick="this.blur()" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button type="button" class="btn btn-danger" id="confirmRemoveInviteeBtn" onclick="this.blur()" style="min-width:123px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                            确定
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 底部区域 -->
+    {% include "user/footer.html" %}
+    <!-- JavaScript 引入 -->
+    {% include "defect/base_js.html" %}
+    <script>
+        // 全局变量
+        let currentPage = 1;
+        let perPage = 20;
+        let totalPages = 1;
+        let currentConfigData = null;
+
+        // 角色配置
+        const roleConfig = {
+            'project_admin': '项目管理员',
+            'project_viewer': '项目查阅人',
+            'dev_manager': '开发主管',
+            'test_manager': '测试经理',
+            'developer': '开发人员',
+            'tester': '测试人员'
+        };
+
+        // 单角色限制配置
+        const singleRoleTypes = ['project_admin', 'dev_manager', 'test_manager'];
+
+        // 存储初始的模态框HTML
+        const initialModalHTML = document.getElementById('batchInviteModal').innerHTML;
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function () {
+            // 初始化Layui表单
+            layui.use('form', function () {
+                var form = layui.form;
+                form.render();
+            });
+
+            // 加载统计数据
+            loadSummary();
+
+            // 加载成员列表
+            loadMembers();
+
+            // 绑定事件监听器
+            bindEvents();
+
+            // 绑定模态框关闭事件 - 彻底重置
+            document.getElementById('batchInviteModal').addEventListener('hidden.bs.modal', function () {
+                // 延迟重置，确保模态框完全关闭
+                setTimeout(resetModalCompletely, 100);
+            });
+
+        });
+
+        // 绑定事件监听器
+        function bindEvents() {
+            // 搜索框输入事件
+            document.getElementById('searchKeyword').addEventListener('input', debounce(function () {
+                currentPage = 1;
+                loadMembers();
+            }, 500));
+
+            // 筛选条件变更事件
+            document.getElementById('typeFilter').addEventListener('change', function () {
+                currentPage = 1;
+                loadMembers();
+            });
+
+            document.getElementById('roleTypeFilter').addEventListener('change', function () {
+                currentPage = 1;
+                loadMembers();
+            });
+
+            document.getElementById('userStatusFilter').addEventListener('change', function () {
+                currentPage = 1;
+                loadMembers();
+            });
+
+            // 重置筛选按钮
+            document.getElementById('resetFilters').addEventListener('click', function () {
+                document.getElementById('searchKeyword').value = '';
+                document.getElementById('typeFilter').value = 'all';
+                document.getElementById('roleTypeFilter').value = '';
+                document.getElementById('userStatusFilter').value = '';
+                currentPage = 1;
+                loadMembers();
+            });
+
+            // 保存配置按钮
+            document.getElementById('confirmBatchInvite').addEventListener('click', function () {
+                saveRoleConfig();
+            });
+        }
+
+        // 彻底重置模态框
+        function resetModalCompletely() {
+            const modalElement = document.getElementById('batchInviteModal');
+
+            // 保存当前显示状态
+            const wasShown = modalElement.classList.contains('show');
+
+            // 完全重置模态框HTML
+            modalElement.innerHTML = initialModalHTML;
+
+            // 重新绑定事件
+            document.getElementById('confirmBatchInvite').addEventListener('click', function () {
+                saveRoleConfig();
+            });
+
+            // 重置全局变量
+            currentConfigData = null;
+            if (typeof selectedInviteeMembers !== 'undefined') {
+                selectedInviteeMembers = [];
+            }
+
+            console.log('模态框已完全重置');
+        }
+
+
+        // 防抖函数
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 加载统计数据
+        function loadSummary() {
+            fetch('/project_member/api/project-members/summary')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200) {
+                        const summary = data.data;
+                        document.getElementById('techGroupCount').textContent = summary.tech_group_count || 0;
+                        document.getElementById('productLineCount').textContent = summary.product_line_count || 0;
+
+                        // 计算总成员数
+                        const roleStats = summary.role_stats || {};
+                        const totalMembers = Object.values(roleStats).reduce((sum, count) => sum + count, 0);
+                        document.getElementById('totalMembers').textContent = totalMembers;
+
+                        // 项目管理员数量
+                        document.getElementById('projectAdminCount').textContent = roleStats.project_admin || 0;
+                    } else {
+                        console.error('获取统计数据失败:', data.message);
+                        showError('获取统计数据失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取统计数据时出错:', error);
+                    showError('获取统计数据时出错: ' + error.message);
+                });
+        }
+
+        // 加载成员列表
+        function loadMembers() {
+            const searchKeyword = document.getElementById('searchKeyword').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const roleType = document.getElementById('roleTypeFilter').value;
+            const userStatus = document.getElementById('userStatusFilter').value;
+
+            // 构建查询参数
+            const params = new URLSearchParams({
+                page: currentPage,
+                per_page: perPage
+            });
+
+            if (searchKeyword) params.append('search_keyword', searchKeyword);
+            if (typeFilter !== 'all') params.append('type_filter', typeFilter);
+            if (roleType) params.append('role_type', roleType);
+            if (userStatus) params.append('user_status', userStatus);
+            // 从浏览器地址栏中获取查询参数
+            const urlParams = getUrlParams();
+            const defectType = urlParams.defect_type;
+            if (['simplified', 'simplified2'].includes(defectType)) {
+                    params.append('defect_type', defectType);
+                }
+
+            showLoading();
+
+            fetch(`/project_member/api/project-members?${params}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    if (data.code === 200) {
+                        renderMembers(data.data.data);
+                        renderPagination(data.data.pagination);
+                    } else {
+                        console.error('获取成员列表失败:', data.message);
+                        showError('获取成员列表失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('获取成员列表时出错:', error);
+                    showError('获取成员列表时出错: ' + error.message);
+                });
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            const tbody = document.getElementById('memberTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">加载中...</span></div></td></tr>';
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            // 加载状态会在渲染时被替换
+        }
+
+        // 显示错误消息
+        function showError(message) {
+            const tbody = document.getElementById('memberTableBody');
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">${message}</td></tr>`;
+        }
+
+        // 渲染成员列表
+        function renderMembers(members) {
+            const tbody = document.getElementById('memberTableBody');
+            tbody.innerHTML = '';
+
+            if (!members || members.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">暂无数据</td></tr>';
+                return;
+            }
+
+            members.forEach(member => {
+                const row = document.createElement('tr');
+
+                // 类型标签
+                const typeBadge = member.type === 'tech_group' ?
+                    '<span class="badge bg-success">技术族</span>' :
+                    '<span class="badge bg-primary">产品线</span>';
+
+                // 用户信息
+                let usersHtml = '';
+                if (member.users && member.users.length > 0) {
+                    usersHtml = member.users.map(user => renderUserInfo(user, member)).join('');
+                } else {
+                    usersHtml = '<div class="no-users">暂无成员</div>';
+                }
+
+                // 权限检查 - 替换 Jinja2 语法为 JavaScript 逻辑
+                let configButton = '';
+
+                // 修改：如果是项目管理员角色，则不显示配置按钮
+                if (member.role_type !== 'project_admin') {
+                    const hasPermission = {{ is_company_admin | tojson }} ||
+                                          {{ is_global_admin | tojson }} ||
+                                         (member.project_admin_user_ids && member.project_admin_user_ids.includes({{ current_user_id | tojson }}));
+
+                    if (hasPermission) {
+                        // 检查是否为单角色限制类型且已配置人员
+                        const isSingleRole = singleRoleTypes.includes(member.role_type);
+                        const hasUsers = member.users && member.users.length > 0;
+
+                        let isDisabled = false;
+                        let title = '';
+
+                        if (isSingleRole && hasUsers) {
+                            isDisabled = true;
+                            title = '该角色只能配置1人，不可重复配置';
+                        }
+
+                        configButton = `
+                            <button class="btn btn-sm option-button config-role ${isDisabled ? 'btn-disabled' : ''}"
+                                    title="${title}"
+                                    data-entity-id="${member.entity_id}"
+                                    data-entity-type="${member.type}"
+                                    data-role-type="${member.role_type}"
+                                    data-path-name="${member.path_name}">
+                                <i class="bi bi-gear"></i> 配置
+                            </button>
+                        `;
+                    }
+                }
+
+                row.innerHTML = `
+                    <td>${typeBadge}</td>
+                    <td title="${member.path_name || '未知项目'}">${member.path_name || '未知项目'}</td>
+                    <td><strong>${member.role_name}</strong></td>
+                    <td>${usersHtml}</td>
+                    <td>${configButton}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // 绑定配置按钮事件
+            document.querySelectorAll('.config-role:not(.btn-disabled)').forEach(button => {
+                button.addEventListener('click', function () {
+                    const entityId = this.getAttribute('data-entity-id');
+                    const entityType = this.getAttribute('data-entity-type');
+                    const roleType = this.getAttribute('data-role-type');
+                    const pathName = this.getAttribute('data-path-name');
+
+                    // 再次检查是否为单角色限制类型
+                    if (singleRoleTypes.includes(roleType)) {
+                        const memberRow = this.closest('tr');
+                        const usersCount = memberRow.querySelectorAll('.user-row').length;
+                        if (usersCount > 0) {
+                            layer.alert('该角色已配置人员，不可重复配置', {
+                                title: '提示',
+                                icon: 3
+                            });
+                            return;
+                        }
+                    }
+
+                    showConfigRoleModal(entityId, entityType, roleType, pathName);
+                });
+            });
+
+            // 绑定删除按钮事件
+            document.querySelectorAll('.delete-user').forEach(button => {
+                button.addEventListener('click', function () {
+                    const memberId = this.getAttribute('data-member-id');
+                    const userName = this.closest('.user-row').querySelector('.fw-medium').textContent;
+                    // 获取角色类型和实体信息
+                    const roleType = this.getAttribute('data-role-type');
+                    const entityType = this.getAttribute('data-entity-type');
+                    const entityId = this.getAttribute('data-entity-id');
+                    deleteMember(memberId, userName, roleType, entityType, entityId);
+                });
+            });
+
+            // 绑定邀请按钮事件
+            document.querySelectorAll('.invite-user').forEach(button => {
+                button.addEventListener('click', function () {
+                    const userId = this.getAttribute('data-user-id');
+                    const userName = this.closest('.user-row').querySelector('.fw-medium').textContent;
+                    inviteUser(userId, userName);
+                });
+            });
+        }
+
+        // 渲染单个用户信息
+        // 修改renderUserInfo函数，添加member参数用于权限检查，并添加角色类型和实体信息到删除按钮
+        function renderUserInfo(user, member) {
+            // 权限检查 - 使用与配置按钮相同的逻辑
+            const hasPermission = {{ is_company_admin | tojson }} ||
+                                  {{ is_global_admin | tojson }} ||
+                                 (member.project_admin_user_ids && member.project_admin_user_ids.includes({{ current_user_id | tojson }}));
+
+            let actionButtons = '';
+
+            // 修改：如果是项目管理员角色，则不显示删除和邀请按钮
+            if (hasPermission && member.role_type !== 'project_admin') {
+                // 检查是否是项目管理员删除自己的情况
+                let deleteDisabled = false;
+                let deleteTitle = '';
+
+                // 当用户仅仅是 project_admin，且要删除自己时，禁用删除按钮
+                const isOnlyProjectAdmin = !{{ is_company_admin | tojson }} &&
+                                          !{{ is_global_admin | tojson }} &&
+                                          (member.project_admin_user_ids && member.project_admin_user_ids.includes({{ current_user_id | tojson }}));
+
+                if (isOnlyProjectAdmin && user.user_id === {{ current_user_id | tojson }} && member.role_type==="project_admin") {
+                    deleteDisabled = true;
+                    deleteTitle = "当前登录用户不能删除自己，否则无法继续配置项目成员";
+                }
+
+                actionButtons = `
+                    ${user.status !== 1 ?
+                        `<button class="btn btn-sm option-button invite-user"
+                                 data-user-id="${user.user_id}">
+                            <i class="bi bi-envelope"></i> 邀请
+                         </button>`
+                        : ''
+                    }
+                    <button class="btn btn-sm option-button delete-user ${deleteDisabled ? 'btn-disabled' : ''}"
+                            data-member-id="${user.member_id || ''}"
+                            data-user-id="${user.user_id}"
+                            data-role-type="${member.role_type}"
+                            data-entity-type="${member.type}"
+                            data-entity-id="${member.entity_id}"
+                            title="${deleteTitle}">
+                        <i class="bi bi-trash"></i> 删除
+                    </button>
+                `;
+            }
+
+            return `
+                <div class="user-row">
+                    <div class="user-info">
+                        <div class="user-details">
+                            <div class="fw-medium">${user.real_name || '未知用户'}</div>
+                            <div class="user-email small text-muted">${user.email || ''}</div>
+                            <div>
+                                <span class="${user.status === 1 ? 'status-tag status-active' : 'status-tag status-inactive'}">
+                                    <i class="bi ${user.status === 1 ? 'bi-check-circle' : 'bi-x-circle'} me-1"></i>
+                                    ${user.status_text || '未知'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        ${actionButtons}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 渲染完整分页控件
+        function renderPagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            container.innerHTML = '';
+
+            if (!pagination || pagination.total === 0) return;
+
+            totalPages = pagination.pages;
+            const totalItems = pagination.total;
+            const currentPerPage = perPage;
+
+            // 创建分页容器
+            const paginationWrapper = document.createElement('div');
+            paginationWrapper.className = 'd-flex justify-content-between align-items-center flex-wrap';
+            paginationWrapper.style.gap = '15px';
+
+            // 左侧：总条数信息
+            const totalInfo = document.createElement('div');
+            totalInfo.className = 'text-muted';
+            totalInfo.innerHTML = `共 <strong>${totalItems}</strong> 条`;
+
+            // 中间：分页导航
+            const paginationNav = document.createElement('nav');
+            paginationNav.setAttribute('aria-label', '成员列表分页');
+
+            const ul = document.createElement('ul');
+            ul.className = 'pagination mb-0';
+
+            // 上一页按钮
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="上一页">
+        <span aria-hidden="true">&lt;</span>
+    </a>`;
+            ul.appendChild(prevLi);
+
+            // 页码按钮
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            // 第一页和省略号
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+                ul.appendChild(firstLi);
+
+                if (startPage > 2) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    ul.appendChild(ellipsisLi);
+                }
+            }
+
+            // 中间页码
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                ul.appendChild(li);
+            }
+
+            // 最后一页和省略号
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    ul.appendChild(ellipsisLi);
+                }
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>`;
+                ul.appendChild(lastLi);
+            }
+
+            // 下一页按钮
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="下一页">
+        <span aria-hidden="true">&gt;</span>
+    </a>`;
+            ul.appendChild(nextLi);
+
+            paginationNav.appendChild(ul);
+
+            // 右侧：每页条数选择和跳转
+            const paginationControls = document.createElement('div');
+            paginationControls.className = 'd-flex align-items-center';
+            paginationControls.style.gap = '10px';
+
+            // 每页条数选择
+            const perPageSelectWrapper = document.createElement('div');
+            perPageSelectWrapper.className = 'd-flex align-items-center';
+            perPageSelectWrapper.innerHTML = `
+        <select class="form-select form-select-sm" id="perPageSelect" style="width: auto;">
+            <option value="10" ${currentPerPage === 10 ? 'selected' : ''}>10条/页</option>
+            <option value="20" ${currentPerPage === 20 ? 'selected' : ''}>20条/页</option>
+            <option value="50" ${currentPerPage === 50 ? 'selected' : ''}>50条/页</option>
+            <option value="100" ${currentPerPage === 100 ? 'selected' : ''}>100条/页</option>
+        </select>
+    `;
+
+            // 跳转页面
+            const gotoPageWrapper = document.createElement('div');
+            gotoPageWrapper.className = 'd-flex align-items-center';
+            gotoPageWrapper.innerHTML = `
+        <span class="me-2" style="white-space: nowrap;">前往</span>
+        <input type="number" class="input-border form-control-sm" id="gotoPageInput"
+               min="1" max="${totalPages}" value="${currentPage}"
+               style="width: 70px; text-align: center;">
+        <span class="ms-2 me-2" style="white-space: nowrap;">页</span>
+        <button class="btn btn-sm btn-outline-primary" id="gotoPageBtn">确定</button>
+    `;
+
+            paginationControls.appendChild(perPageSelectWrapper);
+            paginationControls.appendChild(gotoPageWrapper);
+
+            // 组装所有部分
+            paginationWrapper.appendChild(totalInfo);
+            paginationWrapper.appendChild(paginationNav);
+            paginationWrapper.appendChild(paginationControls);
+
+            container.appendChild(paginationWrapper);
+
+            // 绑定分页按钮事件
+            container.querySelectorAll('.page-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const page = parseInt(this.getAttribute('data-page'));
+                    if (page >= 1 && page <= totalPages && page !== currentPage) {
+                        currentPage = page;
+                        loadMembers();
+                    }
+                });
+            });
+
+            // 绑定每页条数选择事件
+            const perPageSelect = document.getElementById('perPageSelect');
+            perPageSelect.addEventListener('change', function () {
+                perPage = parseInt(this.value);
+                currentPage = 1; // 重置到第一页
+                loadMembers();
+            });
+
+            // 绑定跳转页面事件
+            const gotoPageInput = document.getElementById('gotoPageInput');
+            const gotoPageBtn = document.getElementById('gotoPageBtn');
+
+            gotoPageInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    gotoPageBtn.click();
+                }
+            });
+
+            gotoPageBtn.addEventListener('click', function () {
+                let page = parseInt(gotoPageInput.value);
+                if (isNaN(page) || page < 1) page = 1;
+                if (page > totalPages) page = totalPages;
+
+                if (page !== currentPage) {
+                    currentPage = page;
+                    loadMembers();
+                }
+            });
+
+            // 输入框失去焦点时也更新值
+            gotoPageInput.addEventListener('blur', function () {
+                let page = parseInt(this.value);
+                if (isNaN(page) || page < 1) page = 1;
+                if (page > totalPages) page = totalPages;
+                this.value = page;
+            });
+        }
+
+        // 显示配置角色模态框
+        function showConfigRoleModal(entityId, entityType, roleType, pathName) {
+            currentConfigData = {
+                entityId: entityId,
+                entityType: entityType,
+                roleType: roleType,
+                pathName: pathName
+            };
+
+            const modal = new bootstrap.Modal(document.getElementById('batchInviteModal'));
+            document.getElementById('configEntityPath').textContent = pathName;
+            document.getElementById('configRoleName').textContent = roleConfig[roleType];
+
+            // 检查是否为单角色限制类型
+            if (singleRoleTypes.includes(roleType)) {
+                 ensureSingleInviteeItem();
+
+                // 隐藏"添加成员"按钮
+                document.querySelector('.add-invitee-section').style.display = 'none';
+                // 更新按钮文字
+                document.getElementById('confirmBatchInvite').innerHTML = '保存 (<span id="inviteeCount">1</span>)';
+            } else {
+                // 显示"添加成员"按钮
+                document.querySelector('.add-invitee-section').style.display = 'flex';
+                // 更新按钮文字
+                document.getElementById('confirmBatchInvite').innerHTML = '保存 (<span id="inviteeCount">1</span>)';
+            }
+
+            modal.show();
+        }
+
+        // 确保只有一个invitee-item
+        function ensureSingleInviteeItem() {
+            const container = document.getElementById('inviteeMembersContainer');
+            const items = container.querySelectorAll('.invitee-item');
+
+            // 如果有多于一个item，移除多余的
+            if (items.length > 1) {
+                for (let i = 1; i < items.length; i++) {
+                    items[i].remove();
+                }
+            }
+
+            // 重置第一个item的状态
+            const firstItem = container.querySelector('.invitee-item');
+            if (firstItem) {
+                const searchInput = firstItem.querySelector('.invitee-search');
+                const nameDisplay = firstItem.querySelector('.selected-invitee-name');
+
+                if (searchInput) searchInput.value = '';
+                if (nameDisplay) {
+                    nameDisplay.innerHTML = '通过Email账号搜索成员，此处将会自动填充姓名';
+                    nameDisplay.style.color = '#7288AE';
+                }
+            }
+
+            // 更新计数
+            updateInviteeCount();
+        }
+
+        // 删除成员
+        function deleteMember(memberId, userName, roleType, entityType, entityId) {
+            if (!memberId) {
+                layer.alert('无法获取成员ID，无法删除', {
+                    title: '警告',
+                    icon: 3
+                });
+                return;
+            }
+
+            // 构建查询参数
+            let queryParams = '';
+            if (entityType === 'tech_group') {
+                queryParams = `?project_id=${entityId}`;
+            } else if (entityType === 'product_line') {
+                queryParams = `?version_id=${entityId}`;
+            }
+
+            const isOnlyProjectAdmin = !{{ is_company_admin | tojson }} &&
+                                      !{{ is_global_admin | tojson }};
+
+            if (isOnlyProjectAdmin && roleType==="project_admin") {
+                return;
+            }
+
+            layer.confirm(`确定要删除成员 "${userName}" 吗？`, {
+                title: '确认删除',
+                btn: ['确定删除', '取消'],
+                icon: 3
+            }, function(index) {
+                // 用户点击确定删除
+                layer.close(index);
+
+                // 显示删除中状态
+                const deleteBtn = document.querySelector(`.delete-user[data-member-id="${memberId}"]`);
+                let originalText = '';
+                if (deleteBtn) {
+                    originalText = deleteBtn.innerHTML;
+                    deleteBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 删除中...';
+                    deleteBtn.disabled = true;
+                }
+
+                fetch(`/project_member/api/project-members/${memberId}${queryParams}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 恢复按钮状态
+                    if (deleteBtn) {
+                        deleteBtn.innerHTML = originalText;
+                        deleteBtn.disabled = false;
+                    }
+
+                    if (data.code === 200) {
+                        showSuccess('成员删除成功');
+                        // 重新加载数据
+                        loadSummary();
+                        loadMembers();
+                    } else if (data.code === 404) {
+                        layer.alert('成员不存在或已被删除', {
+                            title: '提示',
+                            icon: 3
+                        });
+                    } else if (data.code === 403) {
+                        layer.alert('没有权限删除该成员', {
+                            title: '权限不足',
+                            icon: 2
+                        });
+                    } else {
+                        layer.alert('删除失败: ' + (data.message || '未知错误'), {
+                            title: '错误',
+                            icon: 2
+                        });
+                    }
+                })
+                .catch(error => {
+                    // 恢复按钮状态
+                    if (deleteBtn) {
+                        deleteBtn.innerHTML = originalText;
+                        deleteBtn.disabled = false;
+                    }
+
+                    console.error('删除成员时出错:', error);
+                    layer.alert('删除成员时出错: ' + error.message, {
+                        title: '错误',
+                        icon: 2
+                    });
+                });
+            }, function(index) {
+                // 用户点击取消
+                layer.close(index);
+            });
+        }
+
+        // 邀请用户
+        function inviteUser(userId, userName) {
+            // 显示确认对话框
+            layer.confirm(`将向用户 "${userName}" 发送账号激活邮件，确认发送吗？`, {
+                title: '确认发送邀请邮件',
+                btn: ['确认发送', '取消'],
+                icon: 3
+            }, function(index) {
+                // 用户点击确认发送
+                layer.close(index);
+
+                // 显示发送中状态
+                const sendBtn = document.querySelector(`.invite-user[data-user-id="${userId}"]`);
+                let originalText = '';
+                if (sendBtn) {
+                    originalText = sendBtn.innerHTML;
+                    sendBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 发送中...';
+                    sendBtn.disabled = true;
+                }
+
+                // 调用发送邀请邮件接口
+                fetch(`/user/inner/send_invite_email/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 恢复按钮状态
+                    if (sendBtn) {
+                        sendBtn.innerHTML = originalText;
+                        sendBtn.disabled = false;
+                    }
+
+                    if (data.code === 200) {
+                        layer.alert('邀请邮件发送成功！', {
+                            title: '成功',
+                            icon: 1,
+                            btn: ['确定']
+                        });
+
+                        // 可选：重新加载成员列表以更新状态
+                        // loadMembers();
+                    } else {
+                        // 获取错误信息
+                        const errorMsg = data?.msg || data?.message || data?.error || '未知错误';
+                        layer.alert(`发送失败: ${errorMsg}`, {
+                            title: '错误',
+                            icon: 2
+                        });
+                    }
+                })
+                .catch(error => {
+                    // 恢复按钮状态
+                    if (sendBtn) {
+                        sendBtn.innerHTML = originalText;
+                        sendBtn.disabled = false;
+                    }
+
+                    console.error('发送邀请邮件时出错:', error);
+                    layer.alert('发送邀请邮件时出错: ' + error.message, {
+                        title: '错误',
+                        icon: 2
+                    });
+                });
+            }, function(index) {
+                // 用户点击取消
+                layer.close(index);
+            });
+        }
+
+        // 保存角色配置 - 修改为批量添加
+        function saveRoleConfig() {
+            if (!currentConfigData) return;
+
+            // 检查是否有选中的成员
+            if (!selectedInviteeMembers || selectedInviteeMembers.length === 0) {
+                layer.alert('请至少选择一个成员', {
+                    title: '提示',
+                    icon: 0
+                });
+
+                return;
+            }
+
+            // 检查单角色限制
+            if (singleRoleTypes.includes(currentConfigData.roleType)) {
+                if (selectedInviteeMembers.length > 1) {
+                    layer.alert('开发主管和测试经理每个项目或版本只能配置1人', {
+                        title: '提示',
+                        icon: 3
+                    });
+                    return;
+                }
+            }
+
+            // 构建请求数据 - 符合批量接口格式
+            const data = {
+                members: selectedInviteeMembers.map(member => ({
+                    user_id: member.userID,
+                    role_type: currentConfigData.roleType
+                }))
+            };
+
+            // 根据实体类型设置项目ID或版本ID
+            if (currentConfigData.entityType === 'tech_group') {
+                data.project_id = parseInt(currentConfigData.entityId);
+            } else {
+                data.version_id = parseInt(currentConfigData.entityId);
+            }
+
+            const saveBtn = document.getElementById('confirmBatchInvite');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> 添加中...';
+            saveBtn.disabled = true;
+
+            // 发送请求到批量接口
+            fetch('/project_member/api/project-members/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // 恢复按钮状态
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+
+                    if (data.code === 200) {
+                        // 关闭模态框
+                        bootstrap.Modal.getInstance(document.getElementById('batchInviteModal')).hide();
+
+                        // 重新加载数据
+                        loadSummary();
+                        loadMembers();
+
+                        // 显示详细的成功/失败信息
+                        if (data.data.failed_count === 0) {
+                            showSuccess(`成功添加 ${data.data.success_count} 个成员`);
+                        } else {
+                            // 部分成功，显示详细信息
+                            let message = `成功添加 ${data.data.success_count} 个成员，失败 ${data.data.failed_count} 个`;
+                            if (data.data.failed_records && data.data.failed_records.length > 0) {
+                                message += '\n失败原因：';
+                                data.data.failed_records.forEach(record => {
+                                    message += `\n用户 ${record.user_id}: ${record.error}`;
+                                });
+                            }
+                            layer.alert(message, {
+                                    title: '警告',
+                                    icon: 3
+                                });
+                        }
+                    } else {
+                        layer.alert('添加失败: ' + data.message, {
+                            title: '错误',
+                            icon: 2
+                        });
+                    }
+                })
+                .catch(error => {
+                    // 恢复按钮状态
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+
+                    console.error('添加成员时出错:', error);
+                    layer.alert('添加成员时出错: ' + error.message, {
+                            title: '错误',
+                            icon: 2
+                        });
+                });
+        }
+
+        // 显示成功消息
+        function showSuccess(message) {
+            // 可以使用Toast或其他UI组件显示成功消息
+             layer.alert(message, {
+                    title: '成功',
+                    icon: 1
+                });
+        }
+    </script>
+
+    <!-- 模态对话框邀请人员  -->
+    <script>
+        var selectedInviteeMembers = []; // 存储已选择的邀请成员
+
+        // 初始化Layui模块
+        layui.use(['element', 'form', 'layer','laypage','dropdown'], function() {
+            var element = layui.element;
+            var form = layui.form;
+            var layer = layui.layer;
+            var laypage = layui.laypage;
+            var dropdown = layui.dropdown;
+
+            // === 在这里添加变量定义 ===
+            // 全局变量
+            var allDefects = []; // 存储所有缺陷数据
+            var filteredDefects = []; // 存储筛选后的数据
+            var activeTab = 'processed';
+            var pageSize = 10;
+            var currentPage = 1; // 添加当前页码变量
+            var currentSort = {
+                field: null,
+                order: null
+            };
+
+            // 存储每个下拉菜单的状态
+            var dropdownStates = {};
+
+            // 修复模态框关闭时的焦点问题
+            $('#batchInviteModal').on('hidden.bs.modal', function () {
+                // 将焦点转移到触发元素（如果有）
+                var $trigger = $(this).data('bs.modal.trigger');
+                if ($trigger && $trigger.length) {
+                    $trigger.focus();
+                }
+                // 清除模态框内所有元素的焦点
+                $(this).find('*').blur();
+            });
+
+            // 保存触发元素的引用
+            $(document).on('click', '[data-bs-toggle="modal"]', function () {
+                var target = $(this).data('bs-target');
+                if (target === '#batchInviteModal') {
+                    $('#batchInviteModal').data('bs.modal.trigger', $(this));
+                }
+            });
+
+            // 模拟成员数据 - 使用模板传递的真实数据
+            var mockMembers = {{ company_user_list | tojson if company_user_list else '[]' }};
+
+            // === 完善搜索成员下拉列表响应函数 ===
+
+            // 成员搜索功能 - 完善输入事件处理
+            $(document).on('input', '.invitee-search', function() {
+                var $input = $(this);
+                var searchTerm = $input.val().toLowerCase().trim();
+                var $dropdown = $input.siblings('.invitee-dropdown');
+                var $inviteeItem = $input.closest('.invitee-item');
+                var itemIndex = $inviteeItem.data('item-index');
+
+                // 如果搜索词为空，隐藏下拉框并清空选择
+                if (searchTerm.length === 0) {
+                    clearSelectedInviteeMember(itemIndex);
+                    $dropdown.hide();
+                    return;
+                }
+
+                // 搜索匹配的成员（排除已选择的）
+                var matchedMembers = mockMembers.filter(function(member) {
+                    // 检查成员数据格式，兼容不同字段名
+                    var email = member.email || member.user_email || '';
+                    var name = member.name || member.real_name || member.username || '';
+
+                    // 排除已经被选择的成员
+                    var isAlreadySelected = selectedInviteeMembers.some(function(selected) {
+                        return selected.email === email;
+                    });
+
+                    if (isAlreadySelected) return false;
+
+                    // 搜索匹配逻辑
+                    return email.toLowerCase().includes(searchTerm) ||
+                           name.toLowerCase().includes(searchTerm);
+                });
+
+                // 显示搜索结果
+                if (matchedMembers.length > 0) {
+                    var dropdownHtml = '';
+                    matchedMembers.forEach(function(member) {
+                        var email = member.email || member.user_email || '';
+                        var name = member.name || member.real_name || member.username || '';
+                        var userID = member.user_id || member.id || '';
+                        var department = member.department || member.dept_name || '未设置部门';
+
+                        dropdownHtml += '<div class="invitee-dropdown-item" data-email="' + email + '" data-name="' + name + '" data-userid="' + userID + '" data-department="' + department + '" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;">' +
+                                       '<div style="font-weight: 500;">' + name + '</div>' +
+                                       '<div style="font-size: 12px; color: #666;">' + email + ' • ' + department + '</div>' +
+                                       '</div>';
+                    });
+
+                    $dropdown.html(dropdownHtml).show();
+
+                    // 添加下拉项悬停效果
+                    $dropdown.find('.invitee-dropdown-item').hover(
+                        function() {
+                            $(this).css('background-color', '#f5f9ff');
+                        },
+                        function() {
+                            $(this).css('background-color', '');
+                        }
+                    );
+                } else {
+                    // 没有匹配结果
+                    clearSelectedInviteeMember(itemIndex);
+                    $dropdown.html('<div style="padding: 12px; color: #999; text-align: center;">未找到匹配的成员</div>').show();
+                }
+            });
+
+            // 下拉框选项点击事件 - 完善选择逻辑
+            $(document).on('click', '.invitee-dropdown-item', function(e) {
+                e.stopPropagation(); // 阻止事件冒泡
+
+                var $item = $(this);
+                var email = $item.data('email');
+                var name = $item.data('name');
+                var userID = $item.data('userid');
+                var department = $item.data('department');
+
+                // 检查是否有效数据
+                if (!email || !name) {
+                    return;
+                }
+
+                var $inviteeItem = $item.closest('.invitee-item');
+                var itemIndex = $inviteeItem.data('item-index');
+                var $input = $inviteeItem.find('.invitee-search');
+                var $nameDisplay = $inviteeItem.find('.selected-invitee-name');
+                var $dropdown = $inviteeItem.find('.invitee-dropdown');
+
+                // 设置选中的成员
+                var selectedMember = {
+                    userID: userID,
+                    email: email,
+                    name: name,
+                    department: department,
+                    itemIndex: itemIndex
+                };
+
+                // 移除旧的选择（如果存在）
+                selectedInviteeMembers = selectedInviteeMembers.filter(function(member) {
+                    return member.itemIndex !== itemIndex;
+                });
+
+                // 添加新的选择
+                selectedInviteeMembers.push(selectedMember);
+
+                // 更新界面显示
+                $input.val(email);
+                $nameDisplay.html('<span style="color: #333; font-weight: 500;">' + name + '</span> <span style="color: #666; font-size: 12px;">(' + department + ')</span>');
+                $nameDisplay.css('color', '#333'); // 恢复正常颜色
+
+                // 隐藏下拉框
+                $dropdown.hide();
+
+                console.log('已选择成员：', selectedMember);
+                console.log('当前所有选择：', selectedInviteeMembers);
+
+                // 显示成功提示
+                showToast('success', '已选择成员: ' + name, 1500);
+            });
+
+            // 清空选中成员函数
+            function clearSelectedInviteeMember(itemIndex) {
+                selectedInviteeMembers = selectedInviteeMembers.filter(function(member) {
+                    return member.itemIndex !== itemIndex;
+                });
+
+                var $inviteeItem = $('.invitee-item[data-item-index="' + itemIndex + '"]');
+                var $nameDisplay = $inviteeItem.find('.selected-invitee-name');
+
+                $nameDisplay.html('通过Email账号搜索成员，此处将会自动填充姓名');
+                $nameDisplay.css('color', '#7288AE'); // 恢复提示颜色
+            }
+
+            // 点击其他区域关闭所有下拉框
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.invitee-search, .invitee-dropdown').length) {
+                    $('.invitee-dropdown').hide();
+                }
+            });
+
+            // 搜索输入框获取焦点时显示下拉框（如果有内容）
+            $(document).on('focus', '.invitee-search', function() {
+                var $input = $(this);
+                var $dropdown = $input.siblings('.invitee-dropdown');
+
+                if ($input.val().trim().length > 0 && $dropdown.children().length > 0) {
+                    $dropdown.show();
+                }
+            });
+
+            // 键盘事件处理 - 支持键盘导航
+            $(document).on('keydown', '.invitee-search', function(e) {
+                var $input = $(this);
+                var $dropdown = $input.siblings('.invitee-dropdown');
+                var $items = $dropdown.find('.invitee-dropdown-item');
+                var currentIndex = -1;
+
+                if (!$dropdown.is(':visible') || $items.length === 0) {
+                    return;
+                }
+
+                // 查找当前焦点项
+                $items.each(function(index) {
+                    if ($(this).hasClass('active')) {
+                        currentIndex = index;
+                    }
+                });
+
+                switch (e.keyCode) {
+                    case 38: // 上箭头
+                        e.preventDefault();
+                        if (currentIndex > 0) {
+                            currentIndex--;
+                        } else {
+                            currentIndex = $items.length - 1;
+                        }
+                        updateDropdownSelection($items, currentIndex);
+                        break;
+
+                    case 40: // 下箭头
+                        e.preventDefault();
+                        if (currentIndex < $items.length - 1) {
+                            currentIndex++;
+                        } else {
+                            currentIndex = 0;
+                        }
+                        updateDropdownSelection($items, currentIndex);
+                        break;
+
+                    case 13: // 回车
+                        e.preventDefault();
+                        if (currentIndex >= 0) {
+                            $items.eq(currentIndex).click();
+                        }
+                        break;
+
+                    case 27: // ESC
+                        $dropdown.hide();
+                        break;
+                }
+            });
+
+            // 更新下拉框选择状态
+            function updateDropdownSelection($items, index) {
+                $items.removeClass('active').css('background-color', '');
+                if (index >= 0) {
+                    $items.eq(index).addClass('active').css('background-color', '#f5f9ff');
+                }
+            }
+
+            // 以下保持原有代码不变...
+            // 更新邀请数量显示
+            window.updateInviteeCount = function(){
+                var count = $('.invitee-item').length;
+                $('#inviteeCount').text(count);
+            }
+
+            // 更新移除按钮显示/隐藏
+            function updateRemoveButtonsVisibility() {
+                var $items = $('.invitee-item');
+
+                if ($items.length <= 1) {
+                    // 只有一个或没有项目时，隐藏所有移除按钮
+                    $('.remove-invitee-btn').hide();
+                } else {
+                    // 有多个项目时，显示所有移除按钮（除了第一个）
+                    $('.remove-invitee-btn').show();
+                    $('.invitee-item:first-child .remove-invitee-btn').hide();
+                }
+            }
+
+            // 创建新的邀请人员项
+            function createNewInviteeItem(index) {
+                return `
+                    <div class="invitee-item" data-item-index="${index}">
+                        <!-- 移除按钮放在右上角 -->
+                        <div style="text-align: right; margin-bottom: 10px;">
+                            <button type="button" class="remove-invitee-btn" style="color: #FE6380;border: 1px solid #FE6380;background: #fff;border-radius: 100px;padding: 3px 8px 1px;font-size: 12px;cursor: pointer;">移除</button>
+                        </div>
+                        <!-- 人员搜索区域和姓名显示区域（同一行） -->
+                        <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                            <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                    <span style="color: red;">*</span> 请选择处理人的 Email 账号，平台将会通知他
+                                </label>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control invitee-search layui-input" placeholder="搜索成员" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                                    <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 12px;top: 50%;transform: translateY(-50%);width: 16px;height: 16px;">
+                                    <!-- 下拉框 -->
+                                    <div class="invitee-dropdown" style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 200px;overflow-y: auto;">
+                                        <!-- 动态生成搜索结果 -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="width: 50%;">
+                                <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">姓名</label>
+                                <div class="selected-invitee-name layui-input" style="width: 100%;height: 40px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #E6F0FD;color: #7288AE;display: flex;align-items: center;">
+                                    通过Email账号搜索成员，此处将会自动填充姓名
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 原因输入区域 -->
+                    </div>
+                `;
+            }
+
+            // 添加被邀请人按钮点击事件
+            $(document).on('click', '.add-invitee-section', function() {
+                var nextIndex = $('.invitee-item').length + 1;
+                var newInviteeHtml = createNewInviteeItem(nextIndex);
+
+                var $newItem = $(newInviteeHtml);
+                $newItem.hide(); // 先隐藏，准备动画
+                $(this).before($newItem);
+
+                // 添加淡入动画效果
+                $newItem.fadeIn(300, function() {
+                    console.log('已添加新的邀请人员项，索引：', nextIndex);
+                });
+
+                // 更新计数器
+                updateInviteeCount();
+
+                // 显示/隐藏移除按钮
+                updateRemoveButtonsVisibility();
+            });
+
+            $(document).on('click', '.remove-invitee-btn', function() {
+                var $inviteeItem = $(this).closest('.invitee-item');
+                var itemIndex = $inviteeItem.data('item-index');
+
+                // 第一个邀请人员不可移除
+                if (itemIndex === 1) {
+                    showToast('warning', '第一个邀请人员不可移除');
+                    return;
+                }
+
+                // 存储当前要删除的邀请人员信息
+                $('#removeInviteeModal').data('currentInviteeItem', $inviteeItem)
+                            .data('currentItemIndex', itemIndex);
+
+                // 显示Bootstrap Modal弹窗
+                var removeInviteeModal = new bootstrap.Modal(document.getElementById('removeInviteeModal'));
+                removeInviteeModal.show();
+
+                // 调整z-index确保蒙层覆盖
+                setTimeout(function() {
+                    // 获取所有打开的模态框
+                    var $modals = $('.modal.show');
+                    var maxZIndex = 1050; // Bootstrap默认模态框z-index
+
+                    // 找到最高的z-index
+                    $modals.each(function() {
+                        var zIndex = parseInt($(this).css('z-index')) || 0;
+                        if (zIndex > maxZIndex) {
+                            maxZIndex = zIndex;
+                        }
+                    });
+
+                    // 设置确认移除邀请人员弹窗的z-index为最高
+                    var $removeModal = $('#removeInviteeModal');
+                    var $removeBackdrop = $('.modal-backdrop:last'); // 获取最新的蒙层
+
+                    $removeModal.css('z-index', maxZIndex + 2);
+                    $removeBackdrop.css('z-index', maxZIndex + 1);
+                }, 10);
+            });
+
+            // 确认移除邀请人员按钮点击事件
+            $(document).on('click', '#confirmRemoveInviteeBtn', function() {
+                var $modal = $('#removeInviteeModal');
+                var $inviteeItem = $modal.data('currentInviteeItem');
+                var itemIndex = $modal.data('currentItemIndex');
+                console.log('确认移除的索引：'+$modal);
+                $('#batchInviteModal').blur();
+                $('#removeInviteeModal').blur();
+                // 关闭弹窗
+                var removeInviteeModal = bootstrap.Modal.getInstance(document.getElementById('removeInviteeModal'));
+                removeInviteeModal.hide();
+
+                // 移除选中成员数据
+                selectedInviteeMembers = selectedInviteeMembers.filter(function(member) {
+                    return member.itemIndex !== itemIndex;
+                });
+
+                // 添加淡出动画效果
+                $inviteeItem.fadeOut(300, function() {
+                    $(this).remove();
+
+                    // 重新编号所有项目
+                    reindexInviteeItems();
+
+                    // 更新计数器
+                    updateInviteeCount();
+
+                    // 显示/隐藏移除按钮
+                    updateRemoveButtonsVisibility();
+
+                    showToast('success', '已移除', 2000);
+                });
+            });
+
+            // 重新编号邀请项目
+            function reindexInviteeItems() {
+                $('.invitee-item').each(function(index) {
+                    var newIndex = index + 1;
+                    var oldIndex = $(this).data('item-index');
+
+                    $(this).attr('data-item-index', newIndex);
+
+                    // 更新已选成员数据中的索引
+                    selectedInviteeMembers.forEach(function(member) {
+                        if (member.itemIndex === oldIndex) {
+                            member.itemIndex = newIndex;
+                        }
+                    });
+                });
+            }
+
+            // 验证邀请数据
+            function validateInviteData(inviteData) {
+                if (inviteData.length === 0) {
+                    showToast('请至少添加一个人员', 'warning');
+                    return false;
+                }
+
+                // 检查是否有未填写完整的项目
+                var incompleteItems = [];
+                $('.invitee-item').each(function() {
+                    var $item = $(this);
+                    var itemIndex = $item.data('item-index');
+                    var email = $item.find('.invitee-search').val().trim();
+
+                    var memberInfo = selectedInviteeMembers.find(function(member) {
+                        return member.itemIndex === itemIndex;
+                    });
+
+                    if (!memberInfo || !email) {
+                        incompleteItems.push(itemIndex);
+                    }
+                });
+
+                if (incompleteItems.length > 0) {
+                    showToast('warning', '请完善第 ' + incompleteItems.join('、') + ' 个配置人员的信息');
+                    return false;
+                }
+
+                return true;
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>

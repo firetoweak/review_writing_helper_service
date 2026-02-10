@@ -1,0 +1,113 @@
+<div class="modal fade" id="delModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;height: 210px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+            <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">你确定要删除这条记录吗？</div>
+                <div style="font-size:15px;color: #557496;margin-bottom:8px;margin-top: 5px;" class="del-text2">删除后则不能恢复</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="min-width:100px;border-radius:8px;">取消</button>
+                    <button  del_id="" url="" type="button" class="btn btn-danger" id="confirmDeleteBtn" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="batchDelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;height: 210px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+            <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">你确定要删除选中的记录吗？</div>
+                <div style="font-size:15px;color: #557496;margin-bottom:8px;margin-top: 5px;" class="del-text2">删除后则不能恢复</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="min-width:100px;border-radius:8px;">取消</button>
+                    <button  del_id="" url="" type="button" class="btn btn-danger" id="batchConfirmDeleteBtn" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="NoMoney" aria-hidden="true" style="z-index: 10000">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;height: 220px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+            <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;line-height:1.3" class="del-text1">抱歉，您所在企业账号的AI评估可用次数不足，没有权限进行本次评估。</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button  del_id="" type="button" class="btn btn-danger" id="confirmNoMoney" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="emptyFile" aria-hidden="true" style="z-index: 10000">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;height: 220px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+            <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">文件内容为空，请检查上传文件，重新上传。</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button  type="button" class="btn btn-danger" id="confirmEmptyFile" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $(document).ready(function() {
+        $('#confirmDeleteBtn').on('click', function() {
+            if($(this).attr('url')!=''){
+                location.href = $(this).attr('url')+'?type={{g.type}}&id='+$(this).attr('del_id')
+            }else{
+                location.href='/user/aiVal/delete?type={{g.type}}&id='+$(this).attr('del_id')
+            }
+        })
+        $('#batchConfirmDeleteBtn').click(function(){
+            var arr = []
+            $('#tb input[type=checkbox]').each(function(){
+                if(true == $(this).is(':checked')){
+                    arr.push($(this).val())
+                }
+            });
+            if($(this).attr('url')==""){
+                var  url = "/user/aiVal/batch_delete"
+            }else {
+                var  url = $(this).attr('url')
+            }
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({"ids":arr}),
+                success: function (data) {
+                    $('#batchDelModal').modal('hide');
+                    if (data.code == 1) {
+                        showToast('success', data.msg);
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000);
+                    }else{
+                        showToast('warning', data.msg);
+                    }
+                }
+            })
+        })
+       $('#confirmNoMoney').on('click', function () {
+            $('#NoMoney').modal('hide')
+       })
+    })
+
+</script>

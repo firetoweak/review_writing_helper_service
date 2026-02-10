@@ -1,0 +1,228 @@
+.back-link-label {
+  margin-left: 0.56rem;
+}
+.page {
+  background-color: #f6faff;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+.header-bar {
+  padding: 0.63rem 2.5rem;
+  background-color: #ffffff;
+  box-shadow: 0rem 0.25rem 0.25rem #217efd14;
+  backdrop-filter: blur(0.31rem);
+}
+.header-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.header-link {
+  color: #217efd;
+  font-size: 1.38rem;
+  font-family: DingTalk JinBuTi;
+  line-height: 1.19rem;
+}
+.content-wrapper {
+  padding: 2.5rem 2.5rem 1.5rem;
+}
+.original-card {
+  padding-bottom: 25.63rem;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  width: 54rem;
+  height: 55.25rem;
+  border-left: solid 0.063rem #c0d7f3;
+  border-right: solid 0.063rem #c0d7f3;
+  border-top: solid 0.063rem #c0d7f3;
+  border-bottom: solid 0.063rem #c0d7f3;
+}
+.card-header {
+  background-color: #f2f8ff;
+  border-radius: 0.5rem 0.5rem 0rem 0rem;
+  overflow: hidden;
+  height: 3.25rem;
+  border-left: solid 0.063rem #c0d7f4;
+  border-right: solid 0.063rem #c0d7f4;
+  border-top: solid 0.063rem #c0d7f4;
+  border-bottom: solid 0.063rem #c0d7f4;
+}
+.card-header-bg {
+  margin-top: -1rem;
+  opacity: 0.24;
+  width: 95.8333vw;
+  height: 5vw;
+}
+.card-label {
+  font-size: 1rem;
+  font-family: PingFang SC;
+  line-height: 0.94rem;
+  font-weight: 600;
+  color: #222222;
+}
+.card-label-position-left {
+  position: absolute;
+  left: 1.03rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.card-label-position-right {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.section-title {
+  font-size: 1.25rem;
+  font-family: DingTalk JinBuTi;
+  line-height: 1.1rem;
+  color: transparent;
+}
+.section-title-gradient {
+  margin-left: 1rem;
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  -webkit-background-clip: text;
+}
+.card-content {
+  margin: 0 1rem;
+}
+.content-text {
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 1.5rem;
+  color: #557496;
+}
+.content-justify {
+  text-align: justify;
+}
+.divider-graphic {
+  opacity: 0.3;
+  width: 3.94rem;
+  height: 5.81rem;
+}
+.ai-card {
+  padding-bottom: 19.63rem;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  width: 54rem;
+  height: 55.25rem;
+  border-left: solid 0.063rem #c0d7f3;
+  border-right: solid 0.063rem #c0d7f3;
+  border-top: solid 0.063rem #c0d7f3;
+  border-bottom: solid 0.063rem #c0d7f3;
+}
+.action-buttons {
+  padding: 0 21rem;
+}
+.action-primary {
+  padding: 1rem 0;
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  width: 12rem;
+  height: 3rem;
+}
+.action-label {
+  font-size: 1rem;
+  font-family: PingFang SC;
+  line-height: 0.94rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+.action-secondary {
+  padding: 1rem 0;
+  background-color: #e4f0ff;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  width: 6rem;
+  height: 3rem;
+}
+.action-secondary-text {
+  color: #217efd;
+  line-height: 0.94rem;
+}
+
+/* 编辑按钮 */
+.edit-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+.edit-icon:hover {
+  opacity: 1;
+}
+
+/* 富文本工具栏容器 - 复用主写作页面样式 */
+.writing-toolbar {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+  display: block;
+  margin: 1.38rem 0 0.5rem;
+}
+.writing-toolbar .w-e-toolbar {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.writing-toolbar .w-e-bar {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent;
+}
+.writing-toolbar .w-e-bar-divider {
+  margin: 0;
+}
+.writing-toolbar .w-e-menu {
+  height: auto;
+  line-height: normal;
+  padding: 0;
+}
+
+/* 编辑模式下的整个区域包含蓝色边框 */
+.original-card.editing-mode,
+.ai-card.editing-mode {
+  position: relative;
+  border: solid 0.125rem #217efd !important;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+}
+
+/* 编辑模式下，移除内容区域的边框（因为外层已经有了） */
+#original-content.editing,
+#ai-content.editing {
+  border: none;
+  padding: 0;
+  background-color: transparent;
+  min-height: 20rem;
+}
+
+/* 工具栏在编辑模式下的样式调整 */
+#original-toolbar-wrapper.show,
+#ai-toolbar-wrapper.show {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  padding: 0.5rem 0;
+  margin: 0.5rem 0;
+}
+
+#original-content .w-e-text-container,
+#ai-content .w-e-text-container {
+  min-height: auto;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+#original-content .w-e-scroll,
+#ai-content .w-e-scroll {
+  padding: 0;
+}

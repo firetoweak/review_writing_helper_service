@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+    <link href="/static/lib/wang-editor/style.css" rel="stylesheet" type="text/css">
+    <style>
+        /* 表单布局 - 使用CSS Grid实现均匀分布 */
+        .info-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+
+        .form-item .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+
+        /* 新增：输入框错误样式 */
+        .input-border.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        /* 新增：单选按钮组错误样式 */
+        .radio-group.is-invalid {
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            padding: 8px;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        /* 新增：单选按钮卡片选中样式 */
+        .lay-skin-checkcard.lay-check-dot-2[lay-radio] {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .lay-skin-checkcard.lay-check-dot-2[lay-radio].layui-this {
+            border-color: #217EFD;
+            box-shadow: 0 0 0 2px rgba(33, 126, 253, 0.2);
+        }
+    </style>
+</head>
+<body>
+{% include "components/header.html" %}
+
+{# 统一判断逻辑，定义页面模式变量 #}
+{% if defect %}
+    {% if is_assignee %}
+        {% set page_mode = "edit" %}
+        {% set page_title = "编辑缺陷 #" + defect.id|string %}
+    {% else %}
+        {% set page_mode = "view" %}
+        {% set page_title = "查看缺陷 #" + defect.id|string %}
+    {% endif %}
+{% else %}
+    {% set page_mode = "create" %}
+    {% set page_title = "创建缺陷" %}
+{% endif %}
+
+
+<!-- 顶部横幅 -->
+{% include "components/defect_banner.html" %}
+
+<!-- 主要内容区域 -->
+<div class="container-main">
+    <!-- 面包屑导航 -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom">
+            <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+            <li class="breadcrumb-item">
+                {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a> {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+            </li>
+            <li class="breadcrumb-item active">
+                {% if defect %}
+                    {% if is_assignee %}
+                        编辑缺陷 #{{ defect.id }}
+                    {% else %}
+                        查看缺陷 #{{ defect.id }}
+                    {% endif %}
+                {% else %}
+                    创建缺陷
+                {% endif %}
+            </li>
+        </ol>
+    </nav>
+    <!-- 显示Flash消息 -->
+    {% include "defect/show_flash.html" %}
+    <!-- 设置缺陷基本信息 -->
+    <div class="form-section">
+        <div class="section-header">
+            <div class="section-title">
+                <img src="/static/images/fengchi_tag.svg" alt="">
+                缺陷信息
+            </div>
+        </div>
+
+        <form class="layui-form" method="POST"
+              action="{% if defect %}{{ url_for('defect.submit_defect_update_info', defect_id=defect.id) }}{% else %}{{ url_for('defect.create_defect') }}{% endif %}"
+              id="defectForm">
+            <!-- 添加CSRF令牌保护 -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+            <!-- 添加隐藏的input用于存储选中的项目版本ID -->
+
+            <div class="info-form">
+                <!-- 所属产品平台 -->
+                <div class="form-row">
+
+                    <!--缺陷所属产品线/技术族 -->
+                    {% include "components/product_line_selector.html" %}
+
+                    <!-- 缺陷单号字段（编辑模式下显示，不可编辑） -->
+                    {% if defect %}
+                    <div class="form-item">
+                        <label class="form-label">缺陷单号</label>
+                        <div class="info-value">
+                            <span id="defectNumber" class="form-control-plaintext">{{ defect.defect_number }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 缺陷标题 -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="title" class="form-label">缺陷标题 <span class="text-danger">*</span></label>
+                        <input type="text" class="input-border" id="title" name="title" required
+                               placeholder="请输入缺陷标题" maxlength="200"
+                               value="{% if defect %}{{ defect.title }}{% else %}{{ request.form.title if request.form.title }}{% endif %}"
+                               {% if page_mode == "view" %}readonly{% endif %}>
+                        <div class="error-message" id="title-error">请输入缺陷标题</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!-- 严重程度 -->
+                    <div class="form-item">
+                    <label class="form-label" id="severity_filed">缺陷影响程度 <span class="text-danger">*</span></label>
+                    <div class="radio-group" id="severity-radio-group">
+                        <div class="layui-form flex" lay-filter="form-demo-skin">
+                            <div>
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="致命" lay-skin="none" {% if defect and defect.severity == "致命" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">致命</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="严重" lay-skin="none" {% if defect and defect.severity == "严重" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">严重</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="一般" lay-skin="none" {% if defect and defect.severity == "一般" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">一般</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="提示" lay-skin="none"{% if defect and defect.severity == "提示" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">提示</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="error-message" id="severity-error">请选择缺陷影响程度</div>
+                </div>
+
+                    <!-- 复现概率 -->
+                    <div class="form-item">
+                    <label id="reproducibility_filed" class="form-label">缺陷是否可复现 <span class="text-danger">*</span></label>
+                    <div class="radio-group" id="reproducibility-radio-group">
+                        <div class="layui-form flex" lay-filter="form-demo-skin">
+                            <div>
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="defect_reproducibility" value="必然复现" lay-skin="none" {% if defect and defect.defect_reproducibility == "必然复现" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">必然复现</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="defect_reproducibility" value="有条件复现" lay-skin="none" {% if defect and defect.defect_reproducibility == "有条件复现" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">有条件复现</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="defect_reproducibility" value="小概率复现" lay-skin="none" {% if defect and defect.defect_reproducibility == "小概率复现" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">小概率复现</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="error-message" id="reproducibility-error">请选择缺陷是否可复现</div>
+                </div>
+                </div>
+
+                 <!-- 当前处理人 在驳回后需要显示 -->
+                {% if current_stage %}
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="title" class="form-label">当前处理人</label>
+                        {{ current_stage.assignee.real_name if current_stage.assignee else '未分配' }}/{{ current_stage.assignee.email if current_stage.assignee.email else '无Email' }}
+                    </div>
+
+                     <div class="form-item">
+                        <label for="title" class="form-label">缺陷单状态</label>
+                        {% if defect.status == 'DefectStatus.DRAFT' %}
+                            暂存
+                        {% elif defect.status == 'DefectStatus.TERMINATE_TRACKING' %}
+                            终止跟踪
+                        {% else %}
+                            待提交
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                 <div class="evaluation-table-container">
+                    <table class="ai-val-detail-tb-content">
+                        <tfoot>
+                            {% if defect_flow_histories|length > 1 %}
+                            <tr>
+                                <td colspan="4" style="background: #e5f0fd;color: #557496;">
+                                    <div class="flex items-start">
+                                        <div class="reviewer-info">
+                                            <img src="/static/images/defect/p1_04.png" alt="" class="reviewer-avatar">
+                                            <span class="reviewer-name">{{defect_flow_histories[-2].action_time.replace("T", " ")}} 【{{ defect_flow_histories[-2].action_by_real_name }} ({{ defect_flow_histories[-2].action_by_email }})】 </span>
+                                        </div>
+                                        <div class="review-comment">{{ defect_flow_histories[-2].notes | safe}}</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if defect_flow_histories|length > 0 %}
+                            <tr>
+                                <td colspan="4" style="background: #e5f0fd;color: #557496;">
+                                    <div class="flex items-start">
+                                        <div class="reviewer-info">
+                                            <img src="/static/images/defect/p1_04.png" alt="" class="reviewer-avatar">
+                                            <span class="reviewer-name">{{defect_flow_histories[-1].action_time.replace("T", " ")}} 【{{ defect_flow_histories[-1].action_by_real_name }} ({{ defect_flow_histories[-1].action_by_email }})】 </span>
+                                        </div>
+                                        <div class="review-comment">{{ defect_flow_histories[-1].notes| safe }}</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tfoot>
+                    </table>
+                 </div>
+                <!-- 详细描述 -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label class="form-label">详细描述 <span class="text-danger">*</span></label>
+
+                        <div id="template-fields-container">
+                            <!-- 模板字段将在这里动态生成 -->
+                            <div class="template-field mb-3 card">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                                <p class="mt-2">正在加载描述内容...</p>
+                            </div>
+                        </div>
+                        <!-- 隐藏的description字段，用于存储组合后的内容 -->
+                        <textarea class="form-control d-none" id="description" name="description" rows="6"></textarea>
+                    </div>
+                </div>
+
+                <!-- 添加描述按钮 -->
+                {% if page_mode == "edit" or page_mode == "create"%}
+                <div class="add-section flex items-center justify-center" id="addSection">
+                    <div class="addicon">
+                        <img src="/static/images/defect/news_add.png">
+                    </div>
+                    <div id="add-description-btn" class="add-text" data-bs-toggle="modal" data-bs-target="#addDescriptionModal">添加描述</div>
+                </div>
+                {% endif %}
+
+                <!-- 底部操作按钮 -->
+                {% if page_mode == "edit" or page_mode == "create"%}
+                <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="drawer-buttons" style="height: 100px;display: flex;justify-content: center;align-items: center;">
+                        <button type="button" id="saveDraftBtn" class="btn-batch mr-3" style="width: 96px;">暂存</button>
+                        <button type="button" class="btn-batch mr-3" style="width: 146px;" id="terminateBtn" data-bs-toggle="modal" data-bs-target="#terminateModal">终止跟踪</button>
+                        <button type="button" class="ok-btn btn-batch mr-3" style="width: 180px;" id="start-done-btn" >AI自评 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+                        <!-- 修改提交按钮类型为button，并添加ID -->
+                        <button type="button" style="width: 120px;" class="ok-btn" id="submitBtn">
+                            {% if page_mode == "edit" %}提交审核{% elif page_mode == "create" %}提交审核{% endif %}
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- View模式下显示返回按钮 -->
+                {% if page_mode == "view" %}
+                <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="button-group">
+                        <a href="{{ url_for('defect.defect_list') }}" class="ok-btn" style="width: 120px;" >返回列表</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 添加描述模态框 -->
+{% if page_mode != "view" %}
+<div class="modal fade" id="addDescriptionModal" tabindex="-1" aria-labelledby="addDescriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDescriptionModalLabel">添加描述字段</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newFieldTitle" class="form-label">字段标题</label>
+                    <input type="text" class="form-control" id="newFieldTitle" placeholder="请输入字段标题">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-batch" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="ok-btn"  style="width: 120px;" id="confirmAddField">确认添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 终止跟踪模态框 -->
+<div class="modal fade" id="terminateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                    <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                        <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                            <img src="/static/images/defect/p2_02.png" alt="驳回图标" class="reject-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;"> 终止跟踪
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-custom-md" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+            </div>
+            <form method="post" action="{{ url_for('defect.terminate_defect', defect_id=defect.id) if defect else '' }}">
+                <div style="padding: 0 40px;margin-top: 24px;">
+                    <div class="form-group">
+                        <label class="label-style">
+                            <span style="color: red;">*</span>终止原因
+                        </label>
+                        <textarea class="text-area-border" id="terminate_reason" name="reason" placeholder="请输入" required></textarea>
+                    </div>
+                </div>
+                <div class="button-group-out">
+                    <div class="drawer-buttons button-group-line-dialog">
+                        <button type="button" class="cance-button btn-batch mr-3 " data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="confirm-button ok-btn">确定终止</button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- 确认提交审核弹窗 模块 -->
+<div class="modal fade" id="submitConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px 24px;">
+            <div style="position: absolute;right: 42%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锥矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:600;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">确定提交审核吗？</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" style="min-width:123px;border-radius:8px;">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmSubmitBtn" style="min-width:123px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                        确定提交
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endif %}
+
+
+
+
+
+<!-- 底部区域 -->
+{% include "user/footer.html" %}
+
+<!-- JavaScript 引入 -->
+{% include "defect/base_js.html" %}
+<script src="{{ url_for('static', filename='lib/wang-editor/index.js')}}"></script>
+
+<script>
+    // 项目/版本 树——直接在模板中获取数据
+    const treeData = {{ get_all_version_project() | safe }};
+    console.log(treeData)
+    // 设置选中的值（编辑模式下）
+    let selectedValue = '';  // 存储当前选中的值
+    let selectedText = '';   // 存储显示的文本
+
+    // 显示产品线错误
+    function showProductLineError() {
+        $('#tree-trigger').addClass('is-invalid');
+        $('#product-line-field').addClass('has-error');
+        $('#product-line-error').show();
+    }
+
+    // 清除产品线错误
+    function clearProductLineError() {
+        $('#tree-trigger').removeClass('is-invalid');
+        $('#product-line-field').removeClass('has-error');
+        $('#product-line-error').hide();
+    }
+
+    // 验证是否已选择项目
+    function validateProjectSelection() {
+        if (!$('#project_version_id').val()) {
+            showProductLineError();
+            showToast('warning', '请选择缺陷所属产品线/技术族');
+            // 滚动到树形选择器
+            $('#tree-selector').get(0).scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            return false;
+        }
+        clearProductLineError();
+        return true;
+    }
+
+    // 显示标题错误
+    function showTitleError() {
+        $('#title').addClass('is-invalid');
+        $('#title-error').show();
+    }
+
+    // 清除标题错误
+    function clearTitleError() {
+        $('#title').removeClass('is-invalid');
+        $('#title-error').hide();
+    }
+
+    // 显示严重程度错误
+    function showSeverityError() {
+        $('#severity-radio-group').addClass('is-invalid');
+        $('#severity-error').show();
+    }
+
+    // 清除严重程度错误
+    function clearSeverityError() {
+        $('#severity-radio-group').removeClass('is-invalid');
+        $('#severity-error').hide();
+    }
+
+    // 显示复现概率错误
+    function showReproducibilityError() {
+        $('#reproducibility-radio-group').addClass('is-invalid');
+        $('#reproducibility-error').show();
+    }
+
+    // 清除复现概率错误
+    function clearReproducibilityError() {
+        $('#reproducibility-radio-group').removeClass('is-invalid');
+        $('#reproducibility-error').hide();
+    }
+
+    // 验证标题
+    function validateTitle() {
+        const title = $('#title').val().trim();
+        if (!title) {
+            showTitleError();
+            return false;
+        }
+        clearTitleError();
+        return true;
+    }
+
+    // 验证严重程度
+    function validateSeverity() {
+        const severityChecked = $('input[name="severity"]:checked').length > 0;
+        if (!severityChecked) {
+            showSeverityError();
+            return false;
+        }
+        clearSeverityError();
+        return true;
+    }
+
+    // 验证复现概率
+    function validateReproducibility() {
+        const reproducibilityChecked = $('input[name="defect_reproducibility"]:checked').length > 0;
+        if (!reproducibilityChecked) {
+            showReproducibilityError();
+            return false;
+        }
+        clearReproducibilityError();
+        return true;
+    }
+
+    // 页面加载完成后渲染
+    $(document).ready(function() {
+
+        {% if defect and project_version_id %}
+            selectedValue = "{{ project_version_id }}";
+            {% if project_version_name and project_version_name != '无' %}
+            selectedText = "{{ project_version_name }}";
+            {% endif %}
+        {% endif %}
+
+        // 初始化产品线选择器组件
+        initProductLineSelector({
+            treeData: treeData,
+            selectedValue: selectedValue,
+            selectedText: selectedText,
+            onChange: function(value, text) {
+                console.log('产品线选择变更:', value, text);
+                // 可以在这里添加选择变更后的回调逻辑
+            }
+        });
+
+
+
+
+        // 表单提交前的验证
+        $('#defectForm').on('submit', function(e) {
+            // 如果是草稿保存，不验证项目选择
+            const isDraft = $('input[name="is_draft"]').length > 0;
+            if (!isDraft) {
+                if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        // 为提交按钮添加验证
+        $('#submitBtn').on('click', function() {
+            if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                return false;
+            }
+        });
+
+        // 为AI自评按钮添加验证
+        $('#start-done-btn').on('click', function() {
+            if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                return false;
+            }
+        });
+
+        // 在编辑模式下，如果已有选中的值，清除可能的错误状态
+        {% if defect and project_version_id %}
+            clearProductLineError();
+        {% endif %}
+
+        // 添加输入事件监听器，清除无效样式
+        if (PAGE_MODE !== "view") {
+            // 缺陷标题输入框
+            $('#title').on('input', function() {
+                clearTitleError();
+            });
+
+            // 修复：使用layui的事件监听方式
+            // 监听layui表单的radio选择事件
+            layui.use('form', function(){
+                var form = layui.form;
+
+                // 监听缺陷影响程度的选择
+                form.on('radio', function(data){
+                    if(data.elem.name === 'severity') {
+                        clearSeverityError();
+                    }
+                    if(data.elem.name === 'defect_reproducibility') {
+                        clearReproducibilityError();
+                    }
+                });
+            });
+
+            // 备用方案：直接监听radio的change事件（适用于非layui处理的情况）
+            $(document).on('change', 'input[name="severity"]', function() {
+                clearSeverityError();
+            });
+
+            $(document).on('change', 'input[name="defect_reproducibility"]', function() {
+                clearReproducibilityError();
+            });
+
+            // 备用方案：为卡片添加点击事件监听（直接操作）
+            $('.lay-skin-checkcard[lay-radio]').on('click', function() {
+                // 延迟执行，确保layui已经处理了点击事件
+                setTimeout(function() {
+                    // 检查哪个radio被选中了
+                    if ($('input[name="severity"]:checked').length > 0) {
+                        clearSeverityError();
+                    }
+                    if ($('input[name="defect_reproducibility"]:checked').length > 0) {
+                        clearReproducibilityError();
+                    }
+                }, 10);
+            });
+        }
+    });
+
+    // 全局页面模式变量
+    const PAGE_MODE = "{{ page_mode }}";
+    // 存储编辑器实例的对象
+    const editorInstances = {};
+
+    // 组合模板字段的函数
+    function combineTemplateFields() {
+        const templateFields = document.querySelectorAll('.editor-field');
+        let descriptionData = [];
+
+        templateFields.forEach(field => {
+            const fieldId = field.id.replace('editor-field-', '');
+            const title = field.querySelector('.editor-title').textContent;
+
+            let value = '';
+            if (PAGE_MODE === "view") {
+                // 查看模式下直接从内容区域获取HTML
+                value = field.querySelector('.view-mode-content').innerHTML;
+            } else {
+                // 编辑模式下从编辑器获取HTML内容
+                if (editorInstances[fieldId]) {
+                    value = editorInstances[fieldId].getHtml();
+                }
+            }
+
+            descriptionData.push({
+                title: title,
+                description: value
+            });
+        });
+
+        // 将数据转换为JSON字符串并设置到隐藏的description字段
+        document.getElementById('description').value = JSON.stringify(descriptionData);
+    }
+
+    // 初始化wangEditor
+    function initEditor(editorId, initialContent = '') {
+        const { createEditor, createToolbar } = window.wangEditor;
+
+        const editorConfig = {
+            placeholder: '请输入内容...',
+            onChange: (editor) => {
+                // 内容变化时更新隐藏字段
+                combineTemplateFields();
+            },
+            // 添加这些配置来优化工具栏行为
+            scroll: true,
+            autoFocus: false,
+            MENU_CONF: {}
+            };
+
+        // 配置上传图片
+        editorConfig.MENU_CONF['uploadImage'] = {
+            server: '/user/aiVal/upload_pic', // 替换为你的图片上传接口地址
+            fieldName: 'file', // 上传文件的字段名（与后端一致）
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            maxNumberOfFiles: 1, // 最多上传 5 张图片
+            async customInsert(res, insertFn) {
+                if (res.code == 1) {
+                    // 先插入图片到编辑器
+                    const imgNode = insertFn(res.url);
+
+                    try {
+                        // 调用评估接口将图片URL存入数据库
+                        const response = await fetch('/user/aiVal/create_evaluate_image', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                url: res.url
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success && result.id) {
+                            // 将返回的ID存储到图片元素的data-id属性中
+                            console.log('保存图片信息成功:', result.id);
+                        } else {
+                            console.error('保存图片信息失败:', result.message);
+                        }
+                    } catch (error) {
+                        console.error('调用评估接口失败:', error);
+                    }
+                } else {
+                    alert(res.msg || '上传失败');
+                }
+            }
+        };
+
+        const editor = createEditor({
+            selector: `#editor-${editorId}`,
+            config: editorConfig,
+            html: initialContent || ''
+        });
+
+        // 创建工具栏
+        createToolbar({
+            editor,
+            selector: `#toolbar-${editorId}`,
+            config: {
+                toolbarKeys: ['uploadImage'], // 只保留上传图片按钮
+                excludeKeys: [
+                    'insertVideo', // 排除视频
+                    'codeBlock',   // 排除代码块
+                ],
+                // 添加工具栏配置
+                maxToolbarLength: 10
+            }
+        });
+
+        return editor;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 修复模态框关闭不彻底的问题
+        function cleanupModalBackdrop() {
+            // 移除所有模态框背景遮罩层
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.parentNode.removeChild(backdrop);
+            });
+
+            // 恢复页面滚动功能
+            document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '0';
+
+            // 移除modal-open类
+            document.body.classList.remove('modal-open');
+        }
+
+        // 初始化描述字段
+        function initDescriptionFields() {
+            if (PAGE_MODE === "view" || PAGE_MODE === "edit") {
+                // 编辑/查看模式：从模板变量获取描述数据
+                const descriptionData = {{ description_data | tojson | safe if description_data else 'null' }};
+
+                // 解析description字段中的JSON数据
+                let descriptionItems = [];
+                try {
+                    if (descriptionData && descriptionData[0].content &&  descriptionData[0].content.description) {
+                        descriptionItems = JSON.parse(descriptionData[0].content.description);
+                        generateDescriptionFields(descriptionItems);
+                    } else {
+                        showNoDescriptionWarning();
+                    }
+                } catch (e) {
+                    console.error('解析描述数据失败:', e);
+                    showNoDescriptionWarning();
+                }
+            } else {
+                // 创建模式：从模板获取数据
+                fetch('/template/缺陷描述')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('获取模板失败: ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(templateData => {
+                        // 生成模板字段
+                        generateTemplateFields(templateData.items);
+                    })
+                    .catch(error => {
+                        console.error('获取模板失败:', error);
+                        // 显示错误信息并提供回退方案
+                        showFallbackDescriptionField();
+                    });
+            }
+        }
+
+        // 生成描述字段的函数（编辑/查看模式）
+        function generateDescriptionFields(items) {
+            const container = document.getElementById('template-fields-container');
+            container.innerHTML = ''; // 清空加载提示
+
+            if (items && items.length > 0) {
+                items.forEach((item, index) => {
+                    addDescriptionField(item.title, item.description, index);
+                });
+            } else {
+                showNoDescriptionWarning();
+            }
+        }
+
+        // 生成模板字段的函数（创建模式）
+        function generateTemplateFields(items) {
+            const container = document.getElementById('template-fields-container');
+            container.innerHTML = ''; // 清空加载提示
+
+            if (items && items.length > 0) {
+                items.forEach((item, index) => {
+                    addTemplateField(item.content.title, item.is_required, index);
+                });
+            } else {
+                showNoDescriptionWarning();
+            }
+        }
+
+        // 显示无描述警告
+        function showNoDescriptionWarning() {
+            document.getElementById('template-fields-container').innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>没有可编辑的描述内容
+                </div>
+            `;
+        }
+
+        // 显示回退描述字段
+        function showFallbackDescriptionField() {
+            document.getElementById('template-fields-container').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>加载模板失败
+                </div>
+                <div class="mb-3">
+                    <label for="fallback-description" class="form-label">详细描述</label>
+                    <textarea class="form-control" id="fallback-description" name="fallback-description" rows="6"
+                              placeholder="请详细描述缺陷现象、复现步骤和预期结果" required
+                              {% if page_mode == "view" %}readonly{% endif %}></textarea>
+                </div>
+            `;
+        }
+
+        // 单击到大长条区域打开 添加描述字段 对话框
+        $('#addSection').click(function() {
+                // 显示AI评估进度弹窗
+                var addDescriptionModal = new bootstrap.Modal(document.getElementById('addDescriptionModal'));
+                addDescriptionModal.show();
+            });
+
+        // 添加描述字段的函数（编辑/查看模式）
+        function addDescriptionField(title, value, index = null) {
+            const container = document.getElementById('template-fields-container');
+            const fieldId = index !== null ? index : Date.now();
+            const editorFieldId = `editor-field-${fieldId}`;
+
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'editor-field';
+            fieldDiv.id = editorFieldId;
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'editor-header';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'editor-title';
+            titleSpan.textContent = title;
+
+            // 只在非view模式下显示删除按钮
+            if (PAGE_MODE !== "view") {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'remove-tag btn btn-sm btn-outline-danger ';
+                deleteBtn.innerHTML = '移除';
+                deleteBtn.onclick = function() {
+                    // 检查是否至少保留一个字段
+                    const fields = document.querySelectorAll('.editor-field');
+                    if (fields.length > 1) {
+                        // 销毁编辑器实例
+                        if (editorInstances[fieldId]) {
+                            editorInstances[fieldId].destroy();
+                            delete editorInstances[fieldId];
+                        }
+                        fieldDiv.remove();
+                        // 更新隐藏字段
+                        combineTemplateFields();
+                    } else {
+                        showToast('warning', `至少需要保留一个描述字段`);
+                    }
+                };
+                headerDiv.appendChild(titleSpan);
+                headerDiv.appendChild(deleteBtn);
+            } else {
+                headerDiv.appendChild(titleSpan);
+            }
+
+            fieldDiv.appendChild(headerDiv);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'editor-container';
+
+            // view模式下使用只读内容显示
+            if (PAGE_MODE === "view") {
+                const viewContent = document.createElement('div');
+                viewContent.className = 'view-mode-content';
+                viewContent.innerHTML = value || '<span class="text-muted">无内容</span>';
+                contentDiv.appendChild(viewContent);
+            } else {
+                // 编辑模式下创建编辑器
+                const toolbarDiv = document.createElement('div');
+                toolbarDiv.id = `toolbar-${fieldId}`;
+                toolbarDiv.className = 'editor-toolbar';
+                contentDiv.appendChild(toolbarDiv);
+
+                const editorDiv = document.createElement('div');
+                editorDiv.id = `editor-${fieldId}`;
+                editorDiv.className = 'editor-content';
+                contentDiv.appendChild(editorDiv);
+
+                // 初始化编辑器
+                setTimeout(() => {
+                    editorInstances[fieldId] = initEditor(fieldId, value || '');
+                }, 100);
+            }
+
+            fieldDiv.appendChild(contentDiv);
+            container.appendChild(fieldDiv);
+        }
+
+        // 添加模板字段的函数（创建模式）
+        function addTemplateField(title, isRequired, index = null) {
+            const container = document.getElementById('template-fields-container');
+            const fieldId = index !== null ? index : Date.now();
+            const editorFieldId = `editor-field-${fieldId}`;
+
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'editor-field';
+            fieldDiv.id = editorFieldId;
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'editor-header';
+
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'editor-title';
+            titleSpan.textContent = title;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'remove-tag btn btn-sm btn-outline-danger ';
+            deleteBtn.innerHTML = '移除';
+            deleteBtn.onclick = function() {
+                // 检查是否至少保留一个字段
+                const fields = document.querySelectorAll('.editor-field');
+                if (fields.length > 1) {
+                    // 销毁编辑器实例
+                    if (editorInstances[fieldId]) {
+                        editorInstances[fieldId].destroy();
+                        delete editorInstances[fieldId];
+                    }
+                    fieldDiv.remove();
+                    // 更新隐藏字段
+                    combineTemplateFields();
+                } else {
+                    showToast('warning', `至少需要保留一个描述字段`);
+                }
+            };
+
+            headerDiv.appendChild(titleSpan);
+            headerDiv.appendChild(deleteBtn);
+
+            fieldDiv.appendChild(headerDiv);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'editor-container';
+
+            // 创建工具栏
+            const toolbarDiv = document.createElement('div');
+            toolbarDiv.id = `toolbar-${fieldId}`;
+            toolbarDiv.className = 'editor-toolbar';
+            contentDiv.appendChild(toolbarDiv);
+
+            // 创建编辑器容器
+            const editorDiv = document.createElement('div');
+            editorDiv.id = `editor-${fieldId}`;
+            editorDiv.className = 'editor-content';
+            contentDiv.appendChild(editorDiv);
+
+            fieldDiv.appendChild(contentDiv);
+            container.appendChild(fieldDiv);
+
+            // 初始化编辑器
+            setTimeout(() => {
+                editorInstances[fieldId] = initEditor(fieldId);
+            }, 100);
+        }
+
+        // 初始化描述字段
+        initDescriptionFields();
+
+        // 添加描述字段按钮事件（非view模式）
+        if (PAGE_MODE !== "view") {
+            document.getElementById('confirmAddField').addEventListener('click', function() {
+                const titleInput = document.getElementById('newFieldTitle');
+                const title = titleInput.value.trim();
+
+                if (title) {
+                    // 根据当前模式添加不同类型的字段
+                    if (PAGE_MODE === "edit") {
+                        addDescriptionField(title, '', null);
+                    } else if (PAGE_MODE === "create") {
+                        addTemplateField(title, false, null);
+                    }
+
+                    // 重置输入框
+                    titleInput.value = '';
+
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addDescriptionModal'));
+                    modal.hide();
+
+                    // 添加事件监听，确保模态框完全关闭后执行清理
+                    $('#addDescriptionModal').on('hidden.bs.modal', function () {
+                        cleanupModalBackdrop();
+                        // 移除事件监听，避免重复执行
+                        $(this).off('hidden.bs.modal');
+                    });
+                } else {
+                    showToast('warning', `请输入字段标题`);
+                }
+            });
+
+            // 为模态框添加关闭事件监听，确保任何关闭方式都能清理残留
+            $('#addDescriptionModal').on('hidden.bs.modal', function () {
+                cleanupModalBackdrop();
+            });
+
+            // 在表单提交前组合所有模板字段内容
+            document.getElementById('defectForm').addEventListener('submit', function(e) {
+                // 组合所有模板字段内容
+                combineTemplateFields();
+            });
+
+            // 表单验证
+            const form = document.getElementById('defectForm');
+            const saveDraftBtn = document.getElementById('saveDraftBtn');
+
+            // 保存草稿功能
+            saveDraftBtn.addEventListener('click', function(event) {
+                // 阻止事件冒泡和默认行为(submit按钮的行为)
+                event.preventDefault();
+                event.stopPropagation();
+
+                // 组合所有模板字段内容
+                combineTemplateFields();
+
+                // 创建一个隐藏字段来标识这是草稿保存
+                let draftInput = document.createElement('input');
+                draftInput.type = 'hidden';
+                draftInput.name = 'is_draft';
+                draftInput.value = 'true';
+                form.appendChild(draftInput);
+
+
+
+                // 移除必填字段验证
+                const requiredFields = form.querySelectorAll('[required]');
+                requiredFields.forEach(field => {
+                    field.removeAttribute('required');
+                });
+                console.log(form)
+                // 提交表单
+                form.submit();
+            });
+
+            // 在表单的submit事件中，移除is_draft字段
+            form.addEventListener('submit', function() {
+                const draftInput = form.querySelector('input[name="is_draft"]');
+                if (draftInput) {
+                    form.removeChild(draftInput);
+                }
+            });
+
+            // 表单验证函数 - 增强版本，包含产品线验证
+            function validateForm() {
+                let isValid = true;
+
+                // 验证产品线选择
+                if (!validateProjectSelection()) {
+                    isValid = false;
+                }
+
+                // 验证标题
+                if (!validateTitle()) {
+                    isValid = false;
+                }
+
+                // 验证严重程度
+                if (!validateSeverity()) {
+                    isValid = false;
+                }
+
+                // 验证复现概率
+                if (!validateReproducibility()) {
+                    isValid = false;
+                }
+
+                // 验证模板字段中的必填项
+                const requiredTemplateFields = form.querySelectorAll('.template-description[required]');
+                requiredTemplateFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+
+                if (!isValid) {
+                    // 显示错误提示
+                    showToast('warning', `请完善必填字段后再提交`);
+
+                    // 自动滚动到第一个错误字段
+                    const firstInvalid = form.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+
+                return isValid;
+            }
+
+            // 提交按钮点击事件 - 显示确认弹窗
+            document.getElementById('submitBtn').addEventListener('click', function() {
+                // 组合所有模板字段内容
+                combineTemplateFields();
+
+                // 验证表单（包含产品线验证）
+                if (validateForm()) {
+                    // 验证通过，显示确认弹窗
+                    var submitConfirmModal = new bootstrap.Modal(document.getElementById('submitConfirmModal'));
+                    submitConfirmModal.show();
+                }
+            });
+
+            // 确认提交按钮点击事件 - 实际提交表单
+            document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
+                // 提交表单
+                $('#defectForm').append(`<input type="hidden" value="audit" name="ai_done_act" />`);
+                $('#defectForm').append(`<input type="hidden" value="step1" name="audit_step" />`);
+                document.getElementById('defectForm').submit();
+            });
+        }
+    });
+
+    // AI自评按钮点击事件
+    $('#start-done-btn').click(function() {
+        // 首先验证产品线选择
+        if (!validateProjectSelection()) {
+            return false;
+        }
+        $('#defectForm').append(`<input type="hidden" value="self" name="ai_done_act" />`);
+        $('#saveDraftBtn').click();
+        // 显示AI评估进度弹窗
+
+        /*
+        var valDoneModal = new bootstrap.Modal(document.getElementById('valDoneModal'));
+        valDoneModal.show();
+         */
+    });
+
+
+
+</script>
+{% include  "components/ai_done.html" %}
+</body>
+</html>

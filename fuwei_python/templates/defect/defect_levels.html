@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+</head>
+<body>
+{% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item">
+                    {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a> {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+                </li>
+                <li class="breadcrumb-item active">
+                    DI值计算规则
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <!-- 显示Flash消息 -->
+    {% include "defect/show_flash.html" %}
+    <div class="container-main">
+        <div class="role-selector">
+            {% include "components/roles_menu.html" %}
+            {% include "components/defect_message.html" %}
+        </div>
+
+        <!-- 操作栏 - 包含切换按钮和搜索区域 -->
+        <div class="operation-bar" style="justify-content: space-between;">
+             {{ get_right_style(0)|safe }}
+            <!-- 切换按钮 -->
+            <div class="tab-buttons">
+                {% include "components/user_menus.html" %}
+            </div>
+            {% if not error_message %}
+            <div class="button history-link">查看日志</div>
+            {% endif %}
+        </div>
+        <!-- 缺陷等级列表表格 -->
+        <div class="tab-content">
+            <div class="tab-pane layui-show" id="processedContent">
+
+                {% if defect_levels %}
+                    <div class="table-container">
+                        <table class="layui-table" lay-size="sm">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        缺陷等级（系统固定，不可修改）
+                                    </th>
+                                    <th>对应分数（完成配置后，全公司将统一使用）</th>
+                                    <th style="width: 120px;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 致命缺陷 -->
+                                <tr>
+                                    <td>
+                                        <span class="status-tag status-urgent">致命</span>
+                                        {{ defect_levels.critical_defects.display_name }}
+                                    </td>
+                                    <td class="fw-bold">{{ defect_levels.critical_defects.value }}</td>
+                                    <td>
+                                        {% if is_global_admin %}
+                                        <button class="btn btn-sm option-button" data-bs-toggle="modal"
+                                                data-bs-target="#editModal"
+                                                data-id="{{ defect_levels.id }}"
+                                                data-field-name="critical_defects"
+                                                data-display-name="{{ defect_levels.critical_defects.display_name }}"
+                                                data-score="{{ defect_levels.critical_defects.value }}">
+                                            编辑
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- 严重缺陷 -->
+                                <tr>
+                                    <td>
+                                        <span class="status-tag status-serious">严重</span>
+                                        {{ defect_levels.major_defects.display_name }}
+                                    </td>
+                                    <td class="fw-bold">{{ defect_levels.major_defects.value }}</td>
+                                    <td>
+                                        {% if is_global_admin %}
+                                        <button class="btn btn-sm option-button" data-bs-toggle="modal"
+                                                data-bs-target="#editModal"
+                                                data-id="{{ defect_levels.id }}"
+                                                data-field-name="major_defects"
+                                                data-display-name="{{ defect_levels.major_defects.display_name }}"
+                                                data-score="{{ defect_levels.major_defects.value }}">
+                                            编辑
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- 一般缺陷 -->
+                                <tr>
+                                    <td>
+                                        <span class="status-tag status-normal">一般</span>
+                                        {{ defect_levels.minor_defects.display_name }}
+                                    </td>
+                                    <td class="fw-bold">{{ defect_levels.minor_defects.value }}</td>
+                                    <td>
+                                        {% if is_global_admin %}
+                                        <button class="btn btn-sm option-button" data-bs-toggle="modal"
+                                                data-bs-target="#editModal"
+                                                data-id="{{ defect_levels.id }}"
+                                                data-field-name="minor_defects"
+                                                data-display-name="{{ defect_levels.minor_defects.display_name }}"
+                                                data-score="{{ defect_levels.minor_defects.value }}">
+                                            编辑
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- 提示缺陷 -->
+                                <tr>
+                                    <td>
+                                        <span class="status-tag status-minor">提示</span>
+                                        {{ defect_levels.suggestion_defects.display_name }}
+                                    </td>
+                                    <td class="fw-bold">{{ defect_levels.suggestion_defects.value }}</td>
+                                    <td>
+                                        {% if is_global_admin %}
+                                        <button class="btn btn-sm option-button" data-bs-toggle="modal"
+                                                data-bs-target="#editModal"
+                                                data-id="{{ defect_levels.id }}"
+                                                data-field-name="suggestion_defects"
+                                                data-display-name="{{ defect_levels.suggestion_defects.display_name }}"
+                                                data-score="{{ defect_levels.suggestion_defects.value }}">
+                                            编辑
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看日志模态框 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="this.blur()"></div>
+    <div class="add-colleague-drawer" id="addColleagueDrawer-add" style="display: none;" tabindex="-1">
+        <div class="drawer-overlay-list"></div>
+        <div class="drawer-container">
+            <div class="drawer-header">
+                <div class="drawer-title-container">
+                    <div class="drawer-title"></div>
+                </div>
+                <button type="button" class="btn-close" id="closeDrawer" aria-label="Close"></button>
+            </div>
+            <div class="drawer-content drawer-content1">
+                <div class="layui-timeline custom-timeline">
+                    <!-- 时间线将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑模态框 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                    <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                        <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                            <img src="/static/images/defect/imga1/aaa5.png" alt="图标" class="reject-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;"> 配置计分原则
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="this.blur()" aria-label="Close" style="font-size:20px;"></button>
+                </div>
+
+
+                <form id="editForm" action="{{ url_for('defect_level.update_defect_level') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;color:#557496;margin-bottom: 10px;">
+                                <span style="color: red;">*</span> <span class="modal-title">编辑缺陷等级分数</span>
+                            </label>
+                            <input type="hidden"  id="defect_type" name="defect_type" value="{{ request.values.get('defect_type') }}">
+                            <input type="number" step="0.1" class="input-border" id="modalScore" name="new_score" required min="0.1">
+                            <div class="form-text">分数必须大于0</div>
+                        </div>
+                        <input type="hidden" id="modalLevelId" name="level_id">
+                        <input type="hidden" id="modalFieldName" name="field_name">
+                    </div>
+
+                    <div class="button-group-out">
+                        <div class="drawer-buttons button-group-line" >
+                            <button type="button" class="btn-batch mr-3" style="min-width:120px" data-bs-dismiss="modal">取消</button>
+                            <button type="submit" class="ok-btn" style="min-width:120px" >保存</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+<!-- 底部区域 -->
+{% include "user/footer.html" %}
+<!-- JavaScript 引入 -->
+{% include "defect/base_js.html" %}
+
+
+    <script>
+        // 检查是否有错误信息
+        {% if error_message %}
+            // 显示错误信息
+            showToast("error", "{{ error_message }}", 5000);
+        {% endif %}
+        // 模态框显示时填充数据
+        var editModal = document.getElementById('editModal')
+        editModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget
+            var id = button.getAttribute('data-id')
+            var fieldName = button.getAttribute('data-field-name')
+            var displayName = button.getAttribute('data-display-name')
+            var score = button.getAttribute('data-score')
+
+            var modalTitle = editModal.querySelector('.modal-title')
+
+            var modalScore = editModal.querySelector('#modalScore')
+            var modalLevelId = editModal.querySelector('#modalLevelId')
+            var modalFieldName = editModal.querySelector('#modalFieldName')
+
+            modalTitle.textContent = ' 「' + displayName + '」的对应分数'
+
+            modalScore.value = score
+            modalLevelId.value = id
+            modalFieldName.value = fieldName
+        })
+
+        // 表单验证
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            var scoreInput = document.getElementById('modalScore')
+            var score = parseFloat(scoreInput.value)
+
+            if (isNaN(score) || score <= 0) {
+                event.preventDefault()
+                showToast('warning', '分数必须是大于0的数字')
+                scoreInput.focus()
+                return false
+            }
+
+            return true
+        })
+
+        // 自动关闭提示消息
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 3000);
+    </script>
+
+    <script>
+    // 将服务端日志转换为时间线数据格式的函数
+    function convertLogsToTimelineData(logs) {
+        return logs.map(function(log) {
+            // 将字段名称转换为中文显示
+            var fieldNameMap = {
+                'critical_defects': '致命缺陷',
+                'major_defects': '严重缺陷',
+                'minor_defects': '一般缺陷',
+                'suggestion_defects': '提示缺陷'
+            };
+
+            var chineseFieldName = fieldNameMap[log.field_name] || log.field_name;
+
+            return {
+                user: log.modifier,
+                time: log.modified_time,
+                field: chineseFieldName,
+                old_value: log.old_value,
+                new_value: log.new_value
+            };
+        });
+    }
+
+    // 渲染时间线
+    function renderTimeline(logs) {
+        var timelineHtml = '';
+
+        if (logs.length === 0) {
+            timelineHtml = '<div class="text-center text-muted py-3">暂无修改记录</div>';
+        } else {
+            logs.forEach(function(item, index) {
+                timelineHtml += `
+                    <div class="layui-timeline-item status1-a">
+                        <div class="layui-timeline-axis1">
+                            <div class="timeline-avatar">
+                                ${item.user.charAt(0)}
+                            </div>
+                        </div>
+                        <div class="layui-timeline-content layui-text timeline-content-wrapper">
+                            <div class="user-info">
+                                <div class="user-job">
+                                    <div class="user-name">${item.user}</div>
+                                    <div class="status-tag" style="display:flex;"><span style="font-size:18px;">•</span> 修改</div>
+                                </div>
+                                <div class="user-job">
+                                    <div class="user-dept">修改了 ${item.field} 的分数</div>
+                                    <div class="timeline-time">${item.time}</div>
+                                </div>
+                            </div>
+                            <div class="message-box">从 ${item.old_value} 改为 ${item.new_value}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        $('.custom-timeline').html(timelineHtml);
+    }
+
+    $('.history-link').click(function() {
+        // 使用AJAX获取日志数据
+        fetch('/defect_level/api/logs')
+            .then(response => response.json())
+            .then(data => {
+                var timelineData = convertLogsToTimelineData(data.logs);
+                renderTimeline(timelineData);
+
+                // 显示模态框
+                $('#addColleagueDrawer-add').fadeIn(300);
+                $('#addColleagueDrawer-add .drawer-container').animate({right: 0}, 300);
+                $('body').addClass('modal-open');
+            })
+            .catch(error => {
+                console.error('Error fetching logs:', error);
+                showToast('error', '获取日志数据失败')
+            });
+    });
+
+    // 点击关闭按钮关闭抽屉
+    $('#closeDrawer, .drawer-overlay-list').click(function() {
+        $('#addColleagueDrawer-add .drawer-container').animate({right: '-500px'}, 300, function() {
+            $('#addColleagueDrawer-add').fadeOut(300);
+        });
+        // 检查是否还有其他模态框显示着
+        if ($('.modal.show').length === 0) {
+            // 移除modal-open类以恢复滚动条
+            $('body').removeClass('modal-open');
+        }
+        $('#addColleagueDrawer-add').blur()
+    });
+
+    // 防止点击抽屉内容时关闭抽屉
+    $('#addColleagueDrawer-add .drawer-container').click(function(e) {
+        e.stopPropagation();
+    });
+    </script>
+    <style>
+        /* 添加表格行下边框样式 */
+        .table-container .layui-table tbody td {
+            border-bottom: 1px solid #e6e6e6!important; /* 为单元格添加下边框 */
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+    </style>
+</body>
+</html>

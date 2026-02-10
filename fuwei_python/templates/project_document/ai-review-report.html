@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>codefun</title>
+    {% include "project_document/base.html" %}
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/mock-data.js')}}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/ai-review-report/index.css')}}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/ai-review-report/index.js')}}"></script>
+</head>
+
+<body>
+  <div class="flex-col page scrollbar-custom">
+    <!-- 顶部导航栏 -->
+    <div class="flex-col justify-start section-main">
+      <div class="flex-row items-center section-nav section-nav-report">
+        <div class="flex-row items-center nav-left">
+          <img class="shrink-0 img-back" src="/static/project_document/images/ai-review-report/icon-back-home.png" alt="" />
+          <span class="text-back-home ml-space-nine">返回首页</span>
+        </div>
+        <div class="flex-row nav-right">
+          <button class="btn-icon" id="btn-share" type="button" aria-label="分享">
+            <img class="btn-icon-img" src="/static/project_document/images/icon-share.png" alt="" />
+          </button>
+          <button class="ml-space-eight btn-icon" id="btn-download" type="button" aria-label="下载">
+            <img class="btn-icon-img" src="/static/project_document/images/icon-download.png" alt="" />
+          </button>
+          <div class="ml-space-eight flex-col justify-start items-center btn-return-writing" id="btn-return-writing">
+            <span class="text-return-writing">返回智能写作</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero-wrapper hero-review">
+      <div class="hero-content hero-review-content">
+        <div class="flex-row items-center justify-center hero-title-row">
+          <img class="img-decor" src="/static/project_document/images/ai-review-report/decor-title-left.png" alt="" />
+          <span class="text-gradient text-main-title" id="article-title">加载中...</span>
+          <img class="img-decor" src="/static/project_document/images/ai-review-report/decor-title-right.png" alt="" />
+        </div>
+        <span class="font-meta text-word-count" id="article-word-count">全文共0字</span>
+      </div>
+      <div class="hero-bg-container hero-bg-review">
+        <img class="hero-bg-image" src="/static/project_document/images/ai-review-report/hero-bg.png" alt="" />
+      </div>
+    </div>
+
+    <!-- 章节内容容器 -->
+    <div id="chapters-container" class="flex-col items-center"></div>
+
+    <!-- 操作按钮 -->
+    <div class="edit-action-container" id="edit-action-container">
+      <!-- 动态渲染编辑/保存/取消按钮 -->
+    </div>
+
+    <!-- 页面底部 -->
+    <div class="page-footer">
+      <div class="page-bg-right-container">
+        <img class="page-bg-right-image" src="/static/project_document/images/preview-review/bg-hero-right.svg" alt="" />
+      </div>
+      <div class="footer-brand">
+        <img class="img-logo" src="/static/project_document/images/common/logo-app.png" alt="" />
+        <span class="text-slogan">精确评估并提升企业工作质量</span>
+      </div>
+      <div class="section-divider"></div>
+      <div class="footer-links">
+        <span class="font-meta text-semi-transparent text-footer-label">快捷入口：</span>
+        <span class="font-body text-semi-transparent">首页</span>
+        <span class="font-body text-semi-transparent">API开放平台</span>
+        <span class="font-body text-semi-transparent">产品立项</span>
+        <span class="font-body text-semi-transparent">产品需求管理</span>
+        <span class="font-body text-semi-transparent">产品缺陷管理</span>
+        <span class="font-body text-semi-transparent">用户管理</span>
+        <span class="font-body text-semi-transparent">联系我们</span>
+        <span class="font-body text-semi-transparent">顾问服务</span>
+      </div>
+      <div class="footer-copyright">
+        <span class="font-footer text-copyright">Copyright ©2025</span>
+        <span class="font-footer text-company">锋矢科技</span>
+        <img class="img-arrow" src="/static/project_document/images/common/icon-arrow-right-filled.png" alt="" />
+        <span class="font-footer">粤ICP备2023062980号</span>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

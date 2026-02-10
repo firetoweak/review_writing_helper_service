@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+</head>
+<body>
+{% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item">
+                    {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a> {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+                </li>
+                <li class="breadcrumb-item active">
+                    统计分析
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="container-main">
+        <div class="role-selector">
+            {% include "components/roles_menu.html" %}
+            {% include "components/defect_message.html" %}
+        </div>
+
+        <!-- 操作栏 - 包含切换按钮和搜索区域 -->
+        <div class="operation-bar">
+            <!-- 切换按钮 -->
+            {% include "components/user_menus.html" %}&nbsp;&nbsp;&nbsp;&nbsp;
+            {% include "components/layui_checkbox_tree.html" %}
+
+            <div class="button" id="searchBtn" style="width: 102px;display: flex;justify-content: center;align-items: center;">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                <span style="margin-left: 4px;">搜索</span>
+            </div>
+            <!-- 搜索区域 -->
+            <div class="search-group">
+                <div class="button export-btn" id="exportExcel" style="width: 112px;display: flex;justify-content: center;align-items: center;">
+                    <span style="margin-left: 4px;">导出列表</span>
+                </div>
+                <div class="button export-btn" id="exportChart" style="width: 120px;display: flex;justify-content: center;align-items: center;">
+                    <span style="margin-left: 4px;">导出统计图</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="sub-container-main">
+            <div class="note-info">草稿、终止跟踪 状态的缺陷单不纳入统计。</div>
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <img src="/static/images/fengchi_tag.svg" alt="" width="28" height="28">
+                        结果分析
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="chart-container" style="display: flex; justify-content: space-between;">
+                        <!-- DI统计 -->
+                        <div style="width: 620px;" class="item-chart">
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;height: 42px;">
+                                    <span class="clor1">DI统计</span>
+                                    <div style="width: 108px;position: relative; display: inline-block;margin-left:10px;">
+                                        <img src="/static/images/defect/imga1/DI.png" alt="b1">
+                                        <div id='totalDI' class="fz" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-80%);color: #217EFD;">
+                                            0分
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center;margin-left: 10px;">
+                                        <div class="export-icon" style="display: flex; align-items: center;margin-left: 10px;">
+                                            <img src="/static/images/defect/imga1/dc.png" alt="导出">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center;margin-top: 20px;">
+                                    <div class="layui-form" style="width: 454px;position: relative; display: inline-block;">
+                                        <input type="text" class="layui-input" id="di_chart_date" placeholder="请选择">
+                                        <img src="/static/images/defect/imga1/date.png" alt="日期" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
+                                    </div>
+                                    <div class="layui-form" style="width: 150px;margin-left: 10px;">
+                                        <select name="defect_status" lay-verify="">
+                                            <option value="all">全部状态</option>
+                                            <option value="open">未关闭</option>
+                                            <option value="closed">已关闭</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="Card">
+                                <div id="diChart" style="height: 360px; position: relative;">
+                                    <div class="chart-loading" id="diChartLoading" style="display: flex;">
+                                        <div class="loading-spinner"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 缺陷数统计 -->
+                        <div style="width: 620px;" class="item-chart">
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;height: 42px;">
+                                    <span class="clor1">缺陷数统计</span>
+                                    <div style="width: 108px;position: relative; display: inline-block;margin-left:10px;">
+                                        <img src="/static/images/defect/imga1/defect_nums.png" alt="b1">
+                                        <div id='totalDefects' class="fz" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-80%);color: #217EFD;">
+                                            0个
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center;margin-left: 10px;">
+                                        <div class="export-icon" style="display: flex; align-items: center;margin-left: 10px;">
+                                            <img src="/static/images/defect/imga1/dc.png" alt="导出">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center;margin-top: 20px;">
+                                    <div class="layui-form" style="width: 288px;position: relative; display: inline-block;">
+                                        <input type="text" class="layui-input" id="defect_nums_chart_date" placeholder="请选择">
+                                        <img src="/static/images/defect/imga1/date.png" alt="日期" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
+                                    </div>
+                                    <div class="layui-form" style="width: 150px;margin-left: 10px;">
+                                        <select name="severity" id="defect_nums_severity" lay-verify="">
+                                            <option value="all">全部影响程度</option>
+                                            <option value="致命">致命</option>
+                                            <option value="严重">严重</option>
+                                            <option value="一般">一般</option>
+                                            <option value="提示">提示</option>
+                                        </select>
+                                    </div>
+                                    <div class="layui-form" style="width: 150px;margin-left: 10px;">
+                                        <select name="defect_status" id="defect_nums_status" lay-verify="">
+                                            <option value="all">全部状态</option>
+                                            <option value="open">未关闭</option>
+                                            <option value="closed">已关闭</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="Card">
+                                <div id="defectsChart" style="height: 360px; position: relative;">
+                                    <div class="chart-loading" id="defectsChartLoading" style="display: none;">
+                                        <div class="loading-spinner"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 过程管理质量分析 -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <img src="/static/images/fengchi_tag.svg" alt="" width="28" height="28">
+                        过程管理质量分析
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="chart-container" style="display: flex; justify-content: space-between;">
+                        <!-- 工作质量AI评分统计 -->
+                        <div style="width: 620px;" class="item-chart ai-score-chart-container">
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;height: 42px;">
+                                    <span class="clor1">工作质量AI评分统计</span>
+                                    <div style="display: flex; align-items: center;margin-left: 10px;">
+                                        <div class="export-icon" style="display: flex; align-items: center;margin-left: 10px;">
+                                            <img src="/static/images/defect/imga1/dc.png" alt="导出">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center;margin-top: 20px;">
+                                    <div class="layui-form" style="width: 288px;position: relative; display: inline-block;">
+                                        <input type="text" class="layui-input" id="quality-chart-date" placeholder="请选择">
+                                        <img src="/static/images/defect/imga1/date.png" alt="日期" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
+                                    </div>
+                                    <div class="layui-form" style="width: 150px;margin-left: 10px;">
+                                        <select name="data_type" id="quality-chart-data-type" lay-verify="">
+                                            <option value="all">全部数据类型</option>
+                                            <option value="description">缺陷描述</option>
+                                            <option value="analysis">原因分析</option>
+                                            <option value="solution">解决措施</option>
+                                            <option value="result">回归测试</option>
+                                        </select>
+                                    </div>
+                                    <div class="layui-form" style="width: 150px;margin-left: 10px;">
+                                        <select name="defect_status" id="quality-chart-status" lay-verify="">
+                                            <option value="all">全部状态</option>
+                                            <option value="open">未关闭</option>
+                                            <option value="closed">已关闭</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="Card">
+                                <div id="qualityChart" style="height: 360px; position: relative;">
+                                    <div class="chart-loading" id="qualityChartLoading" style="display: none;">
+                                        <div class="loading-spinner"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 阶段停留时间统计 -->
+                        <div style="width: 620px;" class="item-chart">
+                            <div style="margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center;height: 42px;">
+                                    <span class="clor1">阶段停留时间统计</span>
+                                    <div style="display: flex; align-items: center;">
+                                        <div class="export-icon" style="display: flex; align-items: center;margin-left: 10px;">
+                                            <img src="/static/images/defect/imga1/dc.png" alt="导出">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center;margin-top: 20px;">
+                                    <div class="layui-form" style="width: 288px;position: relative; display: inline-block;">
+                                        <input type="text" class="layui-input" id="phase-chart-date" placeholder="请选择">
+                                        <img src="/static/images/defect/imga1/date.png" alt="日期" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
+                                    </div>
+                                    <div class="layui-form" style="width: 150px;margin-left: 10px;">
+                                        <select name="defect_status" id="phase-chart-status" lay-verify="">
+                                            <option value="all">全部状态</option>
+                                            <option value="open">未关闭</option>
+                                            <option value="closed">已关闭</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="Card">
+                                <div id="phaseChart" style="height: 360px; position: relative;">
+                                    <div class="chart-loading" id="phaseChartLoading" style="display: none;">
+                                        <div class="loading-spinner"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 未关闭缺陷处理阶段占比统计 -->
+                    <div style="width: 1280px;margin-top: 40px;" class="item-chart">
+                        <div>
+                            <div style="display: flex; align-items: center;height: 42px;">
+                                <span class="clor1">未关闭缺陷处理阶段占比统计</span>
+                                <div style="width: 108px;position: relative; display: inline-block;margin-left:10px;">
+                                    <img src="/static/images/defect/imga1/defect_nums.png" alt="b1">
+                                    <div id='totalStages' class="fz" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-80%);color: #217EFD;">
+                                        0个
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <div class="export-icon" style="display: flex; align-items: center;margin-left: 10px;">
+                                        <img src="/static/images/defect/imga1/dc.png" alt="导出">
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center;margin-top: 20px;">
+                                <div class="layui-form" style="width: 288px;position: relative; display: inline-block;">
+                                    <input type="text" class="layui-input" id="pie-chart-date" placeholder="请选择">
+                                    <img src="/static/images/defect/imga1/date.png" alt="日期" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
+                                </div>
+                                <div class="layui-form" style="width: 150px;margin-left: 10px;display:none">
+                                    <select name="defect_status" id="pie-chart-status" lay-verify="">
+                                        <option value="all">全部状态</option>
+                                        <option value="open">未关闭</option>
+                                        <option value="closed">已关闭</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="Card">
+                            <div id="main" style="height: 360px; position: relative;">
+                                <div class="chart-loading" id="pieChartLoading" style="display: none;">
+                                    <div class="loading-spinner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 底部区域 -->
+    {% include "user/footer.html" %}
+    <!-- Toast 提示容器 -->
+    <div class="toast-container" id="toastContainer" style="display: none;">
+        <div class="toast-success" id="successToast">
+            <i class="layui-icon layui-icon-ok-circle"></i>
+            <div class="toast-message">提交成功！审核工作流已启动</div>
+        </div>
+        <div class="toast-error" id="errorToast" style="display: none;">
+            <i class="layui-icon layui-icon-close-fill"></i>
+            <div class="toast-message">提交失败，请检查网络连接后重试</div>
+        </div>
+        <div class="toast-warning" id="warningToast" style="display: none;">
+            <i class="layui-icon layui-icon-tips"></i>
+            <div class="toast-message">请先完善必填信息后再提交</div>
+        </div>
+        <div class="toast-info" id="infoToast" style="display: none;">
+            <i class="layui-icon layui-icon-about"></i>
+            <div class="toast-message">正在处理中，请稍候...</div>
+        </div>
+    </div>
+
+<!-- JavaScript 引入 -->
+{% include "defect/base_js.html" %}
+    <script src="{{ url_for('static', filename='lib/html2canvas.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='lib/echarts.min.js')}}"></script>
+
+    <script>
+        const urlParams = getUrlParams();
+        // 初始化Layui模块
+        layui.use(['element', 'form', 'laydate','dropdown'], function() {
+            var element = layui.element;
+            var form = layui.form;
+            var laydate = layui.laydate;
+            var dropdown = layui.dropdown;
+            var $ = layui.$;
+
+            // 全局变量
+            var allDefects = []; // 存储所有缺陷数据
+            var filteredDefects = []; // 存储筛选后的数据
+            var pageSize = 10;
+            var currentPage = 1; // 添加当前页码变量
+            var currentSort = {
+                field: null,
+                order: null
+            };
+
+            // 设置初始日期范围为最近一年
+            var currentDate = new Date();
+            var lastYearDate = new Date();
+            lastYearDate.setFullYear(currentDate.getFullYear() - 1);
+
+            // 格式化日期函数
+            function formatDate(date) {
+                var year = date.getFullYear();
+                var month = (date.getMonth() + 1).toString().padStart(2, '0');
+                var day = date.getDate().toString().padStart(2, '0');
+                return year + '-' + month + '-' + day;
+            }
+
+            var startDate = formatDate(lastYearDate);
+            var endDate = formatDate(currentDate);
+            var dateRangeValue = startDate + ' - ' + endDate;
+
+            // 设置DI图表日期选择器的值
+            $('#di_chart_date').val(dateRangeValue);
+            // 设置缺陷数统计图表日期选择器的值
+            $('#defect_nums_chart_date').val(dateRangeValue);
+            // 设置AI评分统计图表日期选择器的值
+            $('#quality-chart-date').val(dateRangeValue);
+            // 设置阶段停留时间统计图表日期选择器的值
+            $('#phase-chart-date').val(dateRangeValue);
+            // 设置饼图日期选择器的值
+            $('#pie-chart-date').val(dateRangeValue);
+
+            // 关闭提醒信息
+            $('#closeNote').on('click', function() {
+                $('#roleNote').slideUp('fast');
+            });
+
+
+
+
+
+
+
+            // 为每个.item-chart添加筛选功能
+            function initChartFilters() {
+                $('.item-chart').each(function(index) {
+                    var $chartContainer = $(this);
+                    var chartType = $chartContainer.find('.clor1').text().trim(); // 获取图表类型
+
+                    // 为日期输入框添加laydate
+                    var $dateInput = $chartContainer.find('.layui-input').first();
+                    if ($dateInput.length > 0) {
+                        // 获取日期输入框的ID
+                        var dateInputId = $dateInput.attr('id');
+
+                        laydate.render({
+                            elem: '#' + dateInputId,
+                            range: true,
+                            shortcuts: [
+                                {
+                                    text: "上个月",
+                                    value: function(){
+                                        var date = new Date();
+                                        var year = date.getFullYear();
+                                        var month = date.getMonth();
+                                        return [
+                                            new Date(year, month - 1, 1),
+                                            new Date(year, month, 0)
+                                        ];
+                                    }
+                                },
+                                {
+                                    text: "这个月",
+                                    value: function(){
+                                        var date = new Date();
+                                        var year = date.getFullYear();
+                                        var month = date.getMonth();
+                                        return [
+                                            new Date(year, month, 1),
+                                            new Date(year, month + 1, 0)
+                                        ];
+                                    }
+                                },
+                                {
+                                    text: "下个月",
+                                    value: function(){
+                                        var date = new Date();
+                                        var year = date.getFullYear();
+                                        var month = date.getMonth();
+                                        return [
+                                            new Date(year, month + 1, 1),
+                                            new Date(year, month + 2, 0)
+                                        ];
+                                    }
+                                }
+                            ],
+                            done: function(value, date, endDate) {
+                                // 日期选择完成后更新对应图表
+                                updateChartByFilter($chartContainer, chartType, 'date', value);
+
+                                // 如果是DI图表，更新数据
+                                if ($chartContainer.find('#diChart').length > 0) {
+                                    updateDIChartData();
+                                }
+                                // 如果是缺陷数统计图表，更新数据
+                                if ($chartContainer.find('#defectsChart').length > 0) {
+                                    updateDefectsChartData();
+                                }
+                                // 如果是AI评分统计图表，更新数据
+                                if ($chartContainer.hasClass('ai-score-chart-container')) {
+                                    updateAIScoreChartData();
+                                }
+                                // 如果是阶段停留时间统计图表，更新数据
+                                if ($chartContainer.find('#phaseChart').length > 0) {
+                                    updatePhaseChartData();
+                                }
+                                // 如果是饼图，更新数据
+                                if ($chartContainer.find('#main').length > 0) {
+                                    updatePieChartData();
+                                }
+                            }
+                        });
+                    }
+
+                    // 为选择框添加事件监听
+                    var $selects = $chartContainer.find('select');
+                    $selects.each(function(selectIndex) {
+                        var $select = $(this);
+
+                        // 根据name属性确定筛选类型
+                        var filterType = $select.attr('name') || 'status';
+
+                        // 为每个选择框设置唯一的lay-filter属性
+                        var selectFilter = 'chart-' + index + '-' + selectIndex;
+                        $select.attr('lay-filter', selectFilter);
+
+                        layui.form.on('select(' + selectFilter + ')', function(data) {
+                            // 状态选择完成后更新对应图表
+                            updateChartByFilter($chartContainer, chartType, filterType, data.value);
+
+                            // 如果是DI图表，更新数据
+                            if ($chartContainer.find('#diChart').length > 0) {
+                                updateDIChartData();
+                            }
+                            // 如果是缺陷数统计图表，更新数据
+                            if ($chartContainer.find('#defectsChart').length > 0) {
+                                updateDefectsChartData();
+                            }
+                            // 如果是AI评分统计图表，更新数据
+                            if ($chartContainer.hasClass('ai-score-chart-container')) {
+                                updateAIScoreChartData();
+                            }
+                            // 如果是阶段停留时间统计图表，更新数据
+                            if ($chartContainer.find('#phaseChart').length > 0) {
+                                updatePhaseChartData();
+                            }
+                            // 如果是饼图，更新数据
+                            if ($chartContainer.find('#main').length > 0) {
+                                updatePieChartData();
+                            }
+                        });
+                    });
+                });
+
+                // 重新渲染表单元素
+                layui.form.render();
+            }
+
+            // 根据筛选条件更新图表
+            function updateChartByFilter($chartContainer, chartType, filterType, filterValue) {
+                // 获取图表容器的唯一标识
+                var chartIndex = $('.item-chart').index($chartContainer);
+
+                // 显示筛选条件更新提示
+                // showToast('已更新' + filterType + '筛选条件: ' + filterValue, 'info');
+
+                // 获取当前图表容器中的图表实例并更新数据
+                var $chartElement = $chartContainer.find('.Card > div');
+                if ($chartElement.length > 0) {
+                    var chartDom = $chartElement[0];
+                    var chartInstance = echarts.getInstanceByDom(chartDom);
+
+                    if (chartInstance) {
+                        // 获取当前图表选项
+                        var option = chartInstance.getOption();
+
+                        // 模拟根据筛选条件更新数据
+                        // 实际项目中应该从服务器获取数据
+                        if (option.series && option.series.length > 0) {
+                            // 生成模拟数据
+                            var newData = [];
+                            for (var i = 0; i < option.series[0].data.length; i++) {
+                                // 根据筛选条件调整数据
+                                var baseValue = option.series[0].data[i];
+                                var factor = 1;
+
+                                // 根据筛选类型调整数据
+                                if (filterType === 'date') {
+                                    factor = 0.8 + Math.random() * 0.4; // 0.8-1.2之间的随机数
+                                } else if (filterType === 'defect_status') {
+                                    factor = 0.9 + Math.random() * 0.2; // 0.9-1.1之间的随机数
+                                } else if (filterType === 'defectsSeverity') {
+                                    factor = 0.85 + Math.random() * 0.3; // 0.85-1.15之间的随机数
+                                }
+
+                                newData.push(Math.round(baseValue * factor));
+                            }
+
+                            // 更新图表数据
+                            option.series[0].data = newData;
+                            chartInstance.setOption(option, true);
+                        }
+                    }
+                }
+            }
+
+
+            // 全局图表实例变量
+            var diChart, defectsChart, qualityChart, phaseChart, pieChart;
+            var diOption, defectsOption, qualityOption, phaseOption, pieOption;
+
+            // 初始化DI图表（使用空数据）
+            function initDIChart() {
+                diChart = echarts.init(document.getElementById('diChart'));
+                diOption = {
+                    title: {
+                        text: 'DI值',
+                        left: 'left',
+                        textStyle: {
+                            fontSize: 12,
+                            fontWeight: 'initial',
+                            color: '#557496'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line'
+                        },
+                    },
+                    grid: {
+                        left: '1%',
+                        right: '0',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    legend: {
+                        width: 10
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [], // 初始为空数组
+                        axisLabel: {
+                            color: '#86909C'
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: '#C9CDD4'
+                            }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: {
+                            lineStyle: {
+                                type: 'dashed',
+                                color: '#ddd',
+                                width: 1
+                            }
+                        },
+                        axisLabel: {
+                            color: '#86909C'
+                        }
+                    },
+                    series: [{
+                        data: [], // 初始为空数组
+                        type: 'bar',
+                        barWidth: 24,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#9767FF' },
+                                { offset: 1, color: '#217EFD' }
+                            ])
+                        },
+                    }]
+                };
+                diChart.setOption(diOption, true);
+            }
+
+            // 获取DI统计数据
+            function fetchDIStatistics(params) {
+                // 显示加载状态
+                $('#diChartLoading').show();
+                $('#totalDI').text('加载中...');
+
+                // 构建查询参数
+                var queryParams = {};
+
+                // 如果传入了日期范围，使用传入的值；否则使用默认值
+                if (params && params.start_date) {
+                    queryParams.start_date = params.start_date;
+                } else {
+                    queryParams.start_date = startDate;
+                }
+
+                if (params && params.end_date) {
+                    queryParams.end_date = params.end_date;
+                } else {
+                    queryParams.end_date = endDate;
+                }
+
+                if (params && params.project_id) {
+                    queryParams.project_id = params.project_id;
+                }
+
+                if (params && params.version_id) {
+                    queryParams.version_id = params.version_id;
+                }
+
+                if (params && params.version_projects) {
+                    queryParams.version_projects = params.version_projects;
+                }
+
+                if (params && params.defect_status) {
+                    queryParams.defect_status = params.defect_status;
+                } else {
+                    // 默认使用所有状态
+                    queryParams.defect_status = 'all';
+                }
+                // 如果地址栏中有 defect_type=simplified，则添加到请求参数中
+                const defectType = urlParams.defect_type;
+                if (['simplified', 'simplified2'].includes(defectType)) {
+                    queryParams.defect_type = defectType;
+                }
+
+                // 发送AJAX请求
+                $.ajax({
+                    url: '/defect/api/di_statistics',
+                    type: 'GET',
+                    data: queryParams,
+                    success: function(response) {
+                        // 隐藏加载动画
+                        $('#diChartLoading').hide();
+
+                        if (response.code === 0) {
+                            // 更新DI图表
+                            updateDIChart(response);
+                        } else {
+                            console.error('获取DI统计失败:', response.msg);
+                            showToast('获取数据失败: ' + response.msg, 'error');
+                            // 恢复图表显示
+                            initDIChart();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // 隐藏加载动画
+                        $('#diChartLoading').hide();
+
+                        console.error('请求失败:', error);
+                        showToast('请求失败，请检查网络连接', 'error');
+                        // 恢复图表显示
+                            initDIChart();
+                    }
+                });
+            }
+
+            // 更新DI图表数据
+            function updateDIChart(data) {
+                // 处理返回的数据
+                var diData = data.data || [];
+                var diConfig = data.di_config || {};
+
+                // 排序数据（按月份）
+                diData.sort(function(a, b) {
+                    return new Date(a.month + '-01') - new Date(b.month + '-01');
+                });
+
+                // 提取月份和DI值
+                var months = diData.map(function(item) {
+                    return item.month.replace('-', '.');
+                });
+                var diValues = diData.map(function(item) {
+                    return item.di_value;
+                });
+
+                // 计算DI总值
+                var totalDIValue = diValues.reduce(function(sum, value) {
+                    return sum + value;
+                }, 0);
+
+                // 更新总值显示
+                $('#totalDI').text(totalDIValue.toFixed(1) + '分');
+
+                // 设置图表选项
+                diOption.xAxis.data = months;
+                diOption.xAxis.axisLabel.rotate = 60; // 设置刻度名倾斜展示
+                diOption.series[0].data = diValues;
+
+                // 更新图表 - 使用notMerge: true强制更新
+                diChart.setOption(diOption, true);
+            }
+
+            // 更新DI图表数据（根据筛选条件）
+            function updateDIChartData() {
+                // 获取日期范围
+                var dateRange = $('#di_chart_date').val();
+                var dates = dateRange.split(' - ');
+                var start_date = dates[0];
+                var end_date = dates[1];
+
+                // 获取缺陷状态
+                var defect_status = $('select[name="defect_status"]').val();
+
+                // 获取产品/版本ID（从树形选择器）
+                var project_id = null;
+                var version_id = null;
+                // 根据树形选择器的实现获取项目ID和版本ID
+                var version_projects = checkedChildIds.join(',')
+
+                // 调用API获取数据
+                fetchDIStatistics({
+                    start_date: start_date,
+                    end_date: end_date,
+                    project_id: project_id,
+                    version_id: version_id,
+                    version_projects: version_projects,
+                    defect_status: defect_status
+                });
+            }
+
+            // 获取缺陷数统计数据
+            function fetchDefectNumsStatistics(params) {
+                // 显示加载状态
+                $('#defectsChartLoading').show();
+                $('#totalDefects').text('加载中...');
+
+                // 构建查询参数
+                var queryParams = {};
+
+                // 如果传入了日期范围，使用传入的值；否则使用默认值
+                if (params && params.start_date) {
+                    queryParams.start_date = params.start_date;
+                } else {
+                    queryParams.start_date = startDate;
+                }
+
+                if (params && params.end_date) {
+                    queryParams.end_date = params.end_date;
+                } else {
+                    queryParams.end_date = endDate;
+                }
+
+                if (params && params.project_id) {
+                    queryParams.project_id = params.project_id;
+                }
+
+                if (params && params.version_id) {
+                    queryParams.version_id = params.version_id;
+                }
+
+                if (params && params.version_projects) {
+                    queryParams.version_projects = params.version_projects;
+                }
+
+                if (params && params.severity) {
+                    queryParams.severity = params.severity;
+                } else {
+                    // 默认使用所有严重程度
+                    queryParams.severity = 'all';
+                }
+
+                if (params && params.defect_status) {
+                    queryParams.defect_status = params.defect_status;
+                } else {
+                    // 默认使用所有状态
+                    queryParams.defect_status = 'all';
+                }
+                // 如果地址栏中有 defect_type=simplified，则添加到请求参数中
+                const defectType = urlParams.defect_type;
+                if (['simplified', 'simplified2'].includes(defectType)) {
+                    queryParams.defect_type = defectType;
+                }
+
+                // 发送AJAX请求
+                $.ajax({
+                    url: '/defect/api/defect_nums_statistics',
+                    type: 'GET',
+                    data: queryParams,
+                    success: function(response) {
+                        // 隐藏加载动画
+                        $('#defectsChartLoading').hide();
+
+                        if (response.code === 0) {
+                            // 更新缺陷数统计图表
+                            updateDefectsChart(response);
+                        } else {
+                            console.error('获取缺陷数统计失败:', response.msg);
+                            showToast('获取数据失败: ' + response.msg, 'error');
+                            // 恢复图表显示
+                            initDefectsChart();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // 隐藏加载动画
+                        $('#defectsChartLoading').hide();
+
+                        console.error('请求失败:', error);
+                        showToast('请求失败，请检查网络连接', 'error');
+                        // 恢复图表显示
+                        initDefectsChart();
+                    }
+                });
+            }
+
+            // 更新缺陷数统计图表数据
+            function updateDefectsChart(data) {
+                // 处理返回的数据
+                var defectsData = data.data || [];
+                var totalDefects = data.total || 0;
+
+                // 排序数据（按月份）
+                defectsData.sort(function(a, b) {
+                    return new Date(a.year + '-' + a.month) - new Date(b.year + '-' + b.month);
+                });
+
+                // 提取月份和缺陷数量
+                var months = defectsData.map(function(item) {
+                    return item.year + '.' + (item.month < 10 ? '0' + item.month : item.month);
+                });
+                var defectCounts = defectsData.map(function(item) {
+                    return item.count;
+                });
+
+                // 更新总值显示
+                $('#totalDefects').text(totalDefects + '个');
+                //$('#totalDefectNum').text('(' + totalDefects + ')');
+
+                // 设置图表选项
+                defectsOption.xAxis.data = months;
+                defectsOption.xAxis.axisLabel.rotate = 60; // 设置刻度名倾斜展示
+                defectsOption.series[0].data = defectCounts;
+
+                // 更新图表 - 使用notMerge: true强制更新
+                defectsChart.setOption(defectsOption, true);
+            }
+
+            // 更新缺陷数统计图表数据（根据筛选条件）
+            function updateDefectsChartData() {
+                // 获取日期范围
+                var dateRange = $('#defect_nums_chart_date').val();
+                var dates = dateRange.split(' - ');
+                var start_date = dates[0];
+                var end_date = dates[1];
+
+                // 获取严重程度
+                var severity = $('#defect_nums_severity').val();
+                if (severity === '全部影响程度') {
+                    severity = 'all';
+                }
+
+                // 获取缺陷状态
+                var defect_status = $('#defect_nums_status').val();
+
+                // 获取产品/版本ID（从树形选择器）
+                var project_id = null;
+                var version_id = null;
+                // 根据树形选择器的实现获取项目ID和版本ID
+                var version_projects = checkedChildIds.join(',')
+
+                // 调用API获取数据
+                fetchDefectNumsStatistics({
+                    start_date: start_date,
+                    end_date: end_date,
+                    project_id: project_id,
+                    version_id: version_id,
+                    version_projects: version_projects,
+                    severity: severity,
+                    defect_status: defect_status
+                });
+            }
+
+            // 初始化缺陷数统计图表（使用空数据）
+            function initDefectsChart() {
+                defectsChart = echarts.init(document.getElementById('defectsChart'));
+                defectsOption = {
+                    title: {
+                        text: '数量',
+                        left: 'left',
+                        textStyle:{
+                          fontSize:12,
+                          fontWeight: 'initial',
+                          color: '#557496'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line'
+                        }
+                    },
+                    grid: {
+                        left: '1%',
+                        right: '0',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    legend:{
+                        width:10
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [], // 初始为空数组
+                        axisLabel: {
+                            color: '#86909C'
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: '##C9CDD4'
+                            }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: { // 配置网格线
+                            lineStyle: {
+                                type: 'dashed', // 设置为虚线
+                                color: '#ddd', // 可选：通常设置一个较浅的颜色
+                                width: 1 // 可选：设置虚线宽度
+                            }
+                        },
+                        axisLabel: {
+                            color: '#86909C'
+                        }
+                    },
+                    series: [{
+                        data: [], // 初始为空数组
+                        type: 'bar',
+                        barWidth: 24,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#9767FF' },
+                                { offset: 1, color: '#217EFD' }
+                            ])
+                        },
+                    }]
+                };
+                defectsChart.setOption(defectsOption, true);
+            }
+
+            // 获取AI评分统计数据
+            function fetchAIScoreStatistics(params) {
+                // 显示加载状态
+                $('#qualityChartLoading').show();
+
+                // 构建查询参数
+                var queryParams = {};
+
+                // 如果传入了日期范围，使用传入的值；否则使用默认值
+                if (params && params.start_date) {
+                    queryParams.start_date = params.start_date;
+                } else {
+                    queryParams.start_date = startDate;
+                }
+
+                if (params && params.end_date) {
+                    queryParams.end_date = params.end_date;
+                } else {
+                    queryParams.end_date = endDate;
+                }
+
+                if (params && params.project_id) {
+                    queryParams.project_id = params.project_id;
+                }
+
+                if (params && params.version_id) {
+                    queryParams.version_id = params.version_id;
+                }
+
+                if (params && params.version_projects) {
+                    queryParams.version_projects = params.version_projects;
+                }
+
+                if (params && params.data_type) {
+                    queryParams.data_type = params.data_type;
+                } else {
+                    // 默认使用所有数据类型
+                    queryParams.data_type = 'all';
+                }
+
+                if (params && params.defect_status) {
+                    queryParams.defect_status = params.defect_status;
+                } else {
+                    // 默认使用所有状态
+                    queryParams.defect_status = 'all';
+                }
+                // 如果地址栏中有 defect_type=simplified，则添加到请求参数中
+                const defectType = urlParams.defect_type;
+                if (['simplified', 'simplified2'].includes(defectType)) {
+                    queryParams.defect_type = defectType;
+                }
+
+                // 发送AJAX请求
+                $.ajax({
+                    url: '/defect/api/ai-scores_statistics',
+                    type: 'GET',
+                    data: queryParams,
+                    success: function(response) {
+                        // 隐藏加载动画
+                        $('#qualityChartLoading').hide();
+
+                        if (response.code === 0) {
+                            // 更新AI评分统计图表
+                            updateAIScoreChart(response);
+                        } else {
+                            console.error('获取AI评分统计失败:', response.msg);
+                            showToast('获取数据失败: ' + response.msg, 'error');
+                            // 恢复图表显示
+                            initQualityChart();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // 隐藏加载动画
+                        $('#qualityChartLoading').hide();
+
+                        console.error('请求失败:', error);
+                        showToast('请求失败，请检查网络连接', 'error');
+                        // 恢复图表显示
+                        initQualityChart();
+                    }
+                });
+            }
+
+            // 更新AI评分统计图表数据
+            function updateAIScoreChart(data) {
+                // 处理返回的数据
+                var aiScoreData = data.data || [];
+                var totalCount = data.total || 0;
+
+                // 准备x轴数据（分数）和y轴数据（数量）
+                var scores = [];
+                var counts = [];
+
+                // 创建0-10分的数组，确保所有分数都有值
+                for (var i = 0; i <= 10; i++) {
+                    scores.push(i + '分');
+                    counts.push(0); // 初始化为0
+                }
+
+                // 填充实际数据
+                aiScoreData.forEach(function(item) {
+                    if (item.score >= 0 && item.score <= 10) {
+                        counts[item.score] = item.count;
+                    }
+                });
+
+                // 设置图表选项
+                qualityOption.xAxis.data = scores;
+                qualityOption.series[0].data = counts;
+
+                // 更新图表 - 使用notMerge: true强制更新
+                qualityChart.setOption(qualityOption, true);
+            }
+
+            // 更新AI评分统计图表数据（根据筛选条件）
+            function updateAIScoreChartData() {
+                // 获取日期范围
+                var dateRange = $('#quality-chart-date').val();
+                var dates = dateRange.split(' - ');
+                var start_date = dates[0];
+                var end_date = dates[1];
+
+                // 获取数据类型
+                var data_type = $('#quality-chart-data-type').val();
+                // 获取缺陷状态
+                var defect_status = $('#quality-chart-status').val();
+
+                // 获取产品/版本ID（从树形选择器）
+                var project_id = null;
+                var version_id = null;
+                // 根据树形选择器的实现获取项目ID和版本ID
+                var version_projects = checkedChildIds.join(',')
+                // 调用API获取数据
+                fetchAIScoreStatistics({
+                    start_date: start_date,
+                    end_date: end_date,
+                    project_id: project_id,
+                    version_id: version_id,
+                    version_projects: version_projects,
+                    data_type: data_type,
+                    defect_status: defect_status
+                });
+            }
+
+            // 初始化工作质量AI评分统计图表（使用空数据）
+            function initQualityChart() {
+                qualityChart = echarts.init(document.getElementById('qualityChart'));
+                qualityOption = {
+                    title: {
+                        text: '记录数',
+                        left: 'left',
+                        textStyle:{
+                          fontSize:12,
+                          fontWeight: 'initial',
+                          color: '#557496'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line'
+                        }
+                    },
+                    grid: {
+                        left: '1%',
+                        right: '0',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    legend:{
+                        width:10
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [], // 初始为空数组
+                        axisLabel: {
+                            color: '#86909C'
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: '#C9CDD4'
+                            }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: { // 配置网格线
+                            lineStyle: {
+                                type: 'dashed', // 设置为虚线
+                                color: '#ddd', // 可选：通常设置一个较浅的颜色
+                                width: 1 // 可选：设置虚线宽度
+                            }
+                        },
+                        axisLabel: {
+                            color: '#86909C'
+                        }
+                    },
+                    series: [{
+                        data: [], // 初始为空数组
+                        type: 'bar',
+                        barWidth: 24,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#00FFF0' },
+                                { offset: 1, color: '#217EFD' }
+                            ])
+                        },
+                    }]
+                };
+                qualityChart.setOption(qualityOption, true);
+            }
+
+            // 获取阶段停留时间统计数据
+            function fetchStageDurationStatistics(params) {
+                // 显示加载状态
+                $('#phaseChartLoading').show();
+
+                // 构建查询参数
+                var queryParams = {};
+
+                // 如果传入了日期范围，使用传入的值；否则使用默认值
+                if (params && params.start_date) {
+                    queryParams.start_date = params.start_date;
+                } else {
+                    queryParams.start_date = startDate;
+                }
+
+                if (params && params.end_date) {
+                    queryParams.end_date = params.end_date;
+                } else {
+                    queryParams.end_date = endDate;
+                }
+
+                if (params && params.project_id) {
+                    queryParams.project_id = params.project_id;
+                }
+
+                if (params && params.version_id) {
+                    queryParams.version_id = params.version_id;
+                }
+
+                if (params && params.version_projects) {
+                    queryParams.version_projects = params.version_projects;
+                }
+
+                if (params && params.defect_status) {
+                    queryParams.defect_status = params.defect_status;
+                } else {
+                    // 默认使用所有状态
+                    queryParams.defect_status = 'all';
+                }
+
+                // 如果地址栏中有 defect_type=simplified，则添加到请求参数中
+                const defectType = urlParams.defect_type;
+                if (['simplified', 'simplified2'].includes(defectType)) {
+                    queryParams.defect_type = defectType;
+                }
+                // 发送AJAX请求
+                $.ajax({
+                    url: '/defect/api/stage_duration_statistics',
+                    type: 'GET',
+                    data: queryParams,
+                    success: function(response) {
+                        // 隐藏加载动画
+                        $('#phaseChartLoading').hide();
+
+                        if (response.code === 0) {
+                            // 更新阶段停留时间统计图表
+                            updatePhaseChart(response);
+                        } else {
+                            console.error('获取阶段停留时间统计失败:', response.msg);
+                            showToast('获取数据失败: ' + response.msg, 'error');
+                            // 恢复图表显示
+                            initPhaseChart();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // 隐藏加载动画
+                        $('#phaseChartLoading').hide();
+
+                        console.error('请求失败:', error);
+                        showToast('请求失败，请检查网络连接', 'error');
+                        // 恢复图表显示
+                        initPhaseChart();
+                    }
+                });
+            }
+
+            // 更新阶段停留时间统计图表数据
+            function updatePhaseChart(data) {
+                // 处理返回的数据
+                var stageData = data.data || [];
+
+                // 按阶段顺序排序
+                stageData.sort(function(a, b) {
+                    return a.stage_order - b.stage_order;
+                });
+
+                // 提取阶段名称和平均停留时间
+                var stageNames = stageData.map(function(item) {
+                    return item.stage_name;
+                });
+                var avgDurations = stageData.map(function(item) {
+                    return item.avg_duration;
+                });
+
+                // 设置图表选项
+                phaseOption.xAxis.data = stageNames;
+                phaseOption.xAxis.axisLabel.rotate = 60; // 设置刻度名倾斜展示
+                phaseOption.series[0].data = avgDurations;
+
+                // 更新图表 - 使用notMerge: true强制更新
+                phaseChart.setOption(phaseOption, true);
+            }
+
+            // 更新阶段停留时间统计图表数据（根据筛选条件）
+            function updatePhaseChartData() {
+                // 获取日期范围
+                var dateRange = $('#phase-chart-date').val();
+                var dates = dateRange.split(' - ');
+                var start_date = dates[0];
+                var end_date = dates[1];
+
+                // 获取缺陷状态
+                var defect_status = $('#phase-chart-status').val();
+
+                // 获取产品/版本ID（从树形选择器）
+                var project_id = null;
+                var version_id = null;
+                // 根据树形选择器的实现获取项目ID和版本ID
+                var version_projects = checkedChildIds.join(',')
+
+                // 调用API获取数据
+                fetchStageDurationStatistics({
+                    start_date: start_date,
+                    end_date: end_date,
+                    project_id: project_id,
+                    version_id: version_id,
+                    version_projects: version_projects,
+                    defect_status: defect_status
+                });
+            }
+
+            // 初始化阶段停留时间统计图表（使用空数据）
+            function initPhaseChart() {
+                phaseChart = echarts.init(document.getElementById('phaseChart'));
+                phaseOption = {
+                    title: {
+                        text: '平均用时/天',
+                        left: 'left',
+                        textStyle:{
+                          fontSize:12,
+                          fontWeight: 'initial',
+                          color: '#557496'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line'
+                        }
+                    },
+                    grid: {
+                        left: '1%',
+                        right: '0',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    legend:{
+                        width:10
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: [], // 初始为空数组
+                        axisLabel: {
+                            color: '#86909C'
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: '#C9CDD4'
+                            }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        splitLine: { // 配置网格线
+                            lineStyle: {
+                                type: 'dashed', // 设置为虚线
+                                color: '#ddd', // 可选：通常设置一个较浅的颜色
+                                width: 1 // 可选：设置虚线宽度
+                            }
+                        },
+                        axisLabel: {
+                            color: '#86909C'
+                        }
+                    },
+                    series: [{
+                        data: [], // 初始为空数组
+                        type: 'bar',
+                        barWidth: 24,
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#00FFF0' },
+                                { offset: 1, color: '#217EFD' }
+                            ])
+                        },
+                    }]
+                };
+                phaseChart.setOption(phaseOption, true);
+            }
+
+            // 获取缺陷阶段统计数据
+            function fetchStageStatistics(params) {
+                // 显示加载状态
+                $('#pieChartLoading').show();
+                $('#totalStages').text('加载中...');
+
+                // 构建查询参数
+                var queryParams = {};
+
+                // 如果传入了日期范围，使用传入的值；否则使用默认值
+                if (params && params.start_date) {
+                    queryParams.start_date = params.start_date;
+                } else {
+                    queryParams.start_date = startDate;
+                }
+
+                if (params && params.end_date) {
+                    queryParams.end_date = params.end_date;
+                } else {
+                    queryParams.end_date = endDate;
+                }
+
+                if (params && params.project_id) {
+                    queryParams.project_id = params.project_id;
+                }
+
+                if (params && params.version_id) {
+                    queryParams.version_id = params.version_id;
+                }
+
+                if (params && params.version_projects) {
+                    queryParams.version_projects = params.version_projects;
+                }
+
+                if (params && params.version_projects) {
+                    queryParams.version_projects = params.version_projects;
+                }
+
+                if (params && params.defect_status) {
+                    queryParams.defect_status = params.defect_status;
+                } else {
+                    // 默认使用所有状态
+                    queryParams.defect_status = 'all';
+                }
+
+                // 如果地址栏中有 defect_type=simplified，则添加到请求参数中
+                const defectType = urlParams.defect_type;
+                if (['simplified', 'simplified2'].includes(defectType)) {
+                    queryParams.defect_type = defectType;
+                }
+                // 发送AJAX请求
+                $.ajax({
+                    url: '/defect/api/stage_statistics',
+                    type: 'GET',
+                    data: queryParams,
+                    success: function(response) {
+                        // 隐藏加载动画
+                        $('#pieChartLoading').hide();
+
+                        if (response.code === 0) {
+                            // 更新饼图
+                            updatePieChart(response);
+                        } else {
+                            console.error('获取缺陷阶段统计失败:', response.msg);
+                            showToast('获取数据失败: ' + response.msg, 'error');
+                            // 恢复图表显示
+                            initPieChart();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // 隐藏加载动画
+                        $('#pieChartLoading').hide();
+
+                        console.error('请求失败:', error);
+                        showToast('请求失败，请检查网络连接', 'error');
+                        // 恢复图表显示
+                        initPieChart();
+                    }
+                });
+            }
+
+            // 更新饼图数据
+            function updatePieChart(data) {
+                // 处理返回的数据
+                var stageData = data.statistics || [];
+                if (stageData.length===0){
+                    pieOption.title.text = '暂无数据';
+                    pieOption.series[0].data = [];
+                    pieChart.setOption(pieOption, true);
+                    $('#totalStages').text('0个');
+                    return;
+                }
+                else{
+                    pieOption.title.text = '';
+                }
+                // 计算总阶段数
+                var totalStages = stageData.reduce(function(sum, item) {
+                    return sum + item.defect_count;
+                }, 0);
+
+                // 更新总阶段数显示
+                $('#totalStages').text(totalStages + '个');
+
+                // 准备饼图数据
+                var pieData = stageData.map(function(item) {
+                    return {
+                        name: item.stage_name,
+                        value: item.defect_count
+                    };
+                });
+
+                // 设置饼图选项
+                pieOption.series[0].data = pieData;
+
+                // 更新图表 - 使用notMerge: true强制更新
+                pieChart.setOption(pieOption, true);
+            }
+
+            // 更新饼图数据（根据筛选条件）
+            function updatePieChartData() {
+                // 获取日期范围
+                var dateRange = $('#pie-chart-date').val();
+                var dates = dateRange.split(' - ');
+                var start_date = dates[0];
+                var end_date = dates[1];
+
+                // 获取缺陷状态
+                var defect_status = $('#pie-chart-status').val();
+
+                // 获取产品/版本ID（从树形选择器）
+                var project_id = null;
+                var version_id = null;
+                // 根据树形选择器的实现获取项目ID和版本ID
+                var version_projects = checkedChildIds.join(',')
+
+                // 调用API获取数据
+                fetchStageStatistics({
+                    start_date: start_date,
+                    end_date: end_date,
+                    project_id: project_id,
+                    version_id: version_id,
+                    version_projects: version_projects,
+                    defect_status: defect_status
+                });
+            }
+
+            // 初始化饼图
+            function initPieChart() {
+                pieChart = echarts.init(document.getElementById('main'));
+
+                pieOption = {
+                    color: [
+                        {
+                            type: 'radial',x: 0.5,y: 0.5,r: 2,
+                            colorStops: [
+                                {offset: 0,color: '#E588FF'},
+                                {offset: 1,color: '#9767FF'}
+                            ],
+                            global: false // 缺省为 false
+                        },
+                        {
+
+                            type: 'radial',x: 0.5,y: 0.5,r: 2,
+                            colorStops: [
+                                { offset: 0, color: '#43CAFF' },
+                                { offset: 1, color: '#217EFD' }
+                            ],
+                            global: false // 缺省为 false
+                        },
+                        {
+                            type: 'radial',x: 0.5,y: 0.5,r: 2,
+                            colorStops: [
+                                { offset: 0, color: '#FF9C38' },
+                                { offset: 1, color: '#FFDA7D' }
+                            ],
+                            global: false // 缺省为 false
+                        },
+                        {
+                            type: 'radial',x: 0.5,y: 0.5,r: 2,
+                            colorStops: [
+                                { offset: 0, color: '#00FFF0' },
+                                { offset: 1, color: '#217EFD' }
+                            ],
+                            global: false // 缺省为 false
+                        }
+                    ],
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{b}: {c} ({d}%)'
+                    },
+                    title: {
+                        text: '',
+                        left: 'center',
+                        top: 'center',
+                        textStyle: {
+                            color: '#999',
+                            fontWeight: 'normal',
+                            fontSize: 14
+                        }
+                    },
+                    series: [{
+                        type: 'pie',
+                        radius: [40, 100],
+                        left: 'center',
+                        itemStyle: {
+                        },
+                        label: {
+                            alignTo: 'edge',
+                            formatter: '{name|{b}}\n{time|{c}个, {d}%}',
+                            minMargin: 50,
+                            edgeDistance: 60,
+                            lineHeight: 15,
+                            rich: {
+                                time: {
+                                    fontSize: 10,
+                                    color: '#999'
+                                }
+                            }
+                        },
+                        labelLine: {
+                            length: 15,
+                            length2: 10,
+                            maxSurfaceAngle: 8
+                        },
+                        labelLayout: function (params) {
+                            const isLeft = params.labelRect.x < pieChart.getWidth() / 2;
+                            const points = params.labelLinePoints;
+                            return {
+                                labelLinePoints: points
+                            };
+                        },
+                        data: []
+                    }]
+                };
+                pieChart.setOption(pieOption);
+            }
+
+            // 角色选择事件
+            form.on('select(roleSelect)', function(data) {
+                showToast('已选择角色：' + data.value, 'info');
+            });
+
+            // 初始化页面
+            form.render();
+
+            // 初始化图表筛选功能
+            initChartFilters();
+
+            // 初始化所有图表
+            initDIChart(); // 使用新的初始化方法
+            initDefectsChart(); // 使用新的初始化方法
+            initQualityChart(); // 使用新的初始化方法
+            initPhaseChart(); // 使用新的初始化方法
+            initPieChart();
+
+            // 只调用一次DI图表数据获取（解决重复调用问题）
+            updateDIChartData();
+            // 调用一次缺陷数统计图表数据获取
+            updateDefectsChartData();
+            // 调用一次AI评分统计图表数据获取
+            updateAIScoreChartData();
+            // 调用一次阶段停留时间统计图表数据获取
+            updatePhaseChartData();
+            // 调用一次饼图数据获取
+            updatePieChartData();
+
+            // 图表ID与标题映射
+            var chartIdTitleMap = {
+                'diChart': 'DI统计',
+                'defectsChart': '缺陷数统计',
+                'qualityChart': '工作质量AI评分统计',
+                'phaseChart': '阶段停留时间统计',
+                'main': '未关闭缺陷处理阶段占比统计'
+            };
+
+            // 导出单个图表实例（基于已有的导出方法修改）
+            function exportChartInstance(chartInstance, fileName) {
+                try {
+                    // 使用html2canvas替代ECharts的getDataURL方法，避免跨域问题
+                    var chartDom = chartInstance.getDom();
+                    html2canvas(chartDom, {
+                        useCORS: true,
+                        allowTaint: false, // 改为false以避免跨域污染
+                        scale: 2,
+                        backgroundColor: '#fff',
+                        // 添加crossOrigin设置以处理跨域图片
+                        crossOrigin: "anonymous",
+                        onclone: function(clonedDoc) {
+                            // 处理图片元素，添加crossorigin属性
+                            const images = clonedDoc.getElementsByTagName('img');
+                            for (let i = 0; i < images.length; i++) {
+                                images[i].crossOrigin = 'anonymous';
+                            }
+                        }
+                    }).then(canvas => {
+                        // 创建下载链接
+                        var downloadLink = document.createElement('a');
+                        downloadLink.href = canvas.toDataURL('image/png');
+                        downloadLink.download = fileName + '.png';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+
+                        // 显示导出成功提示
+                        showToast('图表导出成功', 'success');
+                    }).catch(error => {
+                        console.error('导出图表失败:', error);
+                        showToast('图表导出失败', 'error');
+                    });
+                } catch (error) {
+                    console.error('导出图表失败:', error);
+                    showToast('图表导出失败', 'error');
+                }
+            }
+
+            // 为每个图表的导出图标添加点击事件
+            function initExportIcons() {
+                $('.export-icon').each(function() {
+                    var $exportIcon = $(this);
+                    var $itemChart = $exportIcon.closest('.item-chart');
+
+                    // 查找图表容器，更准确地定位到包含图表的div元素
+                    var $chartContainer = $itemChart.find('.Card > div[id]');
+                    if ($chartContainer.length > 0) {
+                        var chartId = $chartContainer.attr('id');
+                        var chartDom = $chartContainer[0]; // 获取DOM元素
+                        if (chartId) {
+                            // 为导出图标添加点击事件
+                            $exportIcon.on('click', function() {
+                                // 获取图表实例，优先使用DOM元素获取
+                                var chartInstance = echarts.getInstanceByDom(chartDom);
+                                if (!chartInstance) {
+                                    // 如果通过DOM获取失败，尝试通过ID获取
+                                    chartInstance = echarts.getInstanceById(chartId);
+                                }
+
+                                if (chartInstance) {
+                                    // 获取图表标题作为文件名
+                                    var chartTitle = chartIdTitleMap[chartId] || chartId;
+
+                                    // 使用已有的导出方法
+                                    exportChartInstance(chartInstance, chartTitle);
+                                } else {
+                                    console.log('未找到图表实例: ' + chartId, '尝试重新初始化');
+                                    // 如果没找到实例，尝试重新初始化图表
+                                    reinitializeChart(chartId, chartDom);
+                                }
+                            });
+                        }
+                    } else {
+                        // 处理最后一个图表（未关闭缺陷处理阶段占比统计）
+                        var $mainChartContainer = $itemChart.find('#main');
+                        if ($mainChartContainer.length > 0) {
+                            var mainChartDom = $mainChartContainer[0];
+                            $exportIcon.on('click', function() {
+                                var chartInstance = echarts.getInstanceByDom(mainChartDom);
+                                if (!chartInstance) {
+                                    chartInstance = echarts.getInstanceById('main');
+                                }
+
+                                if (chartInstance) {
+                                    exportChartInstance(chartInstance, '未关闭缺陷处理阶段占比统计');
+                                } else {
+                                    console.log('未找到图表实例: main', '尝试重新初始化');
+                                    reinitializeChart('main', mainChartDom);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+
+            // 重新初始化图表
+            function reinitializeChart(chartId, chartDom) {
+                var chartInstance;
+
+                // 根据图表ID重新初始化对应的图表
+                switch(chartId) {
+                    case 'diChart':
+                        chartInstance = echarts.init(chartDom);
+                        chartInstance.setOption(diOption);
+                        diChart = chartInstance; // 更新全局变量
+                        exportChartInstance(chartInstance, 'DI统计');
+                        break;
+                    case 'defectsChart':
+                        chartInstance = echarts.init(chartDom);
+                        chartInstance.setOption(defectsOption);
+                        defectsChart = chartInstance; // 更新全局变量
+                        exportChartInstance(chartInstance, '缺陷数统计');
+                        break;
+                    case 'qualityChart':
+                        chartInstance = echarts.init(chartDom);
+                        chartInstance.setOption(qualityOption);
+                        qualityChart = chartInstance; // 更新全局变量
+                        exportChartInstance(chartInstance, '工作质量AI评分统计');
+                        break;
+                    case 'phaseChart':
+                        chartInstance = echarts.init(chartDom);
+                        chartInstance.setOption(phaseOption);
+                        phaseChart = chartInstance; // 更新全局变量
+                        exportChartInstance(chartInstance, '阶段停留时间统计');
+                        break;
+                    case 'main':
+                        chartInstance = echarts.init(chartDom);
+                        chartInstance.setOption(pieOption);
+                        pieChart = chartInstance; // 更新全局变量
+                        exportChartInstance(chartInstance, '未关闭缺陷处理阶段占比统计');
+                        break;
+                    default:
+                        showToast('未知图表: ' + chartId, 'error');
+                        return;
+                }
+
+                // 显示重新初始化成功的提示
+                console.log('图表 ' + chartId + ' 重新初始化成功');
+            }
+
+            // 按钮点击事件
+            $('.tab-btn').on('click', function() {
+                var tabId = $(this).data('tab');
+                activeTab = tabId;
+                // 更新按钮状态
+                $('.tab-btn').removeClass('active');
+                $(this).addClass('active');
+                // 当tabId为"processed"时显示.tab-content元素
+                if (tabId === 'processed') {
+                    window.location.href = '/defect';
+                }
+            });
+
+            // 确保在所有图表初始化完成后再执行
+            $(document).ready(function() {
+                // 为日期选择器和状态选择器添加change事件
+                $('#di_chart_date').on('change', function() {
+                    updateDIChartData();
+                });
+
+                $('select[name="defect_status"]').on('change', function() {
+                    updateDIChartData();
+                });
+
+                // 为缺陷数统计图表的筛选条件添加change事件
+                $('#defect_nums_chart_date').on('change', function() {
+                    updateDefectsChartData();
+                });
+
+                $('#defect_nums_severity, #defect_nums_status').on('change', function() {
+                    updateDefectsChartData();
+                });
+
+                // 为AI评分统计图表的筛选条件添加change事件
+                $('#quality-chart-date').on('change', function() {
+                    updateAIScoreChartData();
+                });
+
+                $('#quality-chart-data-type').on('change', function() {
+                    updateAIScoreChartData();
+                });
+
+                $('#quality-chart-status').on('change', function() {
+                    updateAIScoreChartData();
+                });
+
+                // 为阶段停留时间统计图表的筛选条件添加change事件
+                $('#phase-chart-date').on('change', function() {
+                    updatePhaseChartData();
+                });
+
+                $('#phase-chart-status').on('change', function() {
+                    updatePhaseChartData();
+                });
+
+                // 为饼图的筛选条件添加change事件
+                $('#pie-chart-date').on('change', function() {
+                    updatePieChartData();
+                });
+
+                $('#pie-chart-status').on('change', function() {
+                    updatePieChartData();
+                });
+
+                // 为产品选择的筛选条件添加click事件
+                $('#searchBtn').on('click', function() {
+                    updateDIChartData();
+                    updateDefectsChartData();
+                    updateAIScoreChartData();
+                    updatePhaseChartData();
+                    updatePieChartData();
+                });
+
+                setTimeout(function() {
+                    initExportIcons();
+                }, 1000); // 增加延迟确保图表完全初始化
+
+                // 截图按钮点击事件
+                $('#exportChart').on('click', function() {
+                    // 判断是否部署在服务器上
+                    if (isLocalFile()) {
+                        showToast('截图功能需要部署在服务器上才能正常使用，当前为本地文件环境', 'warning');
+                        return;
+                    }
+
+                    showToast('开始生成截图...');
+                    captureFullPage().then(canvas => {
+                        // 创建下载链接
+                        const link = document.createElement('a');
+                        link.download = 'screenshot-' + new Date().toISOString().replace(/:/g, '-') + '.png';
+                        link.href = canvas.toDataURL('image/png');
+                        // 针对Safari的下载处理
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        // 恢复按钮状态
+                        showToast('截图已完成，开始下载');
+                    }).catch(error => {
+                        console.error('截图生成失败:', error);
+                        showToast('截图生成失败，请重试', 5000);
+                    });
+                });
+
+                // 判断是否为本地文件环境
+                function isLocalFile() {
+                    return window.location.protocol === 'file:';
+                }
+            });
+
+            // 修复长页面截图功能，特别处理ECharts图表
+            function captureFullPage() {
+                // 保存原始滚动位置
+                const originalScrollX = window.scrollX;
+                const originalScrollY = window.scrollY;
+
+                // 临时滚动到顶部
+                window.scrollTo(0, 0);
+
+                // 获取页面完整尺寸
+                const pageWidth = document.documentElement.scrollWidth;
+                const pageHeight = document.documentElement.scrollHeight;
+
+                // 针对ECharts的特殊配置
+                return html2canvas(document.documentElement, {
+                    useCORS: true, // 使用跨域资源
+                    allowTaint: true, // 允许污染画布
+                    scale: 1, // 对于长页面，使用1的比例以确保性能
+                    logging: false, // 关闭日志
+                    width: pageWidth,
+                    height: pageHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                    backgroundColor: '#ffffff',
+                    onclone: function(clonedDoc) {
+                        // 在克隆的文档中修复样式
+                        clonedDoc.documentElement.style.overflow = 'visible';
+                        clonedDoc.body.style.overflow = 'visible';
+
+                        // 特别处理ECharts的Canvas元素
+                        const canvasElements = clonedDoc.querySelectorAll('canvas');
+                        canvasElements.forEach(canvas => {
+                            // 确保Canvas元素显示正确
+                            canvas.style.width = '100%';
+                            canvas.style.height = 'auto';
+                        });
+                    }
+                }).then(canvas => {
+                    // 恢复原始滚动位置
+                    window.scrollTo(originalScrollX, originalScrollY);
+                    return canvas;
+                });
+            }
+        });
+
+    </script>
+
+    <script>
+        // 导出Excel按钮点击事件
+        $('#exportExcel').on('click', function() {
+            exportExcelData();
+        });
+
+        // 完整版导出函数（包括从页面表单获取筛选条件）
+        function exportExcelData() {
+            try {
+                // 获取当前URL参数
+                const urlParams = new URLSearchParams(window.location.search);
+
+                // 构建查询参数
+                const params = new URLSearchParams();
+
+                // 1. 从地址栏获取defect_type
+                const defectType = urlParams.get('defect_type');
+                if (defectType && ['simplified', 'simplified2'].includes(defectType)) {
+                    params.append('defect_type', defectType);
+                }
+
+                // 2. 从树形选择器获取version_projects
+                const versionProjects = checkedChildIds && checkedChildIds.length > 0
+                    ? checkedChildIds.join(',')
+                    : 'all';
+                params.append('version_projects', versionProjects);
+
+                // 3. 从页面表单获取筛选条件（如果有）
+                // 例如：搜索框
+                const searchInput = document.querySelector('input[name="search"]');
+                if (searchInput && searchInput.value) {
+                    params.append('search', searchInput.value);
+                }
+
+                // 4. 从当前URL获取其他参数
+                const paramNames = [
+                    'assigned_to', 'completed_by', 'deal_status',
+                    'stage_types_name', 'severity', 'reproducible'
+                ];
+
+                paramNames.forEach(param => {
+                    const value = urlParams.get(param);
+                    if (value) {
+                        params.append(param, value);
+                    }
+                });
+
+                // 构建导出URL
+                const exportUrl = `/defect/export?${params.toString()}`;
+
+                console.log('导出URL:', exportUrl); // 调试用，可以删除
+
+                // 显示加载提示
+                showToast('正在生成Excel文件，请稍候...');
+
+                // 使用iframe下载文件
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = exportUrl;
+
+                iframe.onload = function() {
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        showToast('Excel文件生成成功，开始下载', 'success');
+                    }, 1000);
+                };
+
+                iframe.onerror = function() {
+                    document.body.removeChild(iframe);
+                    showToast('Excel文件生成失败，请重试', 'error');
+                };
+
+                document.body.appendChild(iframe);
+
+            } catch (error) {
+                console.error('导出Excel时发生错误:', error);
+                showToast('导出Excel时发生错误: ' + error.message, 'error');
+            }
+        }
+
+    </script>
+
+    <script>
+        // 通用Toast提示函数
+        function showToast(message, type, duration) {
+            // 隐藏所有Toast
+            $('#successToast, #errorToast, #warningToast, #infoToast').hide();
+
+            // 根据类型显示对应的Toast
+            var $toast;
+            switch(type) {
+                case 'success':
+                    $toast = $('#successToast');
+                    break;
+                case 'error':
+                    $toast = $('#errorToast');
+                    break;
+                case 'warning':
+                    $toast = $('#warningToast');
+                    break;
+                case 'info':
+                    $toast = $('#infoToast');
+                    break;
+                default:
+                    $toast = $('#infoToast');
+            }
+
+            // 设置消息内容
+            $toast.find('.toast-message').text(message);
+
+            // 显示Toast容器和对应的Toast
+            $('#toastContainer').show();
+            $toast.show();
+
+            // 设置自动隐藏
+            if (duration !== false) {
+                setTimeout(function() {
+                    $toast.fadeOut();
+                    $('#toastContainer').fadeOut();
+                }, duration || 1500);
+            }
+        }
+
+        // 关闭Toast的函数
+        function hideToast() {
+            $('#toastContainer').fadeOut();
+        }
+    </script>
+
+
+</body>
+</html>

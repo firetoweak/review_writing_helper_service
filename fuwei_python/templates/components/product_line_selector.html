@@ -1,0 +1,553 @@
+<!-- 缺陷所属产品线/技术族选择器组件 -->
+<div class="form-item" id="product-line-field">
+    <label class="form-label">缺陷所属产品线/技术族 <span class="text-danger">*</span></label>
+    <!-- 下拉树形选择器 -->
+    <div class="tree-selector-wrapper" id="tree-selector" {% if page_mode == "view" %}disabled{% endif %}>
+        <div class="tree-selector-trigger" id="tree-trigger">
+            <span class="selected-text">请选择一个版本或项目（三级节点）</span>
+            <span class="arrow">▼</span>
+        </div>
+        <div class="tree-selector-dropdown" id="tree-dropdown">
+            <div class="tree-search">
+                <input type="text" id="tree-search" placeholder="搜索版本或项目...">
+            </div>
+            <div class="tree-content" id="tree-content">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mt-2">正在加载项目数据...</p>
+            </div>
+        </div>
+    </div>
+    <div class="error-message" id="product-line-error">请选择缺陷所属产品线/技术族</div>
+</div>
+
+<!-- 隐藏的input用于存储选中的项目版本ID -->
+<input type="hidden" id="project_version_id" name="project_version_id" value="{{ selected_value if selected_value else '' }}">
+
+<style>
+/* 下拉树形选择器样式 */
+.tree-selector-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.tree-selector-trigger {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 38px;
+}
+
+/* 添加禁用状态的样式 */
+.tree-selector-wrapper[disabled] {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.tree-selector-trigger:hover {
+    border-color: #aaa;
+}
+
+.tree-selector-trigger.open {
+    border-color: #217EFD;
+    box-shadow: 0 0 0 2px rgba(33, 126, 253, 0.2);
+}
+
+.tree-selector-trigger .selected-text.placeholder {
+    color: #999;
+}
+
+.tree-selector-trigger .arrow {
+    transition: transform 0.2s;
+}
+
+.tree-selector-trigger.open .arrow {
+    transform: rotate(180deg);
+}
+
+.tree-selector-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.tree-selector-dropdown.open {
+    display: block;
+}
+
+.tree-search {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.tree-search input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.tree-content {
+    padding: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.tree-item {
+    margin: 2px 0;
+}
+
+.tree-item-label {
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.tree-item-label:hover {
+    background-color: #e6f3ff;
+}
+
+.tree-item-label.selected {
+    background-color: #d4edda;
+    font-weight: bold;
+}
+
+.tree-item-label.disabled {
+    color: #999;
+    cursor: not-allowed;
+}
+
+.tree-item-label.disabled:hover {
+    background-color: transparent;
+}
+
+.tree-item-children {
+    margin-left: 20px;
+    border-left: 1px dashed #ccc;
+    padding-left: 8px;
+    display: none;
+}
+
+.tree-item.expanded > .tree-item-children {
+    display: block;
+}
+
+.tree-item-toggle {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    font-size: 10px;
+    background: #f5f5f5;
+}
+
+.tree-item-toggle:hover {
+    background: #e5e5e5;
+}
+
+.tree-item.has-children > .tree-item-label .tree-item-toggle:after {
+    content: '+';
+}
+
+.tree-item.expanded > .tree-item-label .tree-item-toggle:after {
+    content: '-';
+}
+
+.tree-item.leaf > .tree-item-label .tree-item-toggle {
+    visibility: hidden;
+}
+
+.tree-no-results {
+    padding: 16px;
+    text-align: center;
+    color: #999;
+}
+
+.tree-group-title {
+    font-weight: bold;
+    margin: 10px 0 5px 0;
+    padding: 5px 8px;
+    background-color: #f8f9fa;
+    border-radius: 3px;
+    font-size: 14px;
+    color: #555;
+}
+
+/* 错误样式 */
+.tree-selector-trigger.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-item.has-error .error-message {
+    display: block;
+}
+</style>
+
+<script>
+class ProductLineSelector {
+    constructor(options = {}) {
+        this.treeData = options.treeData || [];
+        this.selectedValue = options.selectedValue || '';
+        this.selectedText = options.selectedText || '';
+        this.containerId = options.containerId || 'tree-selector';
+        this.onChange = options.onChange || null;
+
+        // 保存原始的树HTML内容
+        this.originalTreeHTML = '';
+        // 保存原始分组数据
+        this.originalGroups = [];
+
+        this.init();
+    }
+
+    init() {
+        this.renderTreeDropdown();
+        this.initDropdown();
+    }
+
+    // 使用数据渲染下拉树形结构
+    renderTreeDropdown() {
+        const container = $('#tree-content');
+        container.empty();
+
+        if (!this.treeData || this.treeData.length === 0) {
+            container.html('<div class="tree-no-results">暂无项目数据</div>');
+            return;
+        }
+
+        let html = '';
+        this.originalGroups = [];
+
+        // 按照两种类型分别渲染
+        this.treeData.forEach((group, groupIndex) => {
+            // 保存分组信息
+            const groupId = `group-${groupIndex}`;
+            this.originalGroups.push({
+                id: groupId,
+                title: group.title,
+                html: this.buildTree(group.children, 0)
+            });
+
+            html += `<div class="tree-group-title" data-group-id="${groupId}">${group.title}</div>`;
+            html += this.buildTree(group.children, 0);
+        });
+
+        container.html(html);
+        // 保存原始树HTML内容
+        this.originalTreeHTML = html;
+
+        this.updateTriggerText(this.selectedText);
+        this.setSelectedValue(this.selectedValue);
+        this.bindTreeEvents();
+    }
+
+    // 递归构建树形结构
+    buildTree(items, level = 0, parentPath = '') {
+        if (!items || items.length === 0) return '';
+
+        let treeHtml = '';
+        items.forEach(item => {
+            const isLeaf = !item.children || item.children.length === 0;
+            const hasChildren = !isLeaf;
+            const isLevel3 = level === 2;
+            const isExpanded = level < 2;
+            const currentPath = parentPath ? `${parentPath}/${item.title}` : item.title;
+            const isChecked = item.checked || (this.selectedValue && item.id === this.selectedValue);
+
+            treeHtml += `<div class="tree-item ${hasChildren ? 'has-children' : 'leaf'} ${isExpanded ? 'expanded' : ''}" data-id="${item.id}" data-level="${level}" data-path="${currentPath}">`;
+            treeHtml += `<div class="tree-item-label ${isLevel3 ? '' : 'expandable'} ${isChecked ? 'selected' : ''}" data-id="${item.id}" data-level="${level}" data-path="${currentPath}">`;
+
+            if (hasChildren) {
+                treeHtml += `<span class="tree-item-toggle"></span>`;
+            } else {
+                treeHtml += `<span class="tree-item-toggle" style="visibility: hidden;"></span>`;
+            }
+
+            treeHtml += `<span class="tree-item-text">${item.title}</span>`;
+            treeHtml += `</div>`;
+
+            if (hasChildren) {
+                treeHtml += `<div class="tree-item-children">`;
+                treeHtml += this.buildTree(item.children, level + 1, currentPath);
+                treeHtml += `</div>`;
+            }
+
+            treeHtml += `</div>`;
+        });
+
+        return treeHtml;
+    }
+
+    // 绑定树形事件
+    bindTreeEvents() {
+        const self = this;
+
+        // 先解绑事件，避免重复绑定
+        $('.tree-item-toggle').off('click');
+        $('.tree-item-label').off('click');
+        $('#tree-search').off('input');
+
+        // 切换展开/折叠
+        $('.tree-item-toggle').on('click', function(e) {
+            e.stopPropagation();
+            const treeItem = $(this).closest('.tree-item');
+            treeItem.toggleClass('expanded');
+        });
+
+        // 节点点击事件 - 修改为支持展开/折叠
+        $('.tree-item-label').on('click', function(e) {
+            e.stopPropagation();
+
+            const itemId = $(this).data('id');
+            const itemLevel = $(this).data('level');
+            const itemPath = $(this).data('path');
+            const treeItem = $(this).closest('.tree-item');
+            const hasChildren = treeItem.hasClass('has-children');
+
+            // 如果有子节点，点击时切换展开/折叠状态
+            if (hasChildren) {
+                treeItem.toggleClass('expanded');
+                return;
+            }
+
+            // 如果是叶子节点（三级节点），执行选择操作
+            if (itemLevel === 2) {
+                // 移除其他选中状态
+                $('.tree-item-label').removeClass('selected');
+                // 添加当前选中状态
+                $(this).addClass('selected');
+
+                // 更新选中的值
+                self.selectedValue = itemId;
+                self.selectedText = itemPath;
+
+                // 更新触发器文本
+                self.updateTriggerText(self.selectedText);
+
+                // 更新隐藏的input值
+                $('#project_version_id').val(self.selectedValue);
+
+                // 清除错误状态
+                self.clearError();
+
+                // 关闭下拉框
+                self.closeDropdown();
+
+                // 触发onChange回调
+                if (self.onChange) {
+                    self.onChange(self.selectedValue, self.selectedText);
+                }
+            }
+        });
+
+        // 搜索功能 - 优化搜索逻辑，确保显示产品线/技术族分组
+        $('#tree-search').on('input', function() {
+            const searchText = $(this).val().toLowerCase().trim();
+            const container = $(`#${self.containerId} .tree-content`);
+
+            if (!searchText) {
+                // 如果搜索框为空，恢复显示原始树结构
+                container.html(self.originalTreeHTML);
+                self.bindTreeEvents();
+                return;
+            }
+
+            // 重新渲染原始树结构用于搜索
+            container.html(self.originalTreeHTML);
+            self.bindTreeEvents();
+
+            // 隐藏所有项
+            $('.tree-item').hide();
+            $('.tree-group-title').hide();
+
+            let hasResults = false;
+            const visibleGroups = new Set();
+
+            // 显示匹配的项及其父级和子级
+            $('.tree-item-text').each(function() {
+                const text = $(this).text().toLowerCase();
+                if (text.includes(searchText)) {
+                    const treeItem = $(this).closest('.tree-item');
+                    const itemLevel = treeItem.data('level');
+
+                    // 显示匹配的节点
+                    treeItem.show();
+
+                    // 显示所有父级并展开
+                    treeItem.parents('.tree-item').show().addClass('expanded');
+
+                    // 如果是非叶子节点，展开并显示所有子节点
+                    if (itemLevel < 2) {
+                        treeItem.addClass('expanded');
+                        treeItem.find('.tree-item').show();
+                    }
+
+                    // 记录匹配节点所属的分组
+                    const groupTitle = treeItem.closest('.tree-content').find('.tree-group-title').first();
+                    const groupId = groupTitle.data('group-id');
+                    visibleGroups.add(groupId);
+
+                    hasResults = true;
+                }
+            });
+
+            // 显示包含匹配项的分组标题
+            if (visibleGroups.size > 0) {
+                $('.tree-group-title').each(function() {
+                    const groupId = $(this).data('group-id');
+                    if (visibleGroups.has(groupId)) {
+                        $(this).show();
+                    }
+                });
+            }
+
+            // 如果没有搜索结果，显示提示
+            if (!hasResults) {
+                container.html('<div class="tree-no-results">未找到匹配的项目</div>');
+            }
+        });
+    }
+
+    // 初始化下拉框控制
+    initDropdown() {
+        const self = this;
+
+        const trigger = $('#tree-trigger');
+        const dropdown = $('#tree-dropdown');
+
+        trigger.off('click').on('click', function() {
+            if (dropdown.hasClass('open')) {
+                self.closeDropdown();
+            } else {
+                self.openDropdown();
+            }
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.tree-selector-wrapper').length) {
+                self.closeDropdown();
+            }
+        });
+
+        dropdown.on('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    // 打开下拉框
+    openDropdown() {
+        // 每次打开下拉列表时重新渲染树形结构，确保数据正确显示
+        this.renderTreeDropdown();
+        $('#tree-trigger').addClass('open');
+        $('#tree-dropdown').addClass('open');
+    }
+
+    // 关闭下拉框
+    closeDropdown() {
+        $('#tree-trigger').removeClass('open');
+        $('#tree-dropdown').removeClass('open');
+        $('#tree-search').val('');
+
+        // 关闭下拉框时恢复原始树结构
+        const container = $(`#${this.containerId} .tree-content`);
+        container.html(this.originalTreeHTML);
+        this.bindTreeEvents();
+    }
+
+    // 更新触发器文本
+    updateTriggerText(text) {
+        const trigger = $('#tree-trigger .selected-text');
+        if (text) {
+            trigger.text(text).removeClass('placeholder-2');
+        } else {
+            trigger.text('请选择版本或项目').addClass('placeholder-2');
+        }
+    }
+
+    // 获取选中的项目ID
+    getSelectedValue() {
+        return this.selectedValue;
+    }
+
+    // 获取选中的文本
+    getSelectedText() {
+        return this.selectedText;
+    }
+
+    // 设置选中的值
+    setSelectedValue(value) {
+        this.selectedValue = value;
+        $('#project_version_id').val(value);
+    }
+
+    // 显示错误
+    showError() {
+        $('#tree-trigger').addClass('is-invalid');
+        $('#product-line-field').addClass('has-error');
+        $('#product-line-error').show();
+    }
+
+    // 清除错误
+    clearError() {
+        $('#tree-trigger').removeClass('is-invalid');
+        $('#product-line-field').removeClass('has-error');
+        $('#product-line-error').hide();
+    }
+
+    // 验证是否已选择
+    validate() {
+        if (!this.selectedValue) {
+            this.showError();
+            return false;
+        }
+        this.clearError();
+        return true;
+    }
+
+    // 刷新数据
+    refreshData(newData) {
+        this.treeData = newData;
+        this.originalTreeHTML = ''; // 清空保存的HTML
+        this.renderTreeDropdown();
+    }
+}
+
+// 全局实例
+let productLineSelector = null;
+
+// 初始化函数
+function initProductLineSelector(options = {}) {
+    productLineSelector = new ProductLineSelector(options);
+    return productLineSelector;
+}
+
+// 获取实例
+function getProductLineSelector() {
+    return productLineSelector;
+}
+</script>

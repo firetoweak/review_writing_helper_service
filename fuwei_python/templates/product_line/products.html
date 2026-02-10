@@ -1,0 +1,310 @@
+<!-- products.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .table-hover tbody tr:hover {
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+        .search-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>产品管理</h1>
+            <a href="/product_line/hierarchy" class="btn btn-outline-primary">
+                <i class="bi bi-diagram-3"></i> 查看层级结构
+            </a>
+        </div>
+
+        <!-- 搜索区域 -->
+        <div class="search-box">
+            <form id="searchForm" method="GET" action="/product_line/products">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="product_line_name" class="form-label">产品线名称</label>
+                        <select class="form-select" id="product_line_name" name="product_line_name">
+                            <option value="">全部</option>
+                            {% for line in product_lines %}
+                            <option value="{{ line.name }}"
+                                {% if request.args.get('product_line_name') == line.name %}selected{% endif %}>
+                                {{ line.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="product_name" class="form-label">产品名称</label>
+                        <input type="text" class="form-control" id="product_name" name="product_name"
+                               value="{{ request.args.get('product_name', '') }}">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> 搜索
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearSearch()">
+                            <i class="bi bi-arrow-clockwise"></i> 重置
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">产品列表</h5>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="bi bi-plus-circle"></i> 新增产品
+            </button>
+        </div>
+
+        <!-- 产品表格 -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>产品名称</th>
+                                <th>产品代码</th>
+                                <th>产品线</th>
+                                <th>描述</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td>{{ product.id }}</td>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.code }}</td>
+                                <td>{{ product.product_line_name }}</td>
+                                <td>{{ product.description or '-' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary edit-product"
+                                            data-id="{{ product.id }}"
+                                            data-name="{{ product.name }}"
+                                            data-code="{{ product.code }}"
+                                            data-description="{{ product.description }}"
+                                            data-product-line-id="{{ product.product_line_id }}">
+                                        <i class="bi bi-pencil"></i> 编辑
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-product"
+                                            data-id="{{ product.id }}"
+                                            data-name="{{ product.name }}">
+                                        <i class="bi bi-trash"></i> 删除
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">暂无数据</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增产品模态框 -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增产品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addProductForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">产品名称</label>
+                            <input type="text" class="form-control" id="productName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productCode" class="form-label">产品代码</label>
+                            <input type="text" class="form-control" id="productCode" name="code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productLine" class="form-label">产品线</label>
+                            <select class="form-select" id="productLine" name="product_line_id" required>
+                                <option value="">请选择产品线</option>
+                                {% for line in product_lines %}
+                                <option value="{{ line.id }}">{{ line.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑产品模态框 -->
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑产品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editProductForm">
+                    <input type="hidden" id="editProductId" name="id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editProductName" class="form-label">产品名称</label>
+                            <input type="text" class="form-control" id="editProductName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductCode" class="form-label">产品代码</label>
+                            <input type="text" class="form-control" id="editProductCode" name="code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductLine" class="form-label">产品线</label>
+                            <select class="form-select" id="editProductLine" name="product_line_id" required>
+                                <option value="">请选择产品线</option>
+                                {% for line in product_lines %}
+                                <option value="{{ line.id }}">{{ line.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="editProductDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 搜索表单重置
+        function clearSearch() {
+            document.getElementById('product_line_name').value = '';
+            document.getElementById('product_name').value = '';
+            document.getElementById('searchForm').submit();
+        }
+
+        // 编辑产品
+        document.querySelectorAll('.edit-product').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+                const code = button.getAttribute('data-code');
+                const description = button.getAttribute('data-description') || '';
+                const productLineId = button.getAttribute('data-product-line-id');
+
+                document.getElementById('editProductId').value = id;
+                document.getElementById('editProductName').value = name;
+                document.getElementById('editProductCode').value = code;
+                document.getElementById('editProductDescription').value = description;
+                document.getElementById('editProductLine').value = productLineId;
+
+                const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+                modal.show();
+            });
+        });
+
+        // 删除产品
+        document.querySelectorAll('.delete-product').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+
+                if (confirm(`确定要删除产品"${name}"吗？此操作不可恢复。`)) {
+                    fetch(`/product_line/products/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('删除成功');
+                            window.location.reload();
+                        } else {
+                            alert('删除失败: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        alert('请求失败: ' + error.message);
+                    });
+                }
+            });
+        });
+
+        // 表单提交处理 - 新增产品
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/product_line/products', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品创建成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 编辑产品
+        document.getElementById('editProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = document.getElementById('editProductId').value;
+
+            try {
+                const response = await fetch(`/product_line/products/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品更新成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

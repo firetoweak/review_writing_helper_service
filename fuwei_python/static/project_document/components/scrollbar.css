@@ -1,0 +1,24 @@
+/* 自定义滚动条：仅在添加 .scrollbar-custom 时生效 */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(33, 126, 253, 0.4) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: #217EFD;
+  opacity: 0.4;
+  border-radius: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: #217EFD;
+  opacity: 0.4;
+}

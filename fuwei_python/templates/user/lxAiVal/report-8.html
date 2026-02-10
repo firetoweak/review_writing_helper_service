@@ -1,0 +1,98 @@
+<div class="container-report-paragraph" style="height: 45px;margin-top: 44px;">
+  <div class="container-report-paragraph-text-m">
+    <div class="container-split-content-m">
+      <img src="/static/images/aival/Part8.png" alt="">从分阶段执行立项工作的视角，分析与不足
+    </div>
+  </div>
+</div>
+
+<div class="container-report-paragraph" style="height: 44px">
+  <div class="container-report-paragraph-text" style="width: 584px;height: 44px;float: left;">
+    <div class="container-split-content" >
+      <div class="container-split-content" >
+        <img src="/static/images/aival/8.1.png" alt="">立项工作实际上处在的阶段
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="container-report-paragraph fish-box">
+  <div style="width: 776px;height: 214px; top: 50%; left: 50%;position: absolute;transform: translate(-50%, -50%);">
+    <div  style="position: absolute; bottom: 0;">
+
+      {% if item.case>=1 %}
+      <div  class="green-score" style="left:30%;bottom: 105px">
+        {{fish_score1}}分<span>/10分满分</span>
+        <img src="/static/images/aival/arrow-down-s.png">
+      </div>
+      {% if item.case==1 %}
+      <div style="position: absolute;top:-95px;left: 20.5%;width:150px">
+        <img src="/static/images/aival/dashed-line.png" style="width:100%;height: 100%;padding-top: 5px ">
+      </div>
+      {% endif %}
+      {% endif %}
+
+      {% if item.case>=2 %}
+      <div  class="green-score" style="left:52%;bottom: 105px">
+        {{fish_score2}}分<span>/10分满分</span>
+        <img src="/static/images/aival/arrow-down-s.png">
+      </div>
+      {% if item.case==2 %}
+      <div style="position: absolute;top:-95px;left:43%;width:140px ">
+        <img src="/static/images/aival/dashed-line.png" style="width:100%;height: 100%;padding-top: 5px ">
+      </div>
+      {% endif %}
+      {% endif %}
+
+      {% if item.case>=3 %}
+      <div  class="green-score" style="left:71.5%;bottom: 105px">
+        {{fish_score3}}分<span>/10分满分</span>
+        <img src="/static/images/aival/arrow-down-s.png">
+      </div>
+      {% if item.case==3 %}
+      <div style="position: absolute;top:-95px;left:62.3%;width:140px ">
+        <img src="/static/images/aival/dashed-line.png" style="width:100%;height: 100%;padding-top: 5px ">
+      </div>
+      {% endif %}
+      {% endif %}
+      {% if item.case==4 %}
+      <div  class="green-score" style="left:89%;bottom: 105px">
+        {{fish_score3}}分<span>/10分满分</span>
+        <img src="/static/images/aival/arrow-down-s.png">
+      </div>
+      {% if item.case==4 %}
+      <div style="position: absolute;top:-95px;left:80%;width:140px ">
+        <img src="/static/images/aival/dashed-line.png" style="width:100%;height: 100%;padding-top: 5px ">
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <img src="/static/images/aival/fish.png">
+    </div>
+  </div>
+</div>
+<div class="container-report-paragraph" style="margin-top: 15px;color: rgba(85, 116, 150, 1);">
+  {{case_text}}
+</div>
+<div class="container-report-paragraph" style="height: 44px">
+  <div class="container-report-paragraph-text" style="width: 584px;height: 44px;float: left;">
+    <div class="container-split-content" >
+      <div class="container-split-content" >
+        <img src="/static/images/aival/8.2.png" alt="">下阶段工作重点
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-report-paragraph" style="margin-top: 15px;color: rgba(85, 116, 150, 1);">
+  {{item.summarize_val_sug|safe}}
+</div>
+
+<div class="container-report-paragraph" style="height: 100px;margin-top:88px;">
+  <div class="container-report-paragraph-text-m">
+    <div class="container-split-content-m">
+      <img src="/static/images/aival/fc_watermark.png" alt="">
+    </div>
+  </div>
+</div>
+

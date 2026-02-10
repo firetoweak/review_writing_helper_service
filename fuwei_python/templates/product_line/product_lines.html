@@ -1,0 +1,263 @@
+<!-- product_lines.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品线管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .table-hover tbody tr:hover {
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+        .search-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>产品线管理</h1>
+            <a href="/product_line/hierarchy" class="btn btn-outline-primary">
+                <i class="bi bi-diagram-3"></i> 查看层级结构
+            </a>
+        </div>
+
+        <!-- 搜索区域 -->
+        <div class="search-box">
+            <form id="searchForm" method="GET" action="/product_line/lines">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="name" class="form-label">产品线名称</label>
+                        <input type="text" class="form-control" id="name" name="name"
+                               value="{{ request.args.get('name', '') }}">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> 搜索
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearSearch()">
+                            <i class="bi bi-arrow-clockwise"></i> 重置
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">产品线列表</h5>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductLineModal">
+                <i class="bi bi-plus-circle"></i> 新增产品线
+            </button>
+        </div>
+
+        <!-- 产品线表格 -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>产品线名称</th>
+                                <th>描述</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in product_lines %}
+                            <tr>
+                                <td>{{ line.id }}</td>
+                                <td>{{ line.name }}</td>
+                                <td>{{ line.description or '-' }}</td>
+                                <td>{{ line.created_at.strftime('%Y-%m-%d %H:%M') if line.created_at else '-' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary edit-line"
+                                            data-id="{{ line.id }}"
+                                            data-name="{{ line.name }}"
+                                            data-description="{{ line.description }}">
+                                        <i class="bi bi-pencil"></i> 编辑
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-line"
+                                            data-id="{{ line.id }}"
+                                            data-name="{{ line.name }}">
+                                        <i class="bi bi-trash"></i> 删除
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">暂无数据</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增产品线模态框 -->
+    <div class="modal fade" id="addProductLineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增产品线</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addProductLineForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="lineName" class="form-label">产品线名称</label>
+                            <input type="text" class="form-control" id="lineName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lineDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="lineDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑产品线模态框 -->
+    <div class="modal fade" id="editProductLineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑产品线</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editProductLineForm">
+                    <input type="hidden" id="editLineId" name="id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editLineName" class="form-label">产品线名称</label>
+                            <input type="text" class="form-control" id="editLineName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editLineDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="editLineDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 搜索表单重置
+        function clearSearch() {
+            document.getElementById('name').value = '';
+            document.getElementById('searchForm').submit();
+        }
+
+        // 编辑产品线
+        document.querySelectorAll('.edit-line').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+                const description = button.getAttribute('data-description') || '';
+
+                document.getElementById('editLineId').value = id;
+                document.getElementById('editLineName').value = name;
+                document.getElementById('editLineDescription').value = description;
+
+                const modal = new bootstrap.Modal(document.getElementById('editProductLineModal'));
+                modal.show();
+            });
+        });
+
+        // 删除产品线
+        document.querySelectorAll('.delete-line').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+
+                if (confirm(`确定要删除产品线"${name}"吗？此操作不可恢复。`)) {
+                    fetch(`/product_line/lines/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('删除成功');
+                            window.location.reload();
+                        } else {
+                            alert('删除失败: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        alert('请求失败: ' + error.message);
+                    });
+                }
+            });
+        });
+
+        // 表单提交处理 - 新增产品线
+        document.getElementById('addProductLineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/product_line/lines', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品线创建成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 编辑产品线
+        document.getElementById('editProductLineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = document.getElementById('editLineId').value;
+
+            try {
+                const response = await fetch(`/product_line/lines/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品线更新成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

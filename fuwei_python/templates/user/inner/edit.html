@@ -1,0 +1,101 @@
+<div class="add-colleague-drawer" id="addColleagueDrawer-edit" style="display: none;">
+    <div class="drawer-overlay-list"></div>
+    <div class="drawer-container">
+        <div class="drawer-header">
+            <div class="drawer-title-container">
+                <div class="drawer-title"></div>
+            </div>
+        </div>
+        <div class="drawer-content">
+            <div class="drawer-form">
+                <div class="form-group">
+                    <label class="form-label">他的电子邮件，用于接收帐号密码</label>
+                    <div class="form-input-container">
+                        <input type="email" class="form-input" placeholder="请输入" id="edit-email" disabled>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">被邀请同事的真实姓名</label>
+                    <div class="form-input-container">
+                        <input type="text" class="form-input" placeholder="请输入" id="edit-real_name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">部门</label>
+                    <div class="form-input-container">
+                        <input type="email" class="form-input" placeholder="请输入" id="edit-dept">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">职位</label>
+                    <div class="form-input-container">
+                        <input type="email" class="form-input" placeholder="请输入" id="edit-position">
+                        <input type="hidden"  id="edit-user_id">
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">他的帐号密码，至少6位</label>
+                    <div class="form-input-container">
+                        <input type="password" class="form-input" placeholder="请输入"  id="edit-password">
+                    </div>
+                </div>
+            </div>
+            <div style="width: 100%;display: flex;justify-content: center;align-items: center;">
+                <button class="ok-btn" id="edit-user" style="width: 100px;">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('.tb-btn-edit').click(function () {
+            $('#addColleagueDrawer-edit').fadeIn(300);
+            $('#addColleagueDrawer-edit .drawer-container').animate({right: 0}, 300);
+
+            $('#edit-real_name').val($(this).attr('real_name'))
+            $('#edit-email').val($(this).attr('email'))
+            $('#edit-dept').val($(this).attr('dept'))
+            $('#edit-position').val($(this).attr('position'))
+            $('#edit-password').val($(this).attr('edit-real_name'))
+            $('#edit-user_id').val($(this).attr('user_id'))
+            if($(this).attr('status')=="0"){
+                $('#edit-password').prop("disabled",true)
+            }else{
+                $('#edit-password').prop("disabled",false)
+            }
+        })
+
+        $('#addColleagueDrawer-edit .drawer-overlay-list').click(function () {
+            $('#addColleagueDrawer-edit .drawer-container').animate({right: '-500px'}, 300, function () {
+                $('#addColleagueDrawer-edit').fadeOut(300);
+            });
+        });
+
+
+
+        $('#edit-user').click(function () {
+            $.ajax({
+                url: "/user/inner/edit?type={{g.type}}&user_id="+$('#edit-user_id').val(),
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                    real_name: $('#edit-real_name').val(),
+                    email: $('#edit-email').val(),
+                    dept: $('#edit-dept').val(),
+                    position: $('#edit-position').val(),
+                    password: $('#edit-password').val()
+                }),
+                dataType: "json",
+                success: function (data) {
+                    showToast('success', data.msg);
+                    setTimeout(function () {
+                        location.reload();
+                    }, 2000);
+                }
+            })
+        })
+    })
+
+</script>

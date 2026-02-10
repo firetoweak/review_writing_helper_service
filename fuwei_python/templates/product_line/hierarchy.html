@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品线-产品-版本管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .table-hover tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        .collapsible {
+            cursor: pointer;
+        }
+        .content {
+            display: none;
+            overflow: hidden;
+        }
+        .level-1 { padding-left: 20px; }
+        .level-2 { padding-left: 40px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <h1 class="mb-4">产品线-产品-版本管理系统</h1>
+
+        <!-- 产品线操作区 -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">产品线管理</h5>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductLineModal">
+                    <i class="bi bi-plus-circle"></i> 新增产品线
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>产品线名称</th>
+                                <th>描述</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in hierarchy %}
+                            <tr class="collapsible" data-target="products-{{ line.id }}">
+                                <td>{{ line.name }}</td>
+                                <td>{{ line.description }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary edit-line" data-id="{{ line.id }}" data-name="{{ line.name }}" data-description="{{ line.description }}">
+                                        <i class="bi bi-pencil"></i> 编辑
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="content" id="products-{{ line.id }}">
+                                <td colspan="3">
+                                    <!-- 产品操作区 -->
+                                    <div class="card mb-3">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">产品管理 - {{ line.name }}</h6>
+                                            <button type="button" class="btn btn-sm btn-success add-product" data-line-id="{{ line.id }}">
+                                                <i class="bi bi-plus-circle"></i> 新增产品
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>产品名称</th>
+                                                            <th>产品代码</th>
+                                                            <th>描述</th>
+                                                            <th>操作</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for product in line.products %}
+                                                        <tr class="collapsible" data-target="versions-{{ product.id }}">
+                                                            <td>{{ product.name }}</td>
+                                                            <td>{{ product.code }}</td>
+                                                            <td>{{ product.description }}</td>
+                                                            <td>
+                                                                <button class="btn btn-sm btn-outline-primary edit-product"
+                                                                        data-id="{{ product.id }}"
+                                                                        data-name="{{ product.name }}"
+                                                                        data-code="{{ product.code }}"
+                                                                        data-description="{{ product.description }}"
+                                                                        data-line-id="{{ line.id }}">
+                                                                    <i class="bi bi-pencil"></i> 编辑
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <tr class="content" id="versions-{{ product.id }}">
+                                                            <td colspan="4">
+                                                                <!-- 版本操作区 -->
+                                                                <div class="card">
+                                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                                        <h6 class="mb-0">版本管理 - {{ product.name }}</h6>
+                                                                        <button type="button" class="btn btn-sm btn-info add-version" data-product-id="{{ product.id }}">
+                                                                            <i class="bi bi-plus-circle"></i> 新增版本
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <div class="table-responsive">
+                                                                            <table class="table table-sm">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th>版本号</th>
+                                                                                        <th>代码名称</th>
+                                                                                        <th>发布说明</th>
+                                                                                        <th>发布日期</th>
+                                                                                        <th>是否支持</th>
+                                                                                        <th>操作</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    {% for version in product.versions %}
+                                                                                    <tr>
+                                                                                        <td>{{ version.version_number }}</td>
+                                                                                        <td>{{ version.code_name }}</td>
+                                                                                        <td>{{ version.release_notes }}</td>
+                                                                                        <td>{{ version.release_date }}</td>
+                                                                                        <td>
+                                                                                            {% if version.is_supported %}
+                                                                                                <span class="badge bg-success">是</span>
+                                                                                            {% else %}
+                                                                                                <span class="badge bg-secondary">否</span>
+                                                                                            {% endif %}
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <button class="btn btn-sm btn-outline-primary edit-version"
+                                                                                                    data-id="{{ version.id }}"
+                                                                                                    data-version-number="{{ version.version_number }}"
+                                                                                                    data-code-name="{{ version.code_name }}"
+                                                                                                    data-release-notes="{{ version.release_notes }}"
+                                                                                                    data-release-date="{{ version.release_date }}"
+                                                                                                    data-is-supported="{{ version.is_supported }}"
+                                                                                                    data-product-id="{{ product.id }}">
+                                                                                                <i class="bi bi-pencil"></i> 编辑
+                                                                                            </button>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    {% endfor %}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增产品线模态框 -->
+    <div class="modal fade" id="addProductLineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增产品线</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addProductLineForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="lineName" class="form-label">产品线名称</label>
+                            <input type="text" class="form-control" id="lineName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lineDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="lineDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑产品线模态框 -->
+    <div class="modal fade" id="editProductLineModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑产品线</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editProductLineForm">
+                    <input type="hidden" id="editLineId" name="id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editLineName" class="form-label">产品线名称</label>
+                            <input type="text" class="form-control" id="editLineName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editLineDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="editLineDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增产品模态框 -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增产品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addProductForm">
+                    <input type="hidden" id="productLineId" name="product_line_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">产品名称</label>
+                            <input type="text" class="form-control" id="productName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productCode" class="form-label">产品代码</label>
+                            <input type="text" class="form-control" id="productCode" name="code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="productIsActive" name="is_active" checked>
+                            <label class="form-check-label" for="productIsActive">是否激活</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑产品模态框 -->
+    <div class="modal fade" id="editProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑产品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editProductForm">
+                    <input type="hidden" id="editProductId" name="id">
+                    <input type="hidden" id="editProductLineId" name="product_line_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editProductName" class="form-label">产品名称</label>
+                            <input type="text" class="form-control" id="editProductName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductCode" class="form-label">产品代码</label>
+                            <input type="text" class="form-control" id="editProductCode" name="code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProductDescription" class="form-label">描述</label>
+                            <textarea class="form-control" id="editProductDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="editProductIsActive" name="is_active">
+                            <label class="form-check-label" for="editProductIsActive">是否激活</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增版本模态框 -->
+    <div class="modal fade" id="addVersionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增版本</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addVersionForm">
+                    <input type="hidden" id="versionProductId" name="product_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="versionNumber" class="form-label">版本号</label>
+                            <input type="text" class="form-control" id="versionNumber" name="version_number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="codeName" class="form-label">代码名称</label>
+                            <input type="text" class="form-control" id="codeName" name="code_name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="releaseNotes" class="form-label">发布说明</label>
+                            <textarea class="form-control" id="releaseNotes" name="release_notes" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="releaseDate" class="form-label">发布日期</label>
+                            <input type="date" class="form-control" id="releaseDate" name="release_date">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="isSupported" name="is_supported" checked>
+                            <label class="form-check-label" for="isSupported">是否支持</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑版本模态框 -->
+    <div class="modal fade" id="editVersionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑版本</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editVersionForm">
+                    <input type="hidden" id="editVersionId" name="id">
+                    <input type="hidden" id="editVersionProductId" name="product_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editVersionNumber" class="form-label">版本号</label>
+                            <input type="text" class="form-control" id="editVersionNumber" name="version_number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCodeName" class="form-label">代码名称</label>
+                            <input type="text" class="form-control" id="editCodeName" name="code_name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editReleaseNotes" class="form-label">发布说明</label>
+                            <textarea class="form-control" id="editReleaseNotes" name="release_notes" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editReleaseDate" class="form-label">发布日期</label>
+                            <input type="date" class="form-control" id="editReleaseDate" name="release_date">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="editIsSupported" name="is_supported">
+                            <label class="form-check-label" for="editIsSupported">是否支持</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 折叠/展开功能
+        document.querySelectorAll('.collapsible').forEach(item => {
+            item.addEventListener('click', event => {
+                const target = event.currentTarget.getAttribute('data-target');
+                const content = document.getElementById(target);
+                content.style.display = content.style.display === 'none' ? 'table-row' : 'none';
+            });
+        });
+
+        // 编辑产品线
+        document.querySelectorAll('.edit-line').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+                const description = button.getAttribute('data-description');
+
+                document.getElementById('editLineId').value = id;
+                document.getElementById('editLineName').value = name;
+                document.getElementById('editLineDescription').value = description;
+
+                const modal = new bootstrap.Modal(document.getElementById('editProductLineModal'));
+                modal.show();
+            });
+        });
+
+        // 新增产品
+        document.querySelectorAll('.add-product').forEach(button => {
+            button.addEventListener('click', () => {
+                const lineId = button.getAttribute('data-line-id');
+                document.getElementById('productLineId').value = lineId;
+
+                const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+                modal.show();
+            });
+        });
+
+        // 编辑产品
+        document.querySelectorAll('.edit-product').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const name = button.getAttribute('data-name');
+                const code = button.getAttribute('data-code');
+                const description = button.getAttribute('data-description');
+                const lineId = button.getAttribute('data-line-id');
+
+                document.getElementById('editProductId').value = id;
+                document.getElementById('editProductName').value = name;
+                document.getElementById('editProductCode').value = code;
+                document.getElementById('editProductDescription').value = description;
+                document.getElementById('editProductLineId').value = lineId;
+
+                const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+                modal.show();
+            });
+        });
+
+        // 新增版本
+        document.querySelectorAll('.add-version').forEach(button => {
+            button.addEventListener('click', () => {
+                const productId = button.getAttribute('data-product-id');
+                document.getElementById('versionProductId').value = productId;
+
+                const modal = new bootstrap.Modal(document.getElementById('addVersionModal'));
+                modal.show();
+            });
+        });
+
+        // 编辑版本
+        document.querySelectorAll('.edit-version').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                const versionNumber = button.getAttribute('data-version-number');
+                const codeName = button.getAttribute('data-code-name');
+                const releaseNotes = button.getAttribute('data-release-notes');
+                const releaseDate = button.getAttribute('data-release-date');
+                const isSupported = button.getAttribute('data-is-supported') === 'true';
+                const productId = button.getAttribute('data-product-id');
+
+                document.getElementById('editVersionId').value = id;
+                document.getElementById('editVersionNumber').value = versionNumber;
+                document.getElementById('editCodeName').value = codeName;
+                document.getElementById('editReleaseNotes').value = releaseNotes;
+                document.getElementById('editReleaseDate').value = releaseDate;
+                document.getElementById('editIsSupported').checked = isSupported;
+                document.getElementById('editVersionProductId').value = productId;
+
+                const modal = new bootstrap.Modal(document.getElementById('editVersionModal'));
+                modal.show();
+            });
+        });
+
+        // 表单提交处理 - 新增产品线
+        document.getElementById('addProductLineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/product_line/lines', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品线创建成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 编辑产品线
+        document.getElementById('editProductLineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = document.getElementById('editLineId').value;
+
+            try {
+                const response = await fetch(`/product_line/lines/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品线更新成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 新增产品
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/products', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品创建成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 编辑产品
+        document.getElementById('editProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = document.getElementById('editProductId').value;
+
+            try {
+                const response = await fetch(`/products/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('产品更新成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 新增版本
+        document.getElementById('addVersionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/versions', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('版本创建成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+
+        // 表单提交处理 - 编辑版本
+        document.getElementById('editVersionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const id = document.getElementById('editVersionId').value;
+
+            try {
+                const response = await fetch(`/versions/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('版本更新成功');
+                    window.location.reload();
+                } else {
+                    alert('错误: ' + result.error);
+                }
+            } catch (error) {
+                alert('请求失败: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

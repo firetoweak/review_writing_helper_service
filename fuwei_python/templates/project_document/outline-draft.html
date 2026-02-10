@@ -1,0 +1,147 @@
+<!-- templates/project_document/outline-draft.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>填写构想 - AI智能写作</title>
+    {% include "project_document/base.html" %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/outline-draft/index.css')}}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/writing-workspace/index.css')}}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/outline-draft/index.js')}}"></script>
+  </head>
+  <body>
+    <div class="flex-col writing-page scrollbar-custom">
+      <!-- 页头导航 -->
+      <div class="flex-row justify-center items-center relative page-header">
+        <!-- 返回按钮 -->
+        <div class="flex-row items-center back-link">
+          <img class="shrink-0 back-icon" src="/static/project_document/images/outline-draft/icon-back-solid.png" />
+          <span class="back-text">返回首页</span>
+        </div>
+
+        <!-- 步骤条 -->
+        <div id="steps-container" class="flex-row items-center"></div>
+
+        <!-- 下一步按钮 -->
+        <div class="flex-col justify-start items-center next-button" id="next-button" style="cursor: pointer">
+          <span class="next-button-text">下一步</span>
+        </div>
+      </div>
+
+      <!-- 主内容区 -->
+      <div class="flex-col content-area">
+        <!-- 产品立项报告名称卡片 -->
+        <div class="flex-col form-card form-card--name">
+          <div class="flex-col justify-start items-center self-stretch relative card-header">
+            <img class="shrink-0 card-header-bg" src="/static/project_document/images/common/bg-card-header.png" />
+            <div class="card-title">
+              <span>产品立项报告名称</span>
+              <span class="required-mark">*</span>
+            </div>
+          </div>
+          <input type="text" class="name-input" id="title-input" placeholder="您想写一篇关于什么产品的立项报告？请给这篇报告起个名字" />
+          <div id="title-error" class="error-message" style="display: none;"></div>
+        </div>
+
+        <!-- 简要构想卡片 -->
+        <div class="flex-col form-card form-card--idea">
+          <div class="flex-col justify-start items-center self-stretch relative card-header">
+            <img class="shrink-0 card-header-bg" src="/static/project_document/images/common/bg-card-header.png" />
+            <span class="card-title">简要构想</span>
+          </div>
+          <div class="flex-col justify-start items-start self-stretch toolbar-strip">
+            <div id="tb-idea" class="toolbar-container"></div>
+            <div id="editor-idea" class="editor-container"></div>
+          </div>
+          <div id="idea-error" class="error-message" style="display: none;"></div>
+        </div>
+
+        <!-- 素材准备卡片 -->
+        <div class="flex-col form-card form-card--material">
+          <div class="flex-col justify-start items-center relative card-header">
+            <img class="shrink-0 card-header-bg" src="/static/project_document/images/common/bg-card-header.png" />
+            <span class="card-title">素材准备</span>
+          </div>
+
+          <!-- 文件列表 -->
+          <div class="flex-row file-grid" id="file-grid">
+            <!-- 拖拽上传区 -->
+            <div class="flex-col shrink-0 upload-dropzone" id="upload-dropzone">
+              <input type="file" id="file-input" accept=".ppt,.pptx,.doc,.docx,.pdf" multiple hidden />
+              <img class="self-center upload-icon" src="/static/project_document/images/outline-draft/icon-upload.png" />
+              <span class="self-center upload-text">点击或拖拽上传</span>
+              <span class="self-stretch upload-hint">100M以内的 PPT/word/PDF 文件</span>
+            </div>
+          </div>
+          <div id="file-error" class="error-message" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div class="delete-confirm-overlay" id="delete-confirm-overlay" >
+      <div class="delete-confirm-modal">
+        <img class="delete-confirm-icon" src="/static/project_document/images/common/icon-delete.png" />
+        <div class="delete-confirm-content">
+          <div class="delete-confirm-title" id="delete-confirm-title">确定删除该文件吗？</div>
+          <div class="delete-confirm-buttons">
+            <div class="delete-confirm-btn cancel" id="delete-confirm-cancel">不删除</div>
+            <div class="delete-confirm-btn confirm" id="delete-confirm-confirm">确定删除</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 生成大纲计时弹窗 -->
+    <div class="generate-outline-overlay" id="generate-outline-overlay">
+      <div class="generate-outline-modal">
+        <img class="generate-outline-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="generate-outline-content">
+          <div class="generate-outline-title">正在生成大纲，请耐心等待</div>
+
+            <img class="generate-outline-clock" src="/static/project_document/images/writing-workspace/review-waiting-clock.png" />
+              <span class="generate-outline-time" id="generate-outline-time">00:00</span>
+              <div class="generate-outline-text">
+                <span>AI正在生成大纲</span>
+                <span>大约 1～3 分钟完成</span>
+
+          </div>
+          <div class="generate-outline-buttons">
+            <div class="generate-outline-btn cancel" id="generate-outline-cancel">取消</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 生成大纲成功弹窗 -->
+    <div class="generate-success-overlay" id="generate-success-overlay">
+      <div class="generate-success-modal">
+        <img class="generate-success-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="generate-success-content">
+          <div class="generate-success-title" style="color: #52c41a;">大纲生成成功！</div>
+          <div class="generate-success-message">正在跳转到大纲确认页面...</div>
+          <div class="generate-success-buttons">
+            <div class="generate-success-btn" id="generate-success-confirm">确定</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 生成大纲失败弹窗 -->
+    <div class="generate-error-overlay" id="generate-error-overlay">
+      <div class="generate-error-modal">
+        <img class="generate-error-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="generate-error-content">
+          <div class="generate-error-title" style="color: #ff4d4f;">大纲生成失败</div>
+          <div class="generate-error-message" id="generate-error-message">未知错误</div>
+          <div class="generate-error-buttons">
+            <div class="generate-error-btn" id="generate-error-close">关闭</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

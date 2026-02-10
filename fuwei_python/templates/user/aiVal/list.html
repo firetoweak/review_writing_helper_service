@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI评估 - 锋矢AI蓝军</title>
+    {% include "user/base.html" %}
+    <link href="{{ url_for('static', filename='css/ai-val.css') }}" rel="stylesheet" type="text/css">
+    <style>
+        .ai-val-card-blank{
+            position: relative;
+            height: 147px;
+            width: 304px;
+            flex-shrink:0
+        }
+        .ai-val-detail-table-tag{
+            position: absolute;
+            top: 0;
+            z-index: 1000;
+            left: -23px;
+            width: 22px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .ai-val-tb img{
+            max-width: 402px;
+            max-height: 420px;
+        }
+       .image-modal-container {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<!-- 顶部导航栏 -->
+{% include "components/header.html" %}
+
+<!-- 顶部横幅 -->
+<section class="banner">
+    <div class="banner-content">
+        <div class="d-flex align-items-center mb-3">
+            <h1 class="banner-title mb-0">{{pageShow['title_list']}}</h1>
+            <img src="/static/images/aival/3star.png" alt="" style="margin-bottom: 35px;margin-left: 10px">
+        </div>
+        <p class="banner-subtitle">这里有与你相关的工作质量评估</p>
+        <div style="width: 300px;height: 300px;position: absolute;right: 10%;top: 20%;">
+            <img src="/static/images/aival/banner{{g.type}}.png" alt="" style="width: 100%;height: 100%;">
+        </div>
+    </div>
+</section>
+
+<!-- 主要内容区域 -->
+<div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+    <!-- 面包屑导航 -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom">
+            <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+            <li class="breadcrumb-item active">{{pageShow['title_list']}}AI评估</li>
+        </ol>
+    </nav>
+    {% if g.user_type=='mobile' %}
+        {{ get_right_style(g.type)|safe }}
+    {% endif %}
+<!-- 搜索和操作区域 -->
+{% if record_id=="" %}
+<div class="row search-area">
+    <div class="col-6 d-flex align-items-center"  style="width: 49%">
+        <input type="checkbox" class="form-check-input ai-val-detail-checkbox"  id="allCheckbox" >
+        <button class="btn-batch mr-3" id="all_tb" act="open" style="">全收/开</button>
+        <select class="dropdown-select mr-3" id="state">
+            <option value="">全部状态</option>
+            <option value="1"> 已评估</option>
+            <option value="0">草稿</option>
+            <option value="-1">批量评估中</option>
+            <option value="-2">评估中</option>
+            <option value="-3">评估超时</option>
+            <option value="-4">评估失败</option>
+        </select>
+        <input type="text" class="search-input mr-3" style="width: 200px" placeholder="搜索内容"  value="{{search}}" id="search-text">
+        <button class="btn-search d-flex align-items-center" id="search">
+            <img src="/static/images/search-icon.svg" alt="搜索" width="14" height="14" class="mr-1">
+            <span>搜索</span>
+        </button>
+    </div>
+    <div class="col-6 d-flex align-items-center justify-content-end" style="width: 51%">
+
+        <button class="btn-batch mr-3" id="aival_delete_all" >批量删除</button>
+        {% if g.user_type=='mobile' %}
+            <button class="btn-batch mr-3" onclick="location.href='/user/get_token?type={{g.type}}'">获取API</button>
+            <button class="btn-batch mr-3" onclick="window.open('/user/inner/list?type={{g.type}}', '_blank')">邀请同事</button>
+        {% endif %}
+        <button class="btn-batch mr-3" id="showBatchExport">批量导出</button>
+        <button class="btn-batch mr-3">批量上传</button>
+        <button class="btn-add" onclick="location.href='/user/aiVal/add?type={{g.type}}'">新增</button>
+    </div>
+</div>
+{% endif %}
+
+<div class="ai-val-tb" id="tb">
+    {% if pagination.total==0 %}
+    <div style="text-align: center">
+        <img src="/static/images/aival/no_record.png">
+    </div>
+    {% endif %}
+    {% for item in items %}
+    <div class="ai-val-detail-table">
+        <div class="ai-val-detail-table-tag" blank="0">
+            <img src="/static/images/aival/tb_hide_button.svg" alt="" style="width: 100%;height: 100%;">
+        </div>
+        <div class="ai-val-detail-header">
+            <input type="checkbox" class="form-check-input ai-val-detail-checkbox" value="{{item.id}}" name="item"  state="{{item.state}}" {%if item.state==-1 or item.state==-2 %} disabled {% endif %} >
+            <span class="ai-val-detail-id">ID: {{item.id}}</span>
+            {% if item.state==0 %}
+            <span class="ai-val-detail-status" style=" color: rgba(141, 160, 192, 1);"> <span style="font-size: 14px; margin-right: 4px;">●</span>草稿</span>
+            <span class="ai-val-detail-status-end" onclick="location.href='/user/aiVal/edit?id={{item.id}}&type={{g.type}}'" style="margin-right: 10px" >编辑</span>
+            <span class="ai-val-detail-status-del" del_id="{{item.id}}">删除</span>
+            {% elif item.state==-1 %}
+            <span class="ai-val-detail-status" style="width: 100px"> <span style="font-size: 14px; margin-right: 4px;">●</span>批量评估中</span>
+            <span class="ai-val-detail-status-end">刷新</span>
+            {% elif item.state==-2 %}
+            <span class="ai-val-detail-status"> <span style="font-size: 14px; margin-right: 4px;">●</span>评估中</span>
+            <span class="ai-val-detail-status-end">刷新</span>
+            {% elif item.state==-3 %}
+            <span class="ai-val-detail-status" style="color: red"> <span style="font-size: 14px; margin-right: 4px;">●</span>评估超时</span>
+            <span class="ai-val-detail-status-repeat-val" onclick="location.href='/user/aiVal/edit?id={{item.id}}&type={{g.type}}'">重新评估</span>
+            {% elif item.state==-4 %}
+            <span class="ai-val-detail-status" style="color: red"> <span style="font-size: 14px; margin-right: 4px;">●</span>评估失败</span>
+            <span class="ai-val-detail-status-repeat-val" onclick="location.href='/user/aiVal/edit?id={{item.id}}&type={{g.type}}'">重新评估</span>
+            {% else %}
+            <span class="ai-val-detail-status" style="color:rgba(31, 172, 120, 1);margin-right: auto"> <span style="font-size: 14px; margin-right: 4px;">●</span>已评分</span>
+            <span class="ai-val-detail-status-repeat" del_id="{{item.id}}" style="margin-right: 10px" onclick="location.href='/user/aiVal/edit?id={{item.id}}&type={{g.type}}&act=repeat'">重填</span>
+            <span class="ai-val-detail-status-del" del_id="{{item.id}}">删除</span>
+            <!--
+            <span class="ai-val-detail-status-end" onclick="location.href='/user/aiVal/question?id={{item.id}}&type={{g.type}}'">提问</span>
+            -->
+            {% endif %}
+            <br>
+        </div>
+        <table class="ai-val-detail-tb-content">
+            <thead>
+            <tr>
+                <th style="width: 10%;">评估项</th>
+                <th style="width: 31.5%;">内容</th>
+                <th style="width: 48%;">AI 建议 <img src="/static/images/aival/start.svg" alt="AI" class="ai-icon"></th>
+                <th style="width: 10.5%;">评分 (满分10分)</th>
+            </tr>
+            </thead>
+            <tbody class="ai-val-tr">
+            <tr>
+                <td>{{pageShow['step1']}}</td>
+                <td>{{item.step1|safe}} </td>
+                <td> {{item.ai_step1|default('', true)|safe}}</td>
+                <td
+                    {% if item.state>0 and item.step1_score!=None %}
+                        {% if item.step1_score>=8 %}
+                        class="score score-green"
+                        {% elif item.step1_score>=6 and item.step1_score<8  %}
+                        class="score score-blue"
+                        {% else %}
+                        class="score score-red"
+                        {% endif %}
+                    {% endif %}
+                    >
+                    {% if item.state>0 and item.step1_score!=None %}
+                        {{item.step1_score}}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{{pageShow['step2']}}</td>
+                <td>{{item.step2|safe}}</td>
+                <td>{{item.ai_step2|default('', true)|safe}}</td>
+                <td
+                  {% if item.state>0 and item.step2_score!=None %}
+                    {% if item.step2_score>=8 %}
+                    class="score score-green"
+                    {% elif item.step2_score>=6 and item.step2_score<8  %}
+                    class="score score-blue"
+                    {% else %}
+                    class="score score-red"
+                    {% endif %}
+                  {% endif %}
+                    >
+                  {% if item.state>0 and item.step2_score!=None  %}
+                    {{item.step2_score}}
+                  {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{{pageShow['step3']}}</td>
+                <td>{{item.step3|safe}}</td>
+                <td>{{item.ai_step3|default('', true)|safe}}</td>
+                <td
+                   {% if item.state>0 and item.step3_score!=None  %}
+                    {% if item.step3_score>=8 %}
+                    class="score score-green"
+                    {% elif item.step3_score>=6 and item.step3_score<8  %}
+                    class="score score-blue"
+                    {% else %}
+                    class="score score-red"
+                    {% endif %}
+                   {% endif %}
+                    >
+                   {% if item.state>0 and item.step3_score!=None  %}
+                    {{item.step3_score}}
+                   {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>{{pageShow['step4']}}</td>
+                <td>{{item.step4|safe}}</td>
+                <td>{{item.ai_step4|default('', true)|safe}}</td>
+                <td
+                   {% if item.state>0 and item.step4_score !=None %}
+                    {% if item.step4_score>=8 %}
+                    class="score score-green"
+                    {% elif item.step4_score>=6 and item.step4_score<8  %}
+                    class="score score-blue"
+                    {% else %}
+                    class="score score-red"
+                    {% endif %}
+                   {% endif %}
+                    >
+                   {% if item.state>0 and item.step4_score!=None %}
+                    {{item.step4_score}}
+                   {% endif %}
+                </td>
+            </tr>
+            </tbody>
+        {% if item.defect_id!=None %}
+            <tfoot>
+                    <tr>
+                        <td colspan="4" style="background: #e5f0fd;color: #557496; ">
+                            <div class="flex items-start">
+                                <div class="reviewer-info">
+                                    <span class="reviewer-name"><b>评估记录来源于it缺陷流:</b>
+                                            {% if item.defect.defect_type=="" or item.defect.defect_type==None %}
+                                            <a href="/defect/{{ item.defect_id }}" target="_self" style="cursor: pointer;color: blue">{{ item.defect.title }}</a>
+                                            {% else %}
+                                            <a href="/defect/{{ item.defect.defect_type }}/{{ item.defect_id }}" target="_self" style="cursor: pointer;color: blue">{{ item.defect.title }}</a>
+                                            {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+            </tfoot>
+        {% endif %}
+
+        </table>
+    </div>
+    {% endfor %}
+</div>
+<div class="d-flex justify-content-end mt-4">
+    <div class="pagination" >
+        <style>
+            .page-item{
+                width: 28px;
+                height: 28px;
+                background-color: #FFFFFF;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 8px;
+            }
+            .page-link{
+                width: 28px;
+                height: 28px;
+                border: 1px solid #DADDE5;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color:black;
+            }
+
+            .page-item .active{
+                width: 28px;
+                height: 28px;
+                background-color: #FFFFFF;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 8px;
+            }
+            .active>.page-link, .page-link.active{
+                color: #0d6efd;
+                font-size: 15px;
+                background-color:  #FFFFFF;
+                border-color:#0d6efd;
+            }
+        </style>
+        {% if pagination.links!='' %}
+        <span class="mr-3" style="color: #929292; font-size: 12px; display: grid; place-items: center; margin-right: 5px">共{{pagination.total}}条</span>
+        {% endif %}
+        {{ pagination.links }}
+    </div>
+</div>
+<!-- 底部区域 -->
+{% include "user/footer.html" %}
+
+<!-- 登录弹框背景遮罩 -->
+<div class="modal-overlay" id="modalOverlay"></div>
+<!-- 图片放大模态框 -->
+<div class="image-modal" id="imageModal">
+    <div class="image-modal-container">
+        <button type="button" class="btn-close" id="closeImageModal">
+            X
+        </button>
+        <div class="image-modal-content">
+            <img src="" alt="放大图片">
+        </div>
+    </div>
+</div>
+
+{% include "user/base_js.html" %}
+{% include "user/base_toast.html" %}
+{% include "components/confirm_win.html" %}
+{% include "user/aiVal/batch_import.html" %}
+    <script>
+    $(document).ready(function() {
+
+        //删除按钮
+        $(".ai-val-detail-status-del").on("click", function() {
+            $("#delModal").modal('show')
+            $("#confirmDeleteBtn").attr("del_id", $(this).attr('del_id'))
+        })
+        //显示隐藏评估全部内容
+        $('.ai-val-detail-table-tag').click(function() {
+            if($(this).attr("blank")=="0"){
+                $(this).closest('.ai-val-detail-table').find('.ai-val-detail-tb-content').hide()
+                $(this).attr("blank","1")
+                $(this).html('<img src="/static/images/aival/tb_show_button.svg" alt="" style="width: 100%;height: 100%;">')
+                $(this).closest('.ai-val-detail-table').find('.ai-val-detail-header').css('background-color','white')
+                $(this).closest('.ai-val-detail-table').find('.ai-val-detail-header').css('border-radius','8px 8px 8px 8px')
+            }else{
+                $(this).closest('.ai-val-detail-table').find('.ai-val-detail-tb-content').show()
+                $(this).attr("blank","0")
+                $(this).html('<img src="/static/images/aival/tb_hide_button.svg" alt="" style="width: 100%;height: 100%;">')
+                $(this).closest('.ai-val-detail-table').find('.ai-val-detail-header').css('background-color','#E5F0FD')
+                $(this).closest('.ai-val-detail-table').find('.ai-val-detail-header').css('border-radius','8px 8px 0px 0px')
+            }
+        })
+        //搜索
+        $('#search').on('click', function() {
+            location.href="/user/aiVal/list?type={{g.type}}&state="+$('#state').val()+'&search='+$('#search-text').val()
+        })
+        $('#state').val('{{state}}')
+        // 图片点击放大功能
+        $('.ai-val-tr img').css('cursor', 'pointer').click(function() {
+            const imgSrc = $(this).attr('src');
+            $('#imageModal img').attr('src', imgSrc);
+            $('#imageModal, #modalOverlay').fadeIn(300);
+            $('body').css('overflow', 'hidden');
+        });
+        //批量删除按钮
+        $('#aival_delete_all').on('click', function(){
+            var arr = []
+            $('#tb input[type=checkbox]').each(function(){
+                if(true == $(this).is(':checked')){
+                    arr.push($(this).val())
+                }
+            });
+            if (arr.length == 0) {
+                showToast('warning', "至少选中一个");
+                return
+            }
+            $('#batchDelModal').modal('show');
+        })
+        // 关闭图片模态框
+        $('#closeImageModal, #modalOverlay').on('click', function() {
+            $('#imageModal, #modalOverlay').fadeOut(300);
+            $('body').css('overflow', '');
+        });
+        // 防止点击图片内容区域时关闭模态框
+        $('.image-modal-container').on('click', function(e) {
+            e.stopPropagation();
+        });
+        // 点击图片模态框背景关闭
+        $('.image-modal').on('click', function() {
+            $('#imageModal, #modalOverlay').fadeOut(300);
+            $('body').css('overflow', '');
+        });
+
+        $('.btn-batch:contains("批量上传")').click(function(){
+            $('#wait-upload-div').show()
+            $('.uploading-box').hide()
+            $('#batchImportModal').modal('show');
+        });
+        $('.ai-val-detail-status-end:contains("刷新")').click(function(){
+            location.reload()
+        })
+        $('#all_tb').click(function(){
+            if($(this).attr("act")=="open") {
+                $('.ai-val-detail-table-tag').each(function () {
+                    if ($(this).attr("blank") == "0") {
+                        $(this).click()
+                        $(this).attr("blank",1)
+                    }
+
+                })
+                $(this).attr("act","close")
+            }
+            else{
+                $('.ai-val-detail-table-tag').each(function () {
+                    if ($(this).attr("blank") == "1") {
+                        $(this).click()
+                        $(this).attr("blank",0)
+                    }
+
+                })
+                $(this).attr("act","open")
+            }
+        })
+    $('#showBatchExport').click(function (){
+            $('#valBatchExportModal').modal('show');
+            var laydate = layui.laydate;
+            laydate.render({
+                elem: "#exportDate",
+                theme: '#C0D7F4',
+                type: "datetime",
+                range: "~",
+                shortcuts: [
+                    {
+                        text: "上个月",
+                        value: function(){
+                            var date = new Date();
+                            var year = date.getFullYear();
+                            var month = date.getMonth();
+                            return [
+                                new Date(year, month - 1, 1),
+                                new Date(year, month, 0, 23, 59, 59)
+                            ];
+                        }
+                    },
+                    {
+                        text: "这个月",
+                        value: function(){
+                            var date = new Date();
+                            var year = date.getFullYear();
+                            var month = date.getMonth();
+                            return [
+                                new Date(year, month, 1),
+                                new Date(year, month + 1, 0, 23, 59, 59)
+                            ];
+                        }
+                    },
+                    {
+                        text: "下个月",
+                        value: function(){
+                            var date = new Date();
+                            var year = date.getFullYear();
+                            var month = date.getMonth();
+                            return [
+                                new Date(year, month + 1, 1),
+                                new Date(year, month + 2, 0, 23, 59, 59)
+                            ];
+                        }
+                    }
+                ]
+            })
+    })
+        $("#exportDone").click(function(){
+            window.open('/user/aiVal/export?type={{type}}&date='+$('#exportDate').val())
+            $('#exportDate').val('')
+            $('#valBatchExportModal').modal('hide');
+        })
+    });
+</script>
+
+</body>
+</html> 

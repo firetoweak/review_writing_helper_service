@@ -1,0 +1,256 @@
+        <div id="ai-val-card-container">
+            <div class="ai-val-card">
+                <div class="ai-val-card-image">
+                    <img src="/static/images/aival/state_icon.png" alt="" style="width: 100%;height: 100%;">
+                </div>
+                <div class="ai-val-card-title">
+                    <div style="font-family: PingFang SC;font-weight: 600;font-size: 18px;line-height: 28px;letter-spacing: 0px;width: 100%;">
+                        功能状态
+                    </div>
+                    <div class="ai-val-card-desc">{% if Rights.state==1 %}正常使用中{%else%}免费试用{% endif %}</div>
+                </div>
+                <div style="position: absolute;width: 260px;height: 1px;background-color: white;top: 100px;"> </div>
+                <div class="ai-val-card-title-footer">
+                    <div class="ai-val-card-title-footer-text" id="ai-val-buy">
+                        {% if Rights.state==1 %}
+                        继续购买 >
+                        {%else%}
+                        联系购买 >
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="ai-val-card">
+                <div class="ai-val-card-image">
+                    <img src="/static/images/aival/question_icon.png" alt="" style="width: 100%;height: 100%;">
+                </div>
+                <div class="ai-val-card-title" >
+                    <div style="font-family: PingFang SC;font-weight: 600;font-size: 18px;line-height: 28px;letter-spacing: 0px;width: 100%;">
+                        提问限额
+                    </div>
+                        <div class="ai-val-card-desc" {% if request_font_red==1 %} style="color: red"   {% endif %} >
+                        剩余{{ Rights.request_num-Rights.requested_num  }}次
+                        {% if Rights.remind_request_open==1 and  (Rights.request_num-Rights.requested_num)>0 %}
+                        <img src="/static/images/aival/green_warning.svg" alt="" style="width: 88px;margin-bottom: 5px;">
+                        {% endif %}
+                        </div>
+                </div>
+            <div style="position: absolute;width: 260px;height: 1px;background-color: white;top: 100px;"> </div>
+            <div class="ai-val-card-title-footer">
+                {% if (Rights.request_num-Rights.requested_num)>0 %}
+                <div class="ai-val-card-title-footer-text-warning" remind_num="{{ Rights.remind_request_num }}" opening="{{ Rights.remind_request_open }}"  keyName_num="remind_request_num"  keyName_open="remind_request_open"  text1="提问次数预警设置" text2="开启预警后，当提问次数余额低于指定值后，会发送通知提醒你" text3="当提问次数等于" text4="次时，通过我的注册邮箱/手机号发送通知提醒我一次">
+                    提问次数预警设置 >
+                </div>
+                {% else %}
+                <div class="ai-val-card-title-footer-text">
+                    增购
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="ai-val-card">
+            <div class="ai-val-card-image">
+                <img src="/static/images/aival/invite_icon.png" alt="" style="width: 100%;height: 100%;">
+            </div>
+            <div class="ai-val-card-title">
+                <div style="font-family: PingFang SC;font-weight: 600;font-size: 18px;line-height: 28px;letter-spacing: 0px;width: 100%;">
+                    可邀请同事
+                </div>
+                <div class="ai-val-card-desc"  {% if invite_font_red==1 %} style="color: red"   {% endif %}>
+                    {% if Rights.invited_user_num>=0 %}
+                        {{ Rights.invited_user_num  }}
+                    {% else %}
+                        0
+                    {% endif %}
+                    &nbsp;/{{  Rights.user_total_num}}&nbsp;人
+                    {% if Rights.remind_invited_open==1 and (Rights.user_total_num-Rights.invited_user_num)>0 %}
+                    <img src="/static/images/aival/green_warning.svg" alt="" style="width: 88px;margin-bottom: 5px;">
+                    {% endif %}
+                </div>
+            </div>
+            <div style="position: absolute;width: 260px;height: 1px;background-color: white;top: 100px;"> </div>
+            <div class="ai-val-card-title-footer">
+                {% if Rights.user_total_num>Rights.invited_user_num %}
+                <div class="ai-val-card-title-footer-text-warning" remind_num="{{ Rights.remind_invited_num }}" opening="{{ Rights.remind_invited_open }}"  keyName_num="remind_invited_num"  keyName_open="remind_invited_open" text1="可邀请同事数量预警设置" text2="开启预警后，当可邀请同事数量低于指定值后，会发送通知提醒你" text3="当可邀请同事数量等于" text4="次时，通过我的注册邮箱/手机号发送通知提醒我一次">
+                    可邀请同事数预警设置 >
+                </div>
+                {% else %}
+                <div class="ai-val-card-title-footer-text">
+                    增购
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% if Rights.state==1  %}
+        <div class="ai-val-card">
+            <div class="ai-val-card-image">
+                <img src="/static/images/aival/date_icon.png" alt="" style="width: 100%;height: 100%;">
+            </div>
+            <div class="ai-val-card-title">
+                <div style="font-family: PingFang SC;font-weight: 600;font-size: 18px;line-height: 28px;letter-spacing: 0px;width: 100%;">
+                    有效期至
+                </div>
+                <div class="ai-val-card-desc"  {% if dateEnd==1 %} style="color: red"   {% endif %}> {% if Rights.to_date!=None and Rights.to_date!='0000-00-00 00:00:00' %}  {{ Rights.to_date.strftime('%Y-%m-%d') }}  {% else %} 无限期  {% endif %}  {% if dateEnd==1 %}（已到期）{% endif %}
+                    {% if Rights.remind_date_open==1 and dateEnd==0 %}
+                    <img src="/static/images/aival/green_warning.svg" alt="" style="width: 88px;margin-bottom: 5px;">
+                    {% endif %}
+                </div>
+            </div>
+            <div style="position: absolute;width: 260px;height: 1px;background-color: white;top: 100px;"> </div>
+
+            <div class="ai-val-card-title-footer">
+                {% if dateEnd==0 %}
+                <div class="ai-val-card-title-footer-text-warning"  remind_num="{% if Rights.remind_date!=None and Rights.remind_date!='0000-00-00 00:00:00' %}{{ Rights.remind_date.strftime('%Y-%m-%d') }}{% endif %}"  opening="{{ Rights.remind_date_open}}" keyName_num="remind_date"  keyName_open="remind_date_open" text1="功能有效期预警设置" text2="开启预警后，当到达日期后，会发送通知提醒你" text3="当功能有效期等于" text4="日期时，通过我的注册邮箱/手机号发送通知提醒我一次" >
+                    到期预警设置 >
+                </div>
+                {% else %}
+                <div class="ai-val-card-title-footer-text">
+                    增购
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="ai-val-card-blank"></div>
+        {% endif %}
+    </div>
+
+
+<div class="val-warn-modal" id="val-warn-modal">
+</div>
+
+<script>
+    window.addEventListener('load', function() {
+        $(".ai-val-card-title-footer-text-warning").on("click", function () {
+            var text1 = $(this).attr('text1');
+            var text2 = $(this).attr('text2');
+            var text3 = $(this).attr('text3');
+            var text4 = $(this).attr('text4');
+            var html = `
+    <div class="login-container">
+        <div class="login-header" style="justify-content: center">
+            <div class="login-logo" >
+                <div class="greeting" style="justify-content: center">
+                    <span class="emoji">🔔</span>
+                    <span class="greeting-text">${text1}</span>
+                </div>
+                <div class="slogan">
+                        <span>
+                            <img src="/static/images/register/line-left.svg" alt="">
+                            ${text2}
+                            <img src="/static/images/register/line-left.svg" alt="">
+
+                        </span>
+                </div>
+            </div>
+            <button type="button" class="btn-close" id="closeValWarnModal">
+                <img src="/static/images/login/close-icon.svg" alt="关闭">
+            </button>
+        </div>
+        <div class="login-body">
+                <div class="mb-4">
+                    <label class="form-label" style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;letter-spacing: 0px;vertical-align: middle;">预警开关</label>
+                    <br>
+                    <label class="switch">
+                        <input type="checkbox" checked id ="warning-setting-open">
+                        <span class="slider" id = "sliderId"></span>
+                    </label>
+                </div>
+                <div class="mb-3" style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;letter-spacing: 0px;vertical-align: middle;">设置指定值</div>
+        </div>
+        <div style="padding: 0px 0px 0px 40px;" >
+            <div  style="width: 100%;height:auto;display: flex;align-items: center;">
+                <span style="font-weight: 400;font-size: 16px;line-height: 24px;letter-spacing: 0px;vertical-align: middle;color:#557496;">${text3}</span>
+                <input type="number" id="remind_num" class="search-input mr-3" placeholder="请输入">
+                <input type="hidden" id="keyName_num" class="search-input mr-3">
+                <input type="hidden" id="keyName_open" class="search-input mr-3">
+                <span style="font-weight: 400;font-size: 16px;line-height: 24px;letter-spacing: 0px;vertical-align: middle;color:#557496;">${text4}</span>
+            </div>
+            <div class="pop-foot-buttons">
+                <button class="btn-batch mr-3" id="setting-cancle" style="width: 100px;" >取消</button>
+                <button class="ok-btn" id="setting-save" style="width: 100px;">保存</button>
+            </div>
+        </div>
+    </div>
+`
+            $('#val-warn-modal').html(html)
+            $('#val-warn-modal, #modalOverlay').fadeIn(300);
+            var keyName_num = $(this).attr('keyName_num')
+            var keyName_open = $(this).attr('keyName_open')
+            if ($(this).attr('keyName_num') == "remind_date") {
+                $('#remind_num').attr("class", "layui-input")
+                $('#remind_num').attr("placeholder", "yyyy-MM-dd")
+                $('#remind_num').attr("type", "text")
+                $('#remind_num').css({"width": "250px"})
+
+                layui.use(function () {
+                    var laydate = layui.laydate;
+                    // 渲染
+                    laydate.render({
+                        elem: '#remind_num'
+                    });
+                });
+            }
+            $('#remind_num').val($(this).attr('remind_num'))
+            $('#sliderId').click(function () {
+                if ($("#warning-setting-open").is(":checked") == true) {
+                    $('#remind_num').val('')
+                    $('#remind_num').attr('disabled', true)
+                } else {
+                    $('#remind_num').attr('disabled', false)
+                }
+            })
+            if ($(this).attr('opening') == '0') {
+                // $('#remind_num').val('')
+                // $('#remind_num').attr('disabled',true)
+                $('#sliderId').click()
+            }
+            $('#closeValWarnModal, #modalOverlay,#setting-cancle').on('click', function () {
+                $('#val-warn-modal, #modalOverlay').fadeOut(300);
+                $('body').css('overflow', '');
+            });
+            $('#setting-save').click(function () {
+                var isChecked = "0";
+                var remind_num = "0"
+                if ($("#warning-setting-open").is(":checked") == true) {
+                    isChecked = "1"
+                    if ($('#remind_num').val().trim() == "") {
+                        showToast('warning', "请输入预警值");
+                        return false
+                    }
+                    remind_num = $('#remind_num').val()
+                } else {
+                    isChecked = "0"
+                    remind_num = "0"
+                }
+                $.ajax({
+                    url: "/user/set_remind",
+                    type: "POST",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify({
+                        "open": isChecked,
+                        "remind_num": remind_num,
+                        "keyName_num": keyName_num,
+                        "keyName_open": keyName_open,
+                        "type": "{{g.type}}",
+                    }),
+                    success: function (data) {
+                        if (data.code == 1) {
+                            showToast('success', data.msg);
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast('warning', data.msg);
+                        }
+                    }
+                })
+            })
+        })
+        $('.ai-val-card-title-footer-text').click(function() {
+            $('#contactUsLink').click()
+        })
+    })
+</script>

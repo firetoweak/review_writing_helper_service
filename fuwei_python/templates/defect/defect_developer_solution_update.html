@@ -1,0 +1,387 @@
+<!-- templates/defect/defect_developer_solution_update.html -->
+{% extends "defect/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- 更新解决措施表单 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">缺陷信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">缺陷单号:</div>
+                        <div class="col-md-10">{{ defect.defect_number }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">标题:</div>
+                        <div class="col-md-10">{{ defect.title }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">描述:</div>
+                        <div class="col-md-10">{{ defect.description }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">严重程度:</div>
+                        <div class="col-md-4">{{ defect.severity }}</div>
+                        <div class="col-md-2 fw-bold">复现概率:</div>
+                        <div class="col-md-4">{{ defect.defect_reproducibility }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">阶段:</div>
+                        <div class="col-md-4">
+                            <span class="badge bg-{{ 'success' if defect.status == 'CLOSED' else 'warning' if defect.status == 'OPEN' else 'secondary' }}">
+                                {{ current_stage_name }}
+                            </span>
+                        </div>
+                        <div class="col-md-2 fw-bold">创建者:</div>
+                        <div class="col-md-4">{{ defect.creator.real_name if defect.creator else '未知' }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 fw-bold">创建时间:</div>
+                        <div class="col-md-4">{{ defect.created_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                        <div class="col-md-2 fw-bold">更新时间:</div>
+                        <div class="col-md-4">{{ defect.updated_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- developer_solution 开发人员更新解决措施阶段的表单 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">解决措施</h5>
+                </div>
+                <div class="card-body">
+                    <!-- 显示分工信息 -->
+                    <div class="mb-4">
+                        <h6>分工信息</h6>
+                        {% for division in divisions %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 fw-bold">修改模块:</div>
+                                    <div class="col-md-3">{{ division.module }}</div>
+                                    <div class="col-md-3 fw-bold">修改版本:</div>
+                                    <div class="col-md-3">{{ division.version }}</div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-3 fw-bold">完成时间:</div>
+                                    <div class="col-md-3">{{ division.due_date.strftime('%Y-%m-%d') if division.due_date else '未设置' }}</div>
+                                    <div class="col-md-3 fw-bold">执行人员:</div>
+                                    <div class="col-md-3">{{ division.assignee.real_name if division.assignee else '未分配' }}</div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-12">
+                                        <div class="fw-bold">执行措施:</div>
+                                        <p>{{ division.action_plan }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <form id="solutionForm" method="post" action="{{ url_for('defect.submit_solution', defect_id=defect.id) }}">
+                        <!-- 解决措施输入区域 -->
+                        <div class="mb-4">
+                            <h6>填写解决措施</h6>
+                            <div id="solutionItems">
+                                <!-- 解决措施项将由JavaScript动态生成 -->
+                            </div>
+
+                            <div class="mt-3">
+                                <button type="button" id="addSolution" class="btn btn-outline-primary">
+                                    <i class="bi bi-plus"></i> 添加解决措施
+                                </button>
+                                <span class="ms-2 text-muted" id="solutionCounter">0/10</span>
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="mt-4 d-flex justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary me-2" id="saveDraftBtn_in_developer_solution">保存草稿</button>
+                            <button type="button" class="btn btn-outline-dark me-2" id="aiReviewBtn_in_developer_solution">AI自评</button>
+                            <button type="submit" class="btn btn-primary">提交审核</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 阶段特定内容 -->
+            {% if stage_data %}
+            <div class="mt-3">
+                <h6>当前阶段内容:</h6>
+                <div class="border p-3 bg-light">
+                    {% if stage_data.data_type == 'DEFECT_DESCRIPTION' %}
+                        <p><strong>标题:</strong> {{ stage_data.content.title }}</p>
+                        <p><strong>描述:</strong> {{ stage_data.content.description }}</p>
+                        <p><strong>严重程度:</strong> {{ defect.severity }}</p>
+                        <p><strong>复现概率:</strong> {{ defect.defect_reproducibility }}</p>
+                    {% elif stage_data.data_type == 'CAUSE_ANALYSIS' %}
+                        <p><strong>原因分析:</strong>
+                            {% if stage_data.content.analyses %}
+                                <ul>
+                                    {% for analysis in stage_data.content.analyses %}
+                                        <li>{{ analysis }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                暂无分析内容
+                            {% endif %}
+                        </p>
+                        <p><strong>提交时间:</strong> {{ stage_data.content.submitted_at if stage_data.content.submitted_at else '未知' }}</p>
+                    {% elif stage_data.data_type == 'DEVELOPER_SOLUTION' %}
+                        <p><strong>解决措施:</strong>
+                            {% if stage_data.content.solutions %}
+                                <ul>
+                                    {% for solution in stage_data.content.solutions %}
+                                        <li>{{ solution }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                暂无解决措施
+                            {% endif %}
+                        </p>
+                        <p><strong>提交时间:</strong> {{ stage_data.content.submitted_at if stage_data.content.submitted_at else '未知' }}</p>
+                    {% else %}
+                        <pre>{{ stage_data.content | tojson(indent=2) }}</pre>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 阶段历史 -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">阶段历史</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for stage in stages %}
+                        <div class="timeline-item {% if stage.id == defect.current_stage_id %}timeline-item-active{% endif %}">
+                            <div class="timeline-item-marker"></div>
+                            <div class="timeline-item-content">
+                                <h6>{{ stage.stage_type }}</h6>
+                                <p class="mb-1">负责人: {{ stage.assignee.real_name if stage.assignee else '未分配' }}</p>
+                                <p class="mb-1">状态:
+                                    <span class="badge bg-{{ 'success' if stage.status == 'COMPLETED' else 'primary' if stage.status == 'IN_PROGRESS' else 'warning' }}">
+                                        {{ stage.status }}
+                                    </span>
+                                </p>
+                                <p class="text-muted small">{{ stage.created_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-item-marker {
+    position: absolute;
+    left: -20px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #6c757d;
+}
+.timeline-item-active .timeline-item-marker {
+    background-color: #0d6efd;
+    box-shadow: 0 0 0 2px #0d6efd;
+}
+.timeline-item-content {
+    padding: 10px;
+    border-left: 2px solid #dee2e6;
+    margin-left: 10px;
+}
+.timeline-item:last-child .timeline-item-content {
+    border-left: 2px solid transparent;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- developer_solution 阶段的JavaScript代码 -->
+<script>
+$(document).ready(function() {
+    let solutionCount = 0;
+    const maxSolutions = 10;
+
+    // 从后端获取初始解决方案数据
+    const initialSolutions = {% if stage_data and stage_data.content and stage_data.content.solutions %}{{ stage_data.content.solutions | tojson | safe }}{% else %}[]{% endif %};
+
+    // 初始化解决方案项
+    function initializeSolutionItems() {
+        $('#solutionItems').empty();
+        solutionCount = 0;
+
+        if (initialSolutions.length > 0) {
+            // 如果有初始数据，则根据数据创建项目
+            initialSolutions.forEach((solution, index) => {
+                addSolutionItem(solution, index + 1);
+            });
+        } else {
+            // 如果没有初始数据，添加一个空项目
+            addSolutionItem('', 1);
+        }
+
+        updateSolutionCounter();
+        updateRemoveButtons();
+    }
+
+    // 添加解决方案项
+    function addSolutionItem(solutionText = '', index = null) {
+        if (solutionCount >= maxSolutions) {
+            alert(`最多只能添加${maxSolutions}个解决措施`);
+            return;
+        }
+
+        const newIndex = index || solutionCount + 1;
+        solutionCount = newIndex;
+
+        const newItem = `
+            <div class="solution-item mb-3" data-index="${newIndex}">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">解决措施 ${newIndex}</h6>
+                        <button type="button" class="btn btn-sm btn-danger remove-solution">
+                            <i class="bi bi-dash"></i> 删除
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">解决措施描述</label>
+                            <textarea class="form-control solution-text" name="solution-${newIndex}" rows="3" placeholder="请输入解决措施..." required>${solutionText}</textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">负责人</label>
+                                <select class="form-select" name="solution-${newIndex}-assignee">
+                                    <option value="">选择负责人</option>
+                                    {% for dev in developers %}
+                                    <option value="{{ dev.id }}">{{ dev.real_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">预计完成时间</label>
+                                <input type="date" class="form-control" name="solution-${newIndex}-due_date">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        $('#solutionItems').append(newItem);
+        updateSolutionCounter();
+        updateRemoveButtons();
+    }
+
+    // 移除解决措施项
+    $(document).on('click', '.remove-solution', function() {
+        if (solutionCount > 1) {
+            $(this).closest('.solution-item').remove();
+            solutionCount--;
+
+            // 重新编号所有解决措施项
+            renumberSolutions();
+            updateRemoveButtons();
+            updateSolutionCounter();
+        }
+    });
+
+    // 重新编号解决措施项
+    function renumberSolutions() {
+        $('.solution-item').each(function(index) {
+            const newIndex = index + 1;
+            $(this).attr('data-index', newIndex);
+            $(this).find('.card-header h6').text(`解决措施 ${newIndex}`);
+
+            // 更新表单字段名称
+            $(this).find('textarea').attr('name', `solution-${newIndex}`);
+            $(this).find('select').attr('name', `solution-${newIndex}-assignee`);
+            $(this).find('input[type="date"]').attr('name', `solution-${newIndex}-due_date`);
+        });
+
+        solutionCount = $('.solution-item').length;
+    }
+
+    // 更新删除按钮状态
+    function updateRemoveButtons() {
+        if (solutionCount === 1) {
+            $('.remove-solution').prop('disabled', true);
+        } else {
+            $('.remove-solution').prop('disabled', false);
+        }
+    }
+
+    // 更新解决措施计数器
+    function updateSolutionCounter() {
+        $('#solutionCounter').text(`${solutionCount}/${maxSolutions}`);
+
+        // 禁用或启用添加按钮
+        if (solutionCount >= maxSolutions) {
+            $('#addSolution').prop('disabled', true);
+        } else {
+            $('#addSolution').prop('disabled', false);
+        }
+    }
+
+    // 添加解决措施项
+    $('#addSolution').click(function() {
+        addSolutionItem();
+    });
+
+    // 保存草稿
+    $('#saveDraftBtn_in_developer_solution').click(function() {
+        // 这里可以实现保存草稿的逻辑
+        alert('保存草稿功能待实现');
+    });
+
+    // AI自评
+    $('#aiReviewBtn_in_developer_solution').click(function() {
+        // 这里可以实现AI自评的逻辑
+        alert('AI自评功能待实现');
+    });
+
+    // 表单提交验证
+    $('#solutionForm').submit(function() {
+        let hasContent = false;
+        $('.solution-text').each(function() {
+            if ($(this).val().trim() !== '') {
+                hasContent = true;
+                return false; // 退出循环
+            }
+        });
+
+        if (!hasContent) {
+            alert('至少需要提供一个解决措施');
+            return false;
+        }
+        return true;
+    });
+
+    // 初始化页面
+    initializeSolutionItems();
+});
+</script>
+{% endblock %}

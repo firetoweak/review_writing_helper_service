@@ -1,0 +1,407 @@
+body {
+    font-family: 'PingFang SC', sans-serif;
+    color: #222222;
+}
+
+/* 卡片样式 */
+
+/* 底部区域 */
+
+
+/*.header {*/
+/*    position: fixed;*/
+/*    top: 0;*/
+/*    left: 0;*/
+/*    width: 100%;*/
+/*    background-color: transparent;*/
+/*    z-index: 1000;*/
+/*    transition: background-color 0.3s ease;*/
+/*}*/
+
+/*.header.header-scrolled {*/
+/*    background-color: #fff;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);*/
+/*}*/
+
+#ai-val-card-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.ai-val-card{
+    position: relative;background: linear-gradient(135.59deg, #E5F3FF 30%, #EFE7FF 98.97%); border-radius:16px 50px 16px 50px; width: 304px;height: 147px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+.ai-val-card-image{
+    position: absolute;top: -10%;right: 8%;
+}
+.ai-val-card-title{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 95px;
+    height: 58px;
+    justify-content: space-between;
+    align-items: left;
+    margin: 25px;
+}
+.ai-val-card-desc{
+    font-size: 14px;
+    color: #557496;
+    width: 180px;
+}
+.ai-val-card-title-footer{
+    position: absolute;
+    bottom: 12px;
+    width: 100%;
+    text-align: center;
+}
+.ai-val-card-title-footer-text{
+    font-size: 16px;
+    font-weight: 400;
+    display: inline-block;
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    cursor: pointer;
+}
+.ai-val-card-title-footer-text-warning{
+    font-size: 16px;
+    font-weight: 400;
+    display: inline-block;
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    cursor: pointer;
+}
+/* Styles for the new table based on the image */
+.ai-val-detail-table {
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    overflow: hidden; /* Ensures border-radius clips content */
+    border: 1px solid #C0D7F4;
+    position: relative;
+    overflow: visible;
+}
+
+.ai-val-detail-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #F7F9FC; /* Light blue background for header */
+    border-bottom: 1px solid #E9EFF8; /* Subtle border */
+    background: #E5F0FD;
+    border-radius: 8px 8px 0px 0px;
+}
+
+.ai-val-detail-checkbox {
+    margin-right: 12px;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #DCDFE6;
+    border-radius: 3px;
+    margin-top: -3px;
+}
+
+.ai-val-detail-title {
+    font-size: 15px;
+    font-weight: 500; /* Medium weight for title */
+    color: #303133;
+    margin-right: 12px;
+}
+
+.ai-val-detail-id {
+    font-size: 13px;
+    color: #909399;
+    margin-right: 16px;
+}
+
+.ai-val-detail-status {
+    padding: 1px;
+    font-size: 14px;
+    color: #409EFF; /* Blue text for status */
+    background-color: #F6FAFF; /* Lighter blue background for status pill */
+    border-radius: 20px;
+    margin-right: auto; /* Pushes refresh button to the right */
+    width: 80px;
+    height: 24px;
+    text-align: center;
+    font-family: PingFang SC;
+}
+
+
+.ai-val-detail-status-del {
+    padding: 0px;
+    font-size: 14px;
+    color: #fc0808; /* Blue text for status */
+    background-color: #F6FAFF; /* Lighter blue background for status pill */
+    border-radius: 20px;
+    width: 60px;
+    height: 24px;
+    text-align: center;
+    border: 1px solid #fc0808;
+    font-weight: 600;
+    font-family: PingFang SC;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.ai-val-detail-status-repeat {
+    padding: 0px;
+    font-size: 14px;
+    color: #1505f7; /* Blue text for status */
+    background-color: #F6FAFF; /* Lighter blue background for status pill */
+    border-radius: 20px;
+    width: 60px;
+    height: 24px;
+    text-align: center;
+    border: 1px solid #1505f7;
+    font-family: PingFang SC;
+    font-weight: 600;
+    cursor: pointer;
+
+}
+
+.ai-val-detail-status-end {
+    padding: 1px;
+    font-size: 14px;
+    color: #ebeaf0; /* Blue text for status */
+    border-radius: 20px;
+    width: 60px;
+    height: 24px;
+    text-align: center;
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    font-family: PingFang SC;
+    cursor: pointer;
+    margin-right: 5px
+}
+
+.ai-val-detail-status-repeat-val{
+    padding: 3px;
+    font-size: 14px;
+    color: #ebeaf0; /* Blue text for status */
+    border-radius: 20px;
+    width: 80px;
+    height: 24px;
+    text-align: center;
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    font-family: PingFang SC;
+    cursor: pointer;
+    margin-right:5px;
+}
+
+.ai-val-detail-status-report{
+    padding: 1px;
+    font-size: 14px;
+    color: #ebeaf0; /* Blue text for status */
+    border-radius: 20px;
+    width: 100px;
+    height: 24px;
+    text-align: center;
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    font-family: PingFang SC;
+    cursor: pointer;
+}
+
+
+
+.ai-val-detail-refresh {
+    background: linear-gradient(135deg, #865BFF 0%, #217EFD 100%); /* Gradient from image */
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px; /* Slightly rounded corners for button */
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+.ai-val-detail-refresh:hover {
+    opacity: 0.85;
+}
+
+.ai-val-detail-tb-content {
+    width: 100%;
+    border-collapse: collapse; /* Clean borders */
+    background-color:#F6FAFF ;
+    border-radius: 0px 0px 7px 7px;
+}
+
+.ai-val-detail-tb-content th{
+    border-color: inherit;
+    border-style: solid;
+    border-width: 0;
+    height: 45.5px;
+    text-align: center;
+    background-color: #F6FAFF;
+    font-size: 14px;
+    padding: 12px 16px;
+    border: 1px solid #E9EFF8;
+}
+.ai-val-detail-tb-content td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #606266; /* Default text color for table content */
+    text-align: left;
+    border-bottom: 1px solid #E9EFF8; /* Horizontal lines for rows */
+    background-color:#F6FAFF ;
+    border: 1px solid #E9EFF8;
+    border-radius: 0px 0px 8px 8px;
+}
+
+.ai-val-detail-tb-content tbody tr:last-child td {
+    border-bottom: none; /* Remove border for the last row */
+}
+
+.ai-val-detail-tb-content tbody tr:hover td {
+    background-color: #F5F7FA; /* Hover effect for rows */
+}
+
+.ai-icon {
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+.score {
+    font-weight: 400;
+    font-style: italic;
+    font-size: 20px;
+    line-height: 30px;
+    letter-spacing: 0%;
+    text-align: center;
+    width: 100%;
+    vertical-align: middle;
+}
+
+.large-score {
+font-size: 32px !important;
+}
+
+.ai-val-detail-tb-content .score-green {
+    background:  linear-gradient(123.06deg, #2AEB8F 12.05%, #00C75B 94.52%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size:22px
+} /* Green for 80 */
+.ai-val-detail-tb-content .score-blue {
+    background: linear-gradient(276.32deg, #006CFF 4.99%, #3ED1FF 98.64%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size:22px
+}  /* Blue for 60 */
+.ai-val-detail-tb-content .score-purple {
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size:22px
+}/* Purple for 40 */
+.ai-val-detail-tb-content .score-red {
+    background: linear-gradient(90deg, #FE6380 0%, #FD4D4C 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size:22px
+}    /* Red for 20 */
+
+.ai-val-detail-tb-content .score-yellow {
+    background: linear-gradient(90deg, #ecce16 0%, #c3ed05 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size:22px
+}    /* Red for 20 */
+
+.ai-val-detail-tb-content .score-pink {
+    background: linear-gradient(90deg, #fb04ef 0%, #b506f8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size:22px
+}    /* Red for 20 */
+.ai-val-detail-tb-content td.score{
+    text-align: center;
+}
+.val-warn-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 840px;
+    height: 540px;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    z-index: 2000;
+    display: none;
+    overflow: hidden;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+    vertical-align: middle;
+}
+.switch input { display: none; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #E5E8EF;
+    border-radius: 34px;
+    transition: .4s;
+    width: 68px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; width: 20px;
+    left: 4px; bottom: 4px;
+    background: #a7cdee;
+    border-radius: 50%;
+    transition: .4s;
+}
+.switch input:checked + .slider {
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);
+}
+.switch input:checked + .slider:before {
+    transform: translateX(40px);
+}
+#ai-val-tr img{
+    width: 50px;
+    height: 30px;
+}
+.ai-val-detail-title{
+    font-family: PingFang SC;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    color: #557496;
+}
+
+.ai-val-detail-attachment{
+    font-family: PingFang SC;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0%;
+    color: #217EFD;
+    margin-right: 12px;
+}
+.ai-val-tb{
+    width: 1280px
+}

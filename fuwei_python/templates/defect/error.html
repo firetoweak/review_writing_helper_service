@@ -1,0 +1,32 @@
+<!-- templates/defect/detail.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+    <link href="/static/lib/wang-editor/style.css" rel="stylesheet" type="text/css">
+    <link href="/static/css/ai-val.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+{% include "components/header.html" %}
+<!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+<div class="container mt-4">
+    <div class="alert alert-light border-danger">
+        <h4 class="alert-heading">错误提示</h4>
+        <p>{{ error_message | safe}}</p>
+        <hr>
+        <p class="mb-0">
+            <a href="{{ redirect_url }}" class="alert-link"> >> {{link_to_title}}</a>
+        </p>
+    </div>
+</div>
+</body>
+<!-- 底部区域 -->
+{% include "user/footer.html" %}
+
+<!-- JavaScript 引入 -->
+{% include "defect/base_js.html" %}
+</html>

@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+    <link href="/static/lib/wang-editor/style.css" rel="stylesheet" type="text/css">
+    <style>
+        /* 表单布局 - 使用CSS Grid实现均匀分布 */
+        .info-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+        .form-item .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        /* 新增：输入框错误样式 */
+        .input-border.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        /* 新增：单选按钮组错误样式 */
+        .radio-group.is-invalid {
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            padding: 8px;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        /* 新增：单选按钮卡片选中样式 */
+        .lay-skin-checkcard.lay-check-dot-2[lay-radio] {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .lay-skin-checkcard.lay-check-dot-2[lay-radio].layui-this {
+            border-color: #217EFD;
+            box-shadow: 0 0 0 2px rgba(33, 126, 253, 0.2);
+        }
+
+        /* 编辑器容器样式 */
+        .editor-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            height: auto;
+        }
+
+        .editor-toolbar {
+            border-bottom: 1px solid #eee;
+            padding: 4px;
+        }
+
+        .editor-content {
+            min-height: 300px;
+            padding: 12px;
+        }
+
+        /* 查看模式下的内容样式 */
+        .view-mode-content {
+            padding: 12px;
+            min-height: 200px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+{% include "components/header.html" %}
+
+{# 统一判断逻辑，定义页面模式变量 #}
+{% if defect and defect.status=='DefectStatus.CLOSED'%}
+    {% set page_mode = "view" %}
+    {% set page_title = "查看缺陷 #" + defect.id|string %}
+{% elif defect and description_user%}
+    {% if description_user and description_user.user_id == current_user.user_id  and defect.status=='DefectStatus.OPEN'%}
+        {% set page_mode = "edit" %}
+        {% set page_title = "编辑缺陷 #" + defect.id|string %}
+    {% else %}
+        {% set page_mode = "view" %}
+        {% set page_title = "查看缺陷 #" + defect.id|string %}
+    {% endif %}
+{% else %}
+    {% set page_mode = "create" %}
+    {% set page_title = "创建缺陷" %}
+{% endif %}
+
+<!-- 顶部横幅 -->
+{% include "components/defect_banner.html" %}
+
+<!-- 主要内容区域 -->
+<div class="container-main">
+    <!-- 面包屑导航 -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom">
+            <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+            <li class="breadcrumb-item">
+                {% if 'simplified2' in request.path %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a>{% else %} <a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+            </li>
+            <li class="breadcrumb-item active">
+                {% if defect %}
+                    {% if is_assignee %}
+                        {{page_title}}
+                    {% else %}
+                        {{page_title}}
+                    {% endif %}
+                {% else %}
+                    创建缺陷
+                {% endif %}
+            </li>
+        </ol>
+    </nav>
+    <!-- 显示Flash消息 -->
+    {% include "defect/show_flash.html" %}
+    <!-- 设置缺陷基本信息 -->
+    <div id="defectDescription" class="container-main division-card mb-4">
+        <div class="mb-4">
+            <div class="section-title">
+                <img src="/static/images/fengchi_tag.svg" alt="">
+                <h5 class="card-title">缺陷基本信息</h5>
+            </div>
+        </div>
+
+        <form class="layui-form" method="POST"
+              action="{% if request.args.get('from_page', '')=="create" %}{{ url_for('defect.submit_all_api', defect_id=defect.id) }}{% else %}{{ url_for('defect.create_simplified2_defect') }}{% endif %}"
+              id="defectForm">
+            <!-- 添加CSRF令牌保护 -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+            <!-- 添加隐藏的input用于存储选中的项目版本ID -->
+
+            <!-- 隐藏字段用于存储阶段责任人信息 -->
+            <input type="hidden" name="stage_assignments" id="stageAssignmentsInput" value="">
+            <input type="hidden" name="ai_done_act" id="aiDoneActInput" value="audit">
+
+            <div class="info-form">
+                <!-- 所属产品平台 -->
+                <div class="form-row">
+
+                    <!--缺陷所属产品线/技术族 -->
+                    {% include "components/product_line_selector.html" %}
+
+                    <!-- 缺陷单号字段（编辑模式下显示，不可编辑） -->
+                    {% if defect %}
+                    <div class="form-item">
+                        <label class="form-label">缺陷单号</label>
+                        <div class="info-value">
+                            <span id="defectNumber">{{ defect.defect_number }}</span>
+                            <div class="history-link">
+                                <img src="/static/images/defect/p2_01.png" alt="历史记录" style="width: 14px; height: 14px; margin-left: 4px;">
+                                <span>历史记录</span>
+                            </div>
+                        </div>
+
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 缺陷标题 -->
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="title" class="form-label">缺陷标题 <span class="text-danger">*</span></label>
+                        <input type="text" class="input-border" id="title" name="title" required
+                               placeholder="请输入缺陷标题" maxlength="200"
+                               value="{% if defect %}{{ defect.title }}{% else %}{{ request.form.title if request.form.title }}{% endif %}"
+                               {% if page_mode == "view" %}readonly{% endif %}>
+                        <div class="error-message" id="title-error">请输入缺陷标题</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <!-- 严重程度 -->
+                    <div class="form-item">
+                    <label class="form-label" id="severity_filed">缺陷影响程度 <span class="text-danger">*</span></label>
+                    <div class="radio-group" id="severity-radio-group">
+                        <div class="layui-form flex" lay-filter="form-demo-skin">
+                            <div>
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="致命" lay-skin="none" {% if defect and defect.severity == "致命" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">致命</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="严重" lay-skin="none" {% if defect and defect.severity == "严重" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">严重</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="一般" lay-skin="none" {% if defect and defect.severity == "一般" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">一般</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="severity" value="提示" lay-skin="none"{% if defect and defect.severity == "提示" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">提示</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="error-message" id="severity-error">请选择缺陷影响程度</div>
+                </div>
+
+                    <!-- 复现概率 -->
+                    <div class="form-item">
+                    <label id="reproducibility_filed" class="form-label">缺陷是否可复现 <span class="text-danger">*</span></label>
+                    <div class="radio-group" id="reproducibility-radio-group">
+                        <div class="layui-form flex" lay-filter="form-demo-skin">
+                            <div>
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="defect_reproducibility" value="必然复现" lay-skin="none" {% if defect and defect.defect_reproducibility == "必然复现" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">必然复现</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="defect_reproducibility" value="有条件复现" lay-skin="none" {% if defect and defect.defect_reproducibility == "有条件复现" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">有条件复现</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 10px;">
+                                <input type="radio" {% if page_mode == "view" %}disabled{% endif %}  name="defect_reproducibility" value="小概率复现" lay-skin="none" {% if defect and defect.defect_reproducibility == "小概率复现" %}checked{% endif %}>
+                                <div lay-radio class="lay-skin-checkcard lay-check-dot-2" style="height: 40px">
+                                    <div class="lay-skin-checkcard-detail">
+                                        <div class="lay-skin-checkcard-header">小概率复现</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="error-message" id="reproducibility-error">请选择缺陷是否可复现</div>
+                </div>
+                </div>
+
+                 <!-- 当前处理人 在驳回后需要显示 -->
+                {% if current_stage %}
+                <div class="form-row">
+                    <div class="form-item">
+                        <label for="title" class="form-label">缺陷单创建人</label>
+                        {{ defect.creator.real_name if defect.creator else '未分配' }}/{{ defect.creator.email if defect.creator.email else '无Email' }}
+                    </div>
+
+                     <div class="form-item">
+                        <label for="title" class="form-label">缺陷单状态</label>
+                        {% if defect.status == 'DefectStatus.DRAFT' %}
+                            暂存
+                        {% elif defect.status == 'DefectStatus.TERMINATE_TRACKING' %}
+                            终止跟踪
+                        {% elif defect.status == 'DefectStatus.OPEN' %}
+                            开启
+                        {% elif defect.status == 'DefectStatus.SUSPEND_TRACKING' %}
+                            挂起
+                        {% elif defect.status == 'DefectStatus.CLOSED' %}
+                            关闭
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if not description_data or request.args.get('from_page', '') == "create" %}
+                    <!-- 详细描述 如果已经创建，则不显示，到缺陷详情页面的表格中进行操作-->
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label class="form-label">详细描述 <span class="text-danger">*</span></label>
+
+                            <!-- 单一编辑器容器 -->
+                            <div class="editor-container" id="single-editor-container">
+                                {% if page_mode == "view" and request.args.get('from_page', '')!="create" %}
+                                    <!-- 查看模式下显示只读内容 -->
+                                    <div class="view-mode-content" id="view-mode-content">
+                                        {% if description_data and description_data[0].content and description_data[0].content.description %}
+                                            {% set description_items = description_data[0].content.description %}
+                                            {% if description_items is string %}
+                                                {{ description_items | safe }}
+                                            {% else %}
+                                                {% for item in description_items %}
+                                                    <h4>{{ item.title }}</h4>
+                                                    <div>{{ item.description | safe }}</div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">无描述内容</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <!-- 编辑模式下显示编辑器 -->
+                                    <div class="editor-toolbar" id="toolbar-container"></div>
+                                    <div class="editor-content" id="editor-content"></div>
+                                {% endif %}
+                            </div>
+
+                            <!-- 隐藏的description字段，用于存储编辑器内容 -->
+                            <textarea class="form-control d-none" id="description" name="description" rows="6">{% if description_data and description_data[0].content and description_data[0].content.description %}{{ description_data[0].content.description }}{% endif %}</textarea>
+                        </div>
+                    </div>
+                    <!--
+                    <div id="descriptionAIResult" class="ai-val-detail-tb-content p-2">
+                        {% if description_data|length > 0 %}
+                        <h6 id="descriptionAIResultTitle"><i class="bi bi-robot"></i>AI评估结果：</h6>
+                        {% endif %}
+                        <span id="description_score" class="score  {% if description_data and description_data[0] and description_data[0].ai_score is not none %}{% if description_data[0].ai_score >= 8 %}score-green{% elif description_data[0].ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+                        {% if description_data and description_data[0] and description_data[0].ai_score is not none %}
+                        {{ description_data[0].ai_score}} 分 (满分10分) &nbsp;
+                        {% endif %}
+                        </span>
+                        <div class="p-2">
+                        {% if description_data|length > 0 %}
+                            {{ description_data[0].ai_suggestion|default('未评估', true)|safe }}
+                        {% endif %}
+                        </div>
+                    </div>
+-->
+                    <!-- 底部操作按钮 -->
+                    {% if page_mode == "edit" or page_mode == "create"  or request.args.get('from_page', '') == "create"%}
+                    <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                        <div class="drawer-buttons" style="height: 100px;display: flex;justify-content: center;align-items: center;">
+                            <button type="button" class="ok-btn btn-batch mr-3" style="width: 180px;" id="start-done-btn" >AI自评 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+                            <button type="button" style="width: 180px;" class="ok-btn" id="submitDescAiDone">提交缺陷描述</button>
+                            <!-- 修改提交按钮类型为button，并添加ID -->
+                            {% if not cause_analysis_invitations and description_data and description_data[0] and description_data[0].ai_score is not none %}
+                                <button type="button" style="width: 180px;" class="ok-btn" id="submitBtn">
+                                   指定开发定位
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+                <!-- View模式下显示返回按钮 -->
+                {% if page_mode == "view" %}
+                <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="button-group">
+                        <a href="/defect/?defect_type=simplified2" class="ok-btn" style="width: 120px;" >返回列表</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    </div>
+</div>
+
+
+<!-- 确认提交审核弹窗 模块 -->
+
+<div class="modal fade" id="submitConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px 24px;">
+            <div style="position: absolute;right: 42%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锥矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:600;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">确定提交吗？</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" style="min-width:123px;border-radius:8px;">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmSubmitBtn" style="min-width:123px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                        确定提交
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 设置阶段责任人对话框 -->
+<div class="modal fade" id="stageAssignmentModal" tabindex="-1" aria-labelledby="stageAssignmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                    <div class="flex items-center justify-center">
+                        <img src="/static/images/defect/p2_03.png" alt="责任分配图标" class="test-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;">
+                        <span style="margin-top: 2px;">设置阶段责任人</span>
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 20px 30px;">
+                <!-- 阶段说明 -->
+                <div style="margin-bottom: 20px;padding: 12px;background-color: #F6FAFF;border-radius: 6px;border-left: 4px solid #217EFD;">
+                    <p style="margin: 0;font-size: 14px;color: #666;">
+                        请根据需要为以下各个阶段设置责任人。
+                    </p>
+                </div>
+
+                <!-- 阶段责任人设置区域 -->
+                <div class="stage-assignments-container" style="max-height: 500px;overflow-y: auto;padding-right: 10px;">
+                    <!-- 缺陷描述阶段 -->
+                    <div class="stage-assignment-section" data-stage-type="defect_description" style="display:none;margin-bottom: 20px;padding: 18px;background: #FFFFFF;border: 1px solid #E9EFF8;border-radius: 8px;">
+                        <div style="display: flex;align-items: center;margin-bottom: 16px;">
+                            <div style="width: 28px;height: 28px;background: linear-gradient(135deg, #217EFD 0%, #9767FF 100%);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-right: 12px;">
+                                <span style="color: white;font-weight: 600;font-size: 13px;">1</span>
+                            </div>
+                            <h5 style="margin: 0;font-weight: 600;color: #222;font-size: 15px;">缺陷描述</h5>
+                        </div>
+
+                        <div style="display: flex;gap: 16px;margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">
+                                    <span style="color: red;">*</span> 负责人
+                                </label>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control stage-assignee-search" placeholder="搜索邮箱"
+                                           style="width: 100%;height: 38px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 10px 36px 10px 10px;font-size: 13px;background-color: #F6FAFF;"
+                                           data-stage="defect_description">
+                                    <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 10px;top: 50%;transform: translateY(-50%);width: 14px;height: 14px;">
+                                    <!-- 下拉框 -->
+                                    <div class="assignee-dropdown stage-dropdown" data-stage="defect_description"
+                                         style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 180px;overflow-y: auto;margin-top: 2px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">姓名</label>
+                                <div class="selected-assignee-name" data-stage="defect_description"
+                                     style="width: 100%;height: 38px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 10px;font-size: 13px;background-color: #F8F9FA;color: #999;display: flex;align-items: center;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">
+                                    请搜索选择负责人
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" class="stage-assignee-id" data-stage="defect_description">
+                        <input type="hidden" class="stage-assignee-email" data-stage="defect_description">
+                        <input type="hidden" class="stage-assignee-name" data-stage="defect_description">
+                    </div>
+
+                    <!-- 原因分析阶段 -->
+                    <div class="stage-assignment-section" data-stage-type="cause_analysis" style="margin-bottom: 20px;padding: 18px;background: #FFFFFF;border: 1px solid #E9EFF8;border-radius: 8px;">
+                        <div style="display: flex;align-items: center;margin-bottom: 16px;">
+                            <div style="width: 28px;height: 28px;background: linear-gradient(135deg, #217EFD 0%, #9767FF 100%);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-right: 12px;">
+                                <span style="color: white;font-weight: 600;font-size: 13px;">1</span>
+                            </div>
+                            <h5 style="margin: 0;font-weight: 600;color: #222;font-size: 15px;">原因分析</h5>
+                        </div>
+
+                        <div style="display: flex;gap: 16px;margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">
+                                    <span style="color: red;">*</span> 负责人
+                                </label>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control stage-assignee-search" placeholder="搜索邮箱"
+                                           style="width: 100%;height: 38px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 10px 36px 10px 10px;font-size: 13px;background-color: #F6FAFF;"
+                                           data-stage="cause_analysis">
+                                    <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 10px;top: 50%;transform: translateY(-50%);width: 14px;height: 14px;">
+                                    <!-- 下拉框 -->
+                                    <div class="assignee-dropdown stage-dropdown" data-stage="cause_analysis"
+                                         style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 180px;overflow-y: auto;margin-top: 2px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">姓名</label>
+                                <div class="selected-assignee-name" data-stage="cause_analysis"
+                                     style="width: 100%;height: 38px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 10px;font-size: 13px;background-color: #F8F9FA;color: #999;display: flex;align-items: center;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">
+                                    请搜索选择负责人
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" class="stage-assignee-id" data-stage="cause_analysis">
+                        <input type="hidden" class="stage-assignee-email" data-stage="cause_analysis">
+                        <input type="hidden" class="stage-assignee-name" data-stage="cause_analysis">
+                    </div>
+
+                    <!-- 解决措施阶段 -->
+                    <div class="stage-assignment-section" data-stage-type="developer_solution" style="margin-bottom: 20px;padding: 18px;background: #FFFFFF;border: 1px solid #E9EFF8;border-radius: 8px;">
+                        <div style="display: flex;align-items: center;margin-bottom: 16px;">
+                            <div style="width: 28px;height: 28px;background: linear-gradient(135deg, #217EFD 0%, #9767FF 100%);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-right: 12px;">
+                                <span style="color: white;font-weight: 600;font-size: 13px;">2</span>
+                            </div>
+                            <h5 style="margin: 0;font-weight: 600;color: #222;font-size: 15px;">解决措施</h5>
+                        </div>
+
+                        <div style="display: flex;gap: 16px;margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">
+                                    <span style="color: red;">*</span> 负责人
+                                </label>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control stage-assignee-search" placeholder="搜索邮箱"
+                                           style="width: 100%;height: 38px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 10px 36px 10px 10px;font-size: 13px;background-color: #F6FAFF;"
+                                           data-stage="developer_solution">
+                                    <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 10px;top: 50%;transform: translateY(-50%);width: 14px;height: 14px;">
+                                    <!-- 下拉框 -->
+                                    <div class="assignee-dropdown stage-dropdown" data-stage="developer_solution"
+                                         style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 180px;overflow-y: auto;margin-top: 2px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">姓名</label>
+                                <div class="selected-assignee-name" data-stage="developer_solution"
+                                     style="width: 100%;height: 38px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 10px;font-size: 13px;background-color: #F8F9FA;color: #999;display: flex;align-items: center;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">
+                                    请搜索选择负责人
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" class="stage-assignee-id" data-stage="developer_solution">
+                        <input type="hidden" class="stage-assignee-email" data-stage="developer_solution">
+                        <input type="hidden" class="stage-assignee-name" data-stage="developer_solution">
+                    </div>
+
+                    <!-- 回归测试阶段 -->
+                    <div class="stage-assignment-section" data-stage-type="tester_regression" style="margin-bottom: 10px;padding: 18px;background: #FFFFFF;border: 1px solid #E9EFF8;border-radius: 8px;">
+                        <div style="display: flex;align-items: center;margin-bottom: 16px;">
+                            <div style="width: 28px;height: 28px;background: linear-gradient(135deg, #217EFD 0%, #9767FF 100%);border-radius: 50%;display: flex;align-items: center;justify-content: center;margin-right: 12px;">
+                                <span style="color: white;font-weight: 600;font-size: 13px;">3</span>
+                            </div>
+                            <h5 style="margin: 0;font-weight: 600;color: #222;font-size: 15px;">回归测试</h5>
+                        </div>
+
+                        <div style="display: flex;gap: 16px;margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">
+                                    <span style="color: red;">*</span> 负责人
+                                </label>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control stage-assignee-search" placeholder="搜索邮箱"
+                                           style="width: 100%;height: 38px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 10px 36px 10px 10px;font-size: 13px;background-color: #F6FAFF;"
+                                           data-stage="tester_regression">
+                                    <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 10px;top: 50%;transform: translateY(-50%);width: 14px;height: 14px;">
+                                    <!-- 下拉框 -->
+                                    <div class="assignee-dropdown stage-dropdown" data-stage="tester_regression"
+                                         style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 180px;overflow-y: auto;margin-top: 2px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="flex: 1;">
+                                <label style="font-weight: 500;font-size: 13px;color:#222;margin-bottom: 6px;display: block;">姓名</label>
+                                <div class="selected-assignee-name" data-stage="tester_regression"
+                                     style="width: 100%;height: 38px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 10px;font-size: 13px;background-color: #F8F9FA;color: #999;display: flex;align-items: center;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">
+                                    请搜索选择负责人
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" class="stage-assignee-id" data-stage="tester_regression">
+                        <input type="hidden" class="stage-assignee-email" data-stage="tester_regression">
+                        <input type="hidden" class="stage-assignee-name" data-stage="tester_regression">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="button-group-out">
+                <div class="drawer-buttons" style="width: 60%;height: 80px;display: flex;justify-content: center;align-items: center;gap: 16px;">
+                    <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" style="min-width:100px;border-radius:8px;height: 38px;font-size: 14px;">取消</button>
+                    <button type="button" class="ok-btn" id="submitStageAssignments" style="width: 110px;height: 38px;background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);border: none;border-radius: 8px;font-size: 14px;">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript 引入 -->
+{% include "defect/base_js.html" %}
+<script src="{{ url_for('static', filename='lib/wang-editor/index.js')}}"></script>
+
+<script>
+    // 用户数据
+    const userList = {{ user_list | tojson }};
+    // 当前用户ID（从Flask模板传递）
+    const currentUserId = "{{ g.user_id }}";
+
+    // 搜索用户功能
+    function searchUsers(searchTerm, excludeIds = []) {
+        if (!searchTerm || searchTerm.length < 1) {
+            return [];
+        }
+
+        const term = searchTerm.toLowerCase();
+        return userList.filter(user => {
+            // 检查是否在排除列表中
+            if (excludeIds.includes(user.user_id.toString())) {
+                return false;
+            }
+
+            // 检查是否匹配
+            const emailMatch = user.email && user.email.toLowerCase().includes(term);
+            const nameMatch = user.name && user.name.toLowerCase().includes(term);
+            const realNameMatch = user.real_name && user.real_name.toLowerCase().includes(term);
+
+            return emailMatch || nameMatch || realNameMatch;
+        });
+    }
+
+    // 项目/版本 树——直接在模板中获取数据
+    const treeData = {{ get_all_version_project() | safe }};
+    console.log(treeData)
+    // 设置选中的值（编辑模式下）
+    let selectedValue = '';  // 存储当前选中的值
+    let selectedText = '';   // 存储显示的文本
+
+    // 显示产品线错误
+    function showProductLineError() {
+        $('#tree-trigger').addClass('is-invalid');
+        $('#product-line-field').addClass('has-error');
+        $('#product-line-error').show();
+    }
+
+    // 清除产品线错误
+    function clearProductLineError() {
+        $('#tree-trigger').removeClass('is-invalid');
+        $('#product-line-field').removeClass('has-error');
+        $('#product-line-error').hide();
+    }
+
+    // 验证是否已选择项目
+    function validateProjectSelection() {
+        if (!$('#project_version_id').val()) {
+            showProductLineError();
+            showToast('warning', '请选择缺陷所属产品线/技术族');
+            // 滚动到树形选择器
+            $('#tree-selector').get(0).scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            return false;
+        }
+        clearProductLineError();
+        return true;
+    }
+
+    // 显示标题错误
+    function showTitleError() {
+        $('#title').addClass('is-invalid');
+        $('#title-error').show();
+    }
+
+    // 清除标题错误
+    function clearTitleError() {
+        $('#title').removeClass('is-invalid');
+        $('#title-error').hide();
+    }
+
+    // 显示严重程度错误
+    function showSeverityError() {
+        $('#severity-radio-group').addClass('is-invalid');
+        $('#severity-error').show();
+    }
+
+    // 清除严重程度错误
+    function clearSeverityError() {
+        $('#severity-radio-group').removeClass('is-invalid');
+        $('#severity-error').hide();
+    }
+
+    // 显示复现概率错误
+    function showReproducibilityError() {
+        $('#reproducibility-radio-group').addClass('is-invalid');
+        $('#reproducibility-error').show();
+    }
+
+    // 清除复现概率错误
+    function clearReproducibilityError() {
+        $('#reproducibility-radio-group').removeClass('is-invalid');
+        $('#reproducibility-error').hide();
+    }
+
+    // 验证标题
+    function validateTitle() {
+        const title = $('#title').val().trim();
+        if (!title) {
+            showTitleError();
+            return false;
+        }
+        clearTitleError();
+        return true;
+    }
+
+    // 验证严重程度
+    function validateSeverity() {
+        const severityChecked = $('input[name="severity"]:checked').length > 0;
+        if (!severityChecked) {
+            showSeverityError();
+            return false;
+        }
+        clearSeverityError();
+        return true;
+    }
+
+    // 验证复现概率
+    function validateReproducibility() {
+        const reproducibilityChecked = $('input[name="defect_reproducibility"]:checked').length > 0;
+        if (!reproducibilityChecked) {
+            showReproducibilityError();
+            return false;
+        }
+        clearReproducibilityError();
+        return true;
+    }
+
+    // 全局页面模式变量
+    const PAGE_MODE = "{{ page_mode }}";
+    const NOW_PAGE = "{{ now_page }}";
+    const FROM_PAGE = "{{ request.args.get('from_page', '') }}";
+    // 存储编辑器实例
+    let editorInstance = null;
+
+    // 初始化wangEditor
+    function initEditor(initialContent = '') {
+        const { createEditor, createToolbar } = window.wangEditor;
+
+        const editorConfig = {
+            placeholder: '请输入缺陷详细描述...',
+            onChange: (editor) => {
+                // 内容变化时更新隐藏字段
+                updateDescriptionField();
+            },
+            scroll: true,
+            autoFocus: false,
+            MENU_CONF: {}
+        };
+
+        // 配置上传图片
+        editorConfig.MENU_CONF['uploadImage'] = {
+            server: '/user/aiVal/upload_pic',
+            fieldName: 'file',
+            maxFileSize: 5 * 1024 * 1024,
+            maxNumberOfFiles: 1,
+            async customInsert(res, insertFn) {
+                if (res.code == 1) {
+                    const imgNode = insertFn(res.url);
+
+                    try {
+                        const response = await fetch('/user/aiVal/create_evaluate_image', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                url: res.url
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success && result.id) {
+                            console.log('保存图片信息成功:', result.id);
+                        } else {
+                            console.error('保存图片信息失败:', result.message);
+                        }
+                    } catch (error) {
+                        console.error('调用评估接口失败:', error);
+                    }
+                } else {
+                    alert(res.msg || '上传失败');
+                }
+            }
+        };
+
+        const editorElement = document.querySelector('#editor-content');
+
+        if (!editorElement) {
+            throw new Error('未找到编辑器容器元素 #editor-content');
+            return
+        }
+
+        const editor = createEditor({
+            selector: '#editor-content',
+            config: editorConfig,
+            html: initialContent || ''
+        });
+
+        // 创建工具栏
+        createToolbar({
+            editor,
+            selector: '#toolbar-container',
+            config: {
+                toolbarKeys: ['uploadImage'],
+                excludeKeys: [
+                    'insertVideo',
+                    'codeBlock',
+                ],
+                maxToolbarLength: 10
+            }
+        });
+
+        return editor;
+    }
+
+    // 更新描述字段内容
+    function updateDescriptionField() {
+        if (editorInstance) {
+            const content = editorInstance.getHtml();
+            const descriptionField = document.getElementById('description');
+            if (descriptionField) {
+                descriptionField.value = content;
+            }
+        }
+    }
+    function getDescriptionContent_create() {
+            if (editorInstance) {
+                let retContent = editorInstance.getHtml();
+                if (retContent === "<p><br></p>"){
+                    retContent = "";
+                }
+                return retContent
+            }
+            return '';
+        }
+
+
+    // 准备编辑器内容（创建模式下从模板获取）
+    function prepareEditorContent() {
+        let initialContent = '';
+
+        if (PAGE_MODE === "edit" || PAGE_MODE === "view") {
+            // 编辑/查看模式：从现有数据获取
+            const descriptionData = {{ description_data | tojson | safe if description_data else 'null' }};
+            if (descriptionData && descriptionData[0].content && descriptionData[0].content.description) {
+                initialContent = descriptionData[0].content.description;
+            }
+        } else {
+            // 创建模式：从模板获取
+            fetch('/template/缺陷描述')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('获取模板失败: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(templateData => {
+                    // 将模板数据转换为HTML内容
+                    let htmlContent = '';
+                    if (templateData.items && templateData.items.length > 0) {
+                        templateData.items.forEach((item, index) => {
+                            if (item.content && item.content.title) {
+                                // 修改：使用加粗显示而不是h3标签
+                                htmlContent += `<p><strong>${item.content.title}</strong></p> <br>`;
+                                if (item.content.description) {
+                                    htmlContent += `<div>${item.content.description}</div>`;
+                                }
+                            }
+                        });
+                    }
+
+                    // 设置编辑器内容
+                    if (editorInstance) {
+                        editorInstance.setHtml(htmlContent);
+                        updateDescriptionField();
+                    }
+                })
+                .catch(error => {
+                    console.error('获取模板失败:', error);
+                });
+        }
+
+        return initialContent;
+    }
+
+    $(document).ready(function() {
+        {% if defect and project_version_id %}
+            selectedValue = "{{ project_version_id }}";
+            {% if project_version_name and project_version_name != '无' %}
+            selectedText = "{{ project_version_name }}";
+            {% endif %}
+        {% endif %}
+
+        // 初始化产品线选择器组件
+        initProductLineSelector({
+            treeData: treeData,
+            selectedValue: selectedValue,
+            selectedText: selectedText,
+            onChange: function(value, text) {
+                console.log('产品线选择变更:', value, text);
+            }
+        });
+
+        // 表单提交前的验证
+        $('#defectForm').on('submit', function(e) {
+            // 如果是草稿保存，不验证项目选择
+            const isDraft = $('input[name="is_draft"]').length > 0;
+            if (!isDraft) {
+                if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        // 为提交按钮添加验证
+        $('#submitBtn').on('click', function() {
+            if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                return false;
+            }
+        });
+
+        // 为AI自评按钮添加验证
+        $('#start-done-btn').on('click', function() {
+            if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                return false;
+            }
+        });
+
+        // 在编辑模式下，如果已有选中的值，清除可能的错误状态
+        {% if defect and project_version_id %}
+            clearProductLineError();
+        {% endif %}
+
+        if(FROM_PAGE==="create"){
+            const initialContent = prepareEditorContent();
+            editorInstance = initEditor(initialContent);
+        }
+        // 添加输入事件监听器，清除无效样式
+        if (PAGE_MODE !== "view"&&NOW_PAGE==="create_simplified2") {
+            // 缺陷标题输入框
+            $('#title').on('input', function() {
+                clearTitleError();
+            });
+
+            // 修复：使用layui的事件监听方式
+            layui.use('form', function(){
+                var form = layui.form;
+
+                // 监听缺陷影响程度的选择
+                form.on('radio', function(data){
+                    if(data.elem.name === 'severity') {
+                        clearSeverityError();
+                    }
+                    if(data.elem.name === 'defect_reproducibility') {
+                        clearReproducibilityError();
+                    }
+                });
+            });
+
+            // 备用方案：直接监听radio的change事件
+            $(document).on('change', 'input[name="severity"]', function() {
+                clearSeverityError();
+            });
+
+            $(document).on('change', 'input[name="defect_reproducibility"]', function() {
+                clearReproducibilityError();
+            });
+
+            // 备用方案：为卡片添加点击事件监听
+            $('.lay-skin-checkcard[lay-radio]').on('click', function() {
+                setTimeout(function() {
+                    if ($('input[name="severity"]:checked').length > 0) {
+                        clearSeverityError();
+                    }
+                    if ($('input[name="defect_reproducibility"]:checked').length > 0) {
+                        clearReproducibilityError();
+                    }
+                }, 10);
+            });
+
+            // 初始化编辑器（非查看模式）
+            const initialContent = prepareEditorContent();
+            editorInstance = initEditor(initialContent);
+            // 确保隐藏字段有初始值
+            setTimeout(() => {
+                updateDescriptionField();
+            }, 500);
+        }
+
+        // 表单验证和提交逻辑
+        if (PAGE_MODE !== "view") {
+            const form = document.getElementById('defectForm');
+
+            // 在表单的submit事件中，移除is_draft字段
+            form.addEventListener('submit', function() {
+                const draftInput = form.querySelector('input[name="is_draft"]');
+                if (draftInput) {
+                    form.removeChild(draftInput);
+                }
+            });
+
+            // 表单验证函数
+            function validateForm() {
+                let isValid = true;
+
+                // 验证产品线选择
+                if (!validateProjectSelection()) {
+                    isValid = false;
+                }
+
+                // 验证标题
+                if (!validateTitle()) {
+                    isValid = false;
+                }
+
+                // 验证严重程度
+                if (!validateSeverity()) {
+                    isValid = false;
+                }
+
+                // 验证复现概率
+                if (!validateReproducibility()) {
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    showToast('warning', `请完善必填字段后再提交`);
+
+                    // 自动滚动到第一个错误字段
+                    const firstInvalid = form.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+
+                return isValid;
+            }
+
+            // 提交按钮点击事件 - 显示确认弹窗
+            if(document.getElementById('submitBtn')!==null) {
+                document.getElementById('submitBtn').addEventListener('click', function () {
+                    // 更新描述字段
+                    updateDescriptionField();
+
+                    // 验证表单
+                    if (validateForm()) {
+                        // 验证通过，显示确认弹窗
+                        var submitConfirmModal = new bootstrap.Modal(document.getElementById('inviteDevelopersLocateModal'));
+                        submitConfirmModal.show();
+                    }
+                });
+            }
+
+            // 确认提交按钮点击事件 - 实际提交表单
+            document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
+                // 提交表单
+                //$('#defectForm').append(`<input type="hidden" value="audit" name="ai_done_act" />`);
+                //$('#defectForm').append(`<input type="hidden" value="step1" name="audit_step" />`);
+                document.getElementById('defectForm').submit();
+            });
+        }
+    });
+
+</script>
+
+
+<!--邀共同定位功能处理脚本-->
+<script>
+
+        {% if request.args.get('from_page', '')=="create" %}
+         async  function send_create_edit_data2(act='audit'){
+            const descriptionContent = getDescriptionContent_create() || "";
+            // 获取缺陷基本信息
+            const title = $('#title').val();
+            const severity = $('input[name="severity"]:checked').val();
+            const defect_reproducibility = $('input[name="defect_reproducibility"]:checked').val();
+            const project_version_id = $('#project_version_id').val();
+            // 是否确认关闭
+            // 构造表单数据
+            const formData = {
+                descriptionContent: descriptionContent,
+                title: title,
+                severity: severity,
+                defect_reproducibility: defect_reproducibility,
+                project_version_id: project_version_id,
+                // 是否确认关闭
+                act:act
+            };
+            const defectId = {{ defect.id }};
+
+            try {
+                // 第一步：提交回归测试结果
+                const submitAllResponse = await fetch(`/defect/${defectId}/submit-all-api`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const submitAllResult = await submitAllResponse.json();
+                console.log(submitAllResult);
+                if (submitAllResult.code === 0) {
+                    showToast('success', submitAllResult.message);
+                    if(submitAllResult.data.changed_items.includes("确认关闭")){
+                            setTimeout(function() {
+                            showToast('success', "缺陷单已关闭");
+                            location.href = "/defect/simplified2/{{ defect.id }}"
+                        }, 2000);
+                    }
+                    if(submitAllResult.data.changed_items.includes("缺陷基本信息")
+                        ||submitAllResult.data.changed_items.includes("缺陷描述")
+                    ){
+                         return 1
+                    }
+                    else{
+                        if(submitAllResult.need_val===true){
+                            return 2
+                        }
+                        return 0
+                    }
+
+                } else {
+                    showToast('error', submitAllResult.message || '提交失败');
+                    return -1
+                }
+            } catch (error) {
+                console.error('提交过程中发生错误:', error);
+                showToast('error', '网络错误，请稍后重试');
+                return -1
+            }
+        }
+        {% endif %}
+         async function send_create_data(){
+            const formData = new FormData(document.getElementById('defectForm'));
+            // 5. 先提交缺陷表单
+            const defectResponse = await fetch($('#defectForm').attr('action'), {
+                method: 'POST',
+                body: formData
+            });
+            const defectResult = await defectResponse.json();
+            if (defectResult.code !== 0) {
+                throw new Error(defectResult.message || '创建缺陷失败');
+            }
+            showToast('success', defectResult.message || '缺陷创建成功');
+            setTimeout(() => {
+                   window.location.href = defectResult.data.redirect_url+"&changed_items=缺陷描述";
+            }, 1500);
+        }
+
+
+
+
+// DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+
+        {% if request.args.get('from_page', '')=="create" %}
+
+        $(document).on('click', '#submitDescAiDone', function() {
+           openStageAssignmentModal();
+        });
+
+        $(document).on('click','#start-done-btn',function(){
+            send_create_edit_data2('self').then((rs) => {
+                if(rs>0){
+                    location.href ="/defect/simplified2/{{ defect.id }}?ai_done_act=self&is_change=&stage_type=simplified2&from_page=create&changed_items=缺陷描述"
+                }
+            });
+        })
+        {% else %}
+            $('#submitDescAiDone').click(async function() {
+                    if (typeof updateDescriptionField === 'function') {
+                        updateDescriptionField();
+                    }
+                    if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                        showToast('warning', '请完善缺陷信息必填字段');
+                        return;
+                    }
+                    // 显示阶段责任人设置对话框
+                    openStageAssignmentModal();
+            })
+
+            // AI自评按钮点击事件 - 改为使用API调用
+            $('#start-done-btn').click(async function(e) {
+                e.preventDefault();
+
+                // 首先验证产品线选择
+                if (!validateProjectSelection() || !validateTitle() || !validateSeverity() || !validateReproducibility()) {
+                    showToast('warning', '请完善缺陷信息必填字段');
+                    return;
+                }
+
+                // 确保描述字段已更新
+                if (typeof updateDescriptionField === 'function') {
+                    updateDescriptionField();
+                }
+
+                // 收集表单数据
+                const formData = new FormData(document.getElementById('defectForm'));
+
+                // 设置AI执行动作为self
+                formData.set('ai_done_act', 'self');
+
+                // 确保描述内容已添加到 FormData
+                const descriptionField = document.getElementById('description');
+                if (descriptionField) {
+                    formData.set('description', descriptionField.value);
+                }
+
+                // 显示加载状态
+                const button = this;
+                const originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 提交中...';
+
+                try {
+                    // 使用 fetch API 提交数据
+                    const response = await fetch(document.getElementById('defectForm').action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    // 恢复按钮状态
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+
+                    if (result.code === 0) {
+                        // 提交成功
+                        showToast('success', result.message);
+
+                        // 根据结果进行跳转
+                        if (result.data && result.data.redirect_url) {
+                            setTimeout(() => {
+                                window.location.href = result.data.redirect_url+"&changed_items=缺陷描述";
+                            }, 1500);
+                        }
+                    } else {
+                        // 提交失败
+                        showToast('error', result.message || '提交失败，请重试');
+
+                        // 如果是表单验证错误，滚动到错误位置
+                        if (response.status === 400) {
+                            // 查找第一个错误字段并滚动到它
+                            const firstInvalid = document.querySelector('.is-invalid');
+                            if (firstInvalid) {
+                                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('提交失败:', error);
+                    showToast('error', '网络错误，请检查网络连接后重试');
+
+                    // 恢复按钮状态
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            });
+         {% endif %}
+ });
+
+</script>
+
+
+<script>
+// 初始化阶段责任人设置对话框
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('stageAssignmentModal');
+    if (modal) {
+        // 为每个阶段的搜索框初始化搜索功能
+        const searchInputs = modal.querySelectorAll('.stage-assignee-search');
+        searchInputs.forEach(input => {
+            setupStageAssigneeSearch(input);
+        });
+
+        // 提交按钮事件
+        document.getElementById('submitStageAssignments').addEventListener('click', function() {
+            submitStageAssignments();
+        });
+
+        // 模态框显示时初始化
+        $('#stageAssignmentModal').on('show.bs.modal', function() {
+            initializeStageAssignments();
+            clearAllStageInputHighlights();
+        });
+
+        // 模态框隐藏时重置表单状态
+        $('#stageAssignmentModal').on('hidden.bs.modal', function() {
+            resetStageAssignmentForm();
+        });
+    }
+});
+
+// 为阶段设置搜索功能
+function setupStageAssigneeSearch(searchInput) {
+    const stage = searchInput.getAttribute('data-stage');
+    const dropdown = document.querySelector(`.stage-dropdown[data-stage="${stage}"]`);
+    const nameDisplay = document.querySelector(`.selected-assignee-name[data-stage="${stage}"]`);
+    const assigneeId = document.querySelector(`.stage-assignee-id[data-stage="${stage}"]`);
+    const assigneeEmail = document.querySelector(`.stage-assignee-email[data-stage="${stage}"]`);
+    const assigneeName = document.querySelector(`.stage-assignee-name[data-stage="${stage}"]`);
+
+    if (!searchInput || !dropdown) {
+        console.log(`未找到阶段 ${stage} 的搜索元素`);
+        return;
+    }
+
+    searchInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        dropdown.innerHTML = '';
+
+        // 新增：当输入框清空时，同步清空姓名和其他隐藏字段
+        if (value === '') {
+            nameDisplay.textContent = '请搜索选择负责人';
+            nameDisplay.style.color = '#999';
+            assigneeId.value = '';
+            assigneeEmail.value = '';
+            assigneeName.value = '';
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        if (value.length < 1) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        // 搜索匹配的用户
+        const matches = searchUsers(value, []);
+
+        if (matches.length === 0) {
+            dropdown.innerHTML = '<div style="padding: 8px 12px; color: #999;">未找到匹配的用户</div>';
+            dropdown.style.display = 'block';
+            return;
+        }
+
+        // 显示匹配结果
+        matches.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.style.padding = '8px 12px';
+            item.style.cursor = 'pointer';
+            item.style.borderBottom = '1px solid #f0f0f0';
+            item.style.transition = 'background-color 0.2s';
+
+            item.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+
+            const displayName = user.real_name || user.name || '未知用户';
+            const displayEmail = user.email || '无邮箱';
+
+            item.innerHTML = `
+                <div style="font-weight: 500; color: #222;">${displayName}</div>
+                <small style="color: #666;">${displayEmail}</small>
+            `;
+
+            item.addEventListener('click', function() {
+                searchInput.value = displayEmail;
+                nameDisplay.textContent = displayName;
+                nameDisplay.style.color = '#222';
+                assigneeId.value = user.user_id;
+                assigneeEmail.value = displayEmail;
+                assigneeName.value = displayName;
+                dropdown.style.display = 'none';
+
+                // 移除错误高亮
+                searchInput.style.borderColor = '#D5E8FF';
+                searchInput.style.boxShadow = '';
+            });
+
+            dropdown.appendChild(item);
+        });
+
+        dropdown.style.display = 'block';
+    });
+
+    // 新增：为搜索框添加失去焦点事件，确保数据一致性
+    searchInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            dropdown.style.display = 'none';
+            const currentValue = this.value.trim();
+
+            // 如果输入框不为空但负责人ID为空，说明输入的是无效邮箱，需要清空
+            if (currentValue !== '' && !assigneeId.value) {
+                // 检查是否为有效的邮箱格式（简单验证）
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(currentValue)) {
+                    // 邮箱格式正确但没有匹配到用户，清空所有字段
+                    this.value = '';
+                    nameDisplay.textContent = '请搜索选择负责人';
+                    nameDisplay.style.color = '#999';
+                    assigneeId.value = '';
+                    assigneeEmail.value = '';
+                    assigneeName.value = '';
+                }
+            }
+        }, 200);
+    });
+
+    // 点击外部时隐藏下拉框
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // 搜索框聚焦时显示下拉框
+    searchInput.addEventListener('focus', function() {
+        // 清除可能存在的错误高亮
+        this.style.borderColor = '#D5E8FF';
+        this.style.boxShadow = '';
+
+        if (this.value.trim().length > 0) {
+            const event = new Event('input');
+            this.dispatchEvent(event);
+        }
+    });
+}
+
+// 初始化阶段责任人设置（默认选择当前用户）
+function initializeStageAssignments() {
+    if (!currentUserId) {
+        console.error('未获取到当前用户ID');
+        return;
+    }
+
+    // 查找当前用户信息
+    const currentUser = userList.find(user => user.user_id == currentUserId);
+    if (!currentUser) {
+        console.error('未找到当前用户信息');
+        return;
+    }
+
+    const displayName = currentUser.real_name || currentUser.name || '未知用户';
+    const displayEmail = currentUser.email || '无邮箱';
+
+    // 为每个阶段设置默认值
+    const stages = ['defect_description', 'cause_analysis', 'developer_solution', 'tester_regression'];
+
+    stages.forEach(stage => {
+        const section = document.querySelector(`.stage-assignment-section[data-stage-type="${stage}"]`);
+        const style = window.getComputedStyle(section);
+
+        // 只为可见的阶段设置默认值
+        if (style.display !== 'none') {
+            const searchInput = document.querySelector(`.stage-assignee-search[data-stage="${stage}"]`);
+            const nameDisplay = document.querySelector(`.selected-assignee-name[data-stage="${stage}"]`);
+            const assigneeId = document.querySelector(`.stage-assignee-id[data-stage="${stage}"]`);
+            const assigneeEmail = document.querySelector(`.stage-assignee-email[data-stage="${stage}"]`);
+            const assigneeName = document.querySelector(`.stage-assignee-name[data-stage="${stage}"]`);
+
+            if (searchInput && nameDisplay && assigneeId) {
+                searchInput.value = displayEmail;
+                nameDisplay.textContent = displayName;
+                nameDisplay.style.color = '#222';
+                assigneeId.value = currentUserId;
+                assigneeEmail.value = displayEmail;
+                assigneeName.value = displayName;
+            }
+        }
+    });
+}
+
+// 验证阶段责任人表单
+function validateStageAssignmentsForm() {
+    let isValid = true;
+    const errorMessages = [];
+
+    // 获取所有阶段
+    const stageSections = document.querySelectorAll('.stage-assignment-section');
+
+    stageSections.forEach(section => {
+        // 检查阶段是否可见（因为某些阶段可能被隐藏）
+        const style = window.getComputedStyle(section);
+        if (style.display === 'none') {
+            return; // 跳过隐藏的阶段
+        }
+
+        const stageType = section.getAttribute('data-stage-type');
+        const searchInput = section.querySelector('.stage-assignee-search');
+        const assigneeId = section.querySelector('.stage-assignee-id').value;
+        const nameDisplay = section.querySelector('.selected-assignee-name');
+        const assigneeName = nameDisplay.textContent;
+
+        // 检查搜索框是否为空
+        const searchValue = searchInput.value.trim();
+
+        // 验证逻辑：
+        // 1. 搜索框为空
+        // 2. 或者搜索框不为空但负责人ID为空（说明输入的是无效邮箱）
+        // 3. 或者姓名显示区域显示的是提示文字
+        if (searchValue === '' || assigneeId === '' || assigneeName === '请搜索选择负责人') {
+            const stageDisplayName = getStageDisplayName(stageType);
+            errorMessages.push(`${stageDisplayName}阶段：请选择有效的负责人`);
+            isValid = false;
+
+            // 高亮显示有问题的搜索框
+            searchInput.style.borderColor = '#ff4d4f';
+            searchInput.style.boxShadow = '0 0 0 2px rgba(255, 77, 79, 0.1)';
+
+            // 移除之前的高亮
+            const removeHighlight = function() {
+                searchInput.style.borderColor = '#D5E8FF';
+                searchInput.style.boxShadow = '';
+                searchInput.removeEventListener('input', removeHighlight);
+                searchInput.removeEventListener('focus', removeHighlight);
+            };
+
+            searchInput.addEventListener('input', removeHighlight);
+            searchInput.addEventListener('focus', removeHighlight);
+        }
+    });
+
+    if (!isValid) {
+        // 显示错误提示，并滚动到第一个错误位置
+        showToast('error', errorMessages.join('；'));
+
+        // 找到第一个有错误的阶段并滚动到可视区域
+        const firstErrorSection = document.querySelector('.stage-assignment-section:not([style*="display: none"]) .stage-assignee-search[style*="border-color: #ff4d4f"]');
+        if (firstErrorSection) {
+            const container = document.querySelector('.stage-assignments-container');
+            const errorSection = firstErrorSection.closest('.stage-assignment-section');
+            container.scrollTo({
+                top: errorSection.offsetTop - container.offsetTop - 20,
+                behavior: 'smooth'
+            });
+
+            // 聚焦到第一个错误的输入框
+            firstErrorSection.focus();
+        }
+    }
+
+    return isValid;
+}
+
+// 获取阶段显示名称
+function getStageDisplayName(stageType) {
+    const stageNames = {
+        'defect_description': '缺陷描述',
+        'cause_analysis': '原因分析',
+        'developer_solution': '解决措施',
+        'tester_regression': '回归测试'
+    };
+    return stageNames[stageType] || stageType;
+}
+
+// 清除所有阶段搜索框的高亮
+function clearAllStageInputHighlights() {
+    const searchInputs = document.querySelectorAll('.stage-assignee-search');
+    searchInputs.forEach(input => {
+        input.style.borderColor = '#D5E8FF';
+        input.style.boxShadow = '';
+    });
+}
+
+// 重置阶段责任人表单
+function resetStageAssignmentForm() {
+    // 清除所有错误高亮
+    clearAllStageInputHighlights();
+
+    // 重置所有阶段的状态（可选，根据业务需求）
+    const stages = ['defect_description', 'cause_analysis', 'developer_solution', 'tester_regression'];
+
+    stages.forEach(stage => {
+        const searchInput = document.querySelector(`.stage-assignee-search[data-stage="${stage}"]`);
+        const nameDisplay = document.querySelector(`.selected-assignee-name[data-stage="${stage}"]`);
+        const assigneeId = document.querySelector(`.stage-assignee-id[data-stage="${stage}"]`);
+        const assigneeEmail = document.querySelector(`.stage-assignee-email[data-stage="${stage}"]`);
+        const assigneeName = document.querySelector(`.stage-assignee-name[data-stage="${stage}"]`);
+
+        // 如果当前用户信息存在，重置为当前用户
+        if (currentUserId) {
+            const currentUser = userList.find(user => user.user_id == currentUserId);
+            if (currentUser) {
+                const displayName = currentUser.real_name || currentUser.name || '未知用户';
+                const displayEmail = currentUser.email || '无邮箱';
+
+                if (searchInput && nameDisplay && assigneeId) {
+                    searchInput.value = displayEmail;
+                    nameDisplay.textContent = displayName;
+                    nameDisplay.style.color = '#222';
+                    assigneeId.value = currentUserId;
+                    assigneeEmail.value = displayEmail;
+                    assigneeName.value = displayName;
+                }
+            }
+        }
+    });
+}
+
+// 收集阶段责任人信息并提交
+function submitStageAssignments() {
+    // 首先清除所有高亮
+    clearAllStageInputHighlights();
+
+    // 验证表单
+    if (!validateStageAssignmentsForm()) {
+        return;
+    }
+
+    try {
+        // 收集阶段责任人信息
+        const stageAssignments = {};
+
+        // 获取所有阶段
+        const stages = ['defect_description', 'cause_analysis', 'developer_solution', 'tester_regression'];
+
+        stages.forEach(stage => {
+            const section = document.querySelector(`.stage-assignment-section[data-stage-type="${stage}"]`);
+            const style = window.getComputedStyle(section);
+
+            // 只收集可见阶段的负责人
+            if (style.display !== 'none') {
+                const assigneeId = document.querySelector(`.stage-assignee-id[data-stage="${stage}"]`).value;
+                if (assigneeId) {
+                    stageAssignments[stage] = assigneeId;
+                }
+            }
+        });
+
+        // 检查是否至少有一个阶段负责人
+        if (Object.keys(stageAssignments).length === 0) {
+            showToast('error', '请至少为一个阶段设置负责人');
+            return;
+        }
+
+        // 将阶段责任人信息设置到隐藏字段
+        const stageAssignmentsInput = document.getElementById('stageAssignmentsInput');
+        stageAssignmentsInput.value = JSON.stringify(stageAssignments);
+
+        // 关闭对话框
+        $('#stageAssignmentModal').modal('hide');
+
+        // 设置AI执行动作为audit
+        document.getElementById('aiDoneActInput').value = 'audit';
+
+        // 提交表单
+        handleFormSubmit();
+
+    } catch (error) {
+        console.error('提交阶段责任人设置失败:', error);
+        showToast('error', '设置阶段责任人失败，请重试');
+    }
+}
+
+// 处理表单提交的函数
+async function handleFormSubmit() {
+    // 禁用提交按钮，防止重复提交
+    const submitBtn = document.getElementById('submitBtn');
+    const saveDraftBtn = document.getElementById('saveDraftBtn');
+    if (submitBtn) submitBtn.disabled = true;
+    if (saveDraftBtn) saveDraftBtn.disabled = true;
+
+    try {
+        // 收集表单数据
+        const formData = new FormData(document.getElementById('defectForm'));
+        const requestData = {};
+
+        // 将FormData转换为普通对象
+        for (let [key, value] of formData.entries()) {
+            requestData[key] = value;
+        }
+        requestData['act'] = 'audit';
+        // 如果是草稿，设置is_draft为true
+        const isDraft = requestData.is_draft === 'true';
+        // 发送API请求
+        {% if  request.args.get('from_page', '') == "create" %}
+            let url = "/defect/{{ defect.id }}/submit-all-api"
+        {% else %}
+            let url = "/defect/create_simplified2"
+        {% endif %}
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+
+        if (result.code === 0) {
+            // 成功，显示消息并跳转
+            showToast('success', result.message);
+            // 延迟跳转，让用户看到成功消息
+            setTimeout(() => {
+                if (result.data) {
+                   {% if  request.args.get('from_page', '') == "create" %}
+                   let  is_change = ""
+                   let  changed_items = ""
+                   if(result.data.changed_items.includes("缺陷基本信息")||result.data.changed_items.includes("缺陷描述")){
+                         is_change = "1"
+                         changed_items = "缺陷描述"
+                   }
+                   location.href = "/defect/simplified2/{{defect.id}}?stage_type=simplified2&ai_done_act=audit&is_change="+is_change+"&changed_items="+changed_items
+                    {% else %}
+                   window.location.href = result.data.redirect_url+"&changed_items=缺陷描述";
+                    {% endif %}
+
+
+                } else {
+                    // 如果没有跳转地址，默认跳转到缺陷详情页
+                    window.location.href = `/defect/detail_simplified2/${result.data.defect_id}`;
+                }
+            }, 1500);
+        } else {
+            // 失败，显示错误信息
+            showToast('error', result.message || '创建失败');
+
+            // 启用按钮
+            if (submitBtn) submitBtn.disabled = false;
+            if (saveDraftBtn) saveDraftBtn.disabled = false;
+        }
+
+    } catch (error) {
+        console.error('提交表单失败:', error);
+        showToast('error', '网络错误，请重试');
+
+        // 启用按钮
+        if (submitBtn) submitBtn.disabled = false;
+        if (saveDraftBtn) saveDraftBtn.disabled = false;
+    }
+}
+
+// 打开阶段责任人设置对话框
+function openStageAssignmentModal() {
+    const modal = new bootstrap.Modal(document.getElementById('stageAssignmentModal'));
+    modal.show();
+}
+
+</script>
+
+
+
+{% include "components/defect_flow_histories.html" %}
+{% include  "components/ai_done.html" %}
+</body>
+</html>

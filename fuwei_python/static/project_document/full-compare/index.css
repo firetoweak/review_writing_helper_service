@@ -1,0 +1,429 @@
+.back-link-spacing {
+  margin-left: 9px;
+}
+.comparison-card-gap {
+  margin-top: 23px;
+}
+.page {
+  background-color: #f6faff;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+.header-bar {
+  padding: 10px 40px;
+  background-color: #ffffff;
+  box-shadow: 0px 4px 4px #217efd14;
+  backdrop-filter: blur(5px);
+}
+.header-icon {
+  width: 40px;
+  height: 40px;
+}
+.header-link {
+  color: #217efd;
+  font-size: 22px;
+  font-family: DingTalk JinBuTi;
+  line-height: 19px;
+}
+.compare-edit-btn {
+  margin-left: auto;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background-color: #e4f0ff;
+  color: #217efd;
+  font-size: 14px;
+  font-family: PingFang SC;
+  font-weight: 600;
+  cursor: pointer;
+  display: none;
+}
+.compare-edit-btn.active {
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  color: #ffffff;
+}
+.content-wrapper {
+  padding: 40px;
+}
+.original-panel {
+  padding-bottom: 666px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  width: 864px;
+  height: 800px;
+  border-left: solid 1px #c0d7f3;
+  border-right: solid 1px #c0d7f3;
+  border-top: solid 1px #c0d7f3;
+  border-bottom: solid 1px #c0d7f3;
+  overflow-y: scroll;
+}
+.panel-header {
+  background-color: #f2f8ff;
+  border-radius: 8px 8px 0px 0px;
+  overflow: hidden;
+  height: 52px;
+  border-left: solid 1px #c0d7f4;
+  border-right: solid 1px #c0d7f4;
+  border-top: solid 1px #c0d7f4;
+  border-bottom: solid 1px #c0d7f4;
+}
+.panel-header-bg {
+  margin-top: -16px;
+  opacity: 0.24;
+  width: 865px;
+  height: 96px;
+}
+.panel-label {
+  font-size: 16px;
+  font-family: PingFang SC;
+  line-height: 15px;
+  font-weight: 600;
+  color: #222222;
+}
+.panel-label-left {
+  position: absolute;
+  left: 16.5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.highlight-icon {
+  width: 14px;
+  height: 14px;
+}
+.edit-icon {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+.highlight-icon-right {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.section-header-row {
+  margin-top: 30px;
+  padding: 0 16px;
+}
+.section-header-first {
+  margin-top: 22px;
+}
+.section-number {
+  font-size: 24px;
+  font-family: DingTalk JinBuTi;
+  line-height: 18.5px;
+  color: transparent;
+}
+.section-number-gradient {
+  line-height: 18px;
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  -webkit-background-clip: text;
+}
+.section-heading {
+  font-size: 20px;
+  font-family: PingFang SC;
+  line-height: 18.5px;
+  font-weight: 600;
+  color: #222222;
+}
+.summary-text {
+  font-size: 14px;
+  font-family: PingFang SC;
+  line-height: 24px;
+  color: #557496;
+}
+.summary-paragraph {
+  margin: 22px 16px 0;
+  text-align: justify;
+}
+.panel-body {
+  padding: 0 24px;
+  box-sizing: border-box;
+  width: 100%;
+}
+.panel-body .section-header-row {
+  padding: 0;
+}
+.panel-body .summary-paragraph {
+  margin: 22px 0 0;
+  padding: 0;
+  display: block;
+  width: 100%;
+}
+.divider-graphic {
+  opacity: 0.3;
+  width: 63px;
+  height: 93px;
+  align-self: center;
+}
+.comparison-column {
+  width: 864px;
+}
+.original-side {
+  width: 864px;
+}
+.original-panel-view {
+  display: block;
+  margin-bottom: 1rem;
+}
+.original-edit-header {
+  display: none;
+}
+.original-column {
+  display: none;
+  width: 864px;
+}
+.comparison-side {
+  width: 864px;
+}
+.comparison-panel-view {
+  display: block;
+}
+.comparison-edit-header {
+  display: none;
+}
+.comparison-column {
+  display: none;
+}
+.compare-edit-mode .comparison-panel-view {
+  display: none;
+}
+.compare-edit-mode .comparison-edit-header {
+  display: flex;
+}
+.compare-edit-mode .comparison-column {
+  display: flex;
+  flex-direction: column;
+}
+.compare-edit-left .original-panel-view {
+  display: none;
+}
+.compare-edit-left .original-edit-header {
+  display: flex;
+}
+.compare-edit-left .original-column {
+  display: flex;
+  flex-direction: column;
+}
+.comparison-card {
+  padding-bottom: 0;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border-left: solid 1px #c0d7f3;
+  border-right: solid 1px #c0d7f3;
+  border-top: solid 1px #c0d7f3;
+  border-bottom: solid 1px #c0d7f3;
+}
+.card-title-position {
+  position: absolute;
+  left: 16.5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.diff-image-wrapper {
+  background-color: #ffffff;
+  border-left: solid 1px #c0d7f4;
+  border-right: solid 1px #c0d7f4;
+  border-top: solid 1px #c0d7f4;
+  border-bottom: solid 1px #c0d7f4;
+  padding: 12px 14px 10px;
+  border-radius: 8px;
+  height: 800px;
+}
+.diff-image {
+  margin-right: 16px;
+  width: 847px;
+  height: 32px;
+}
+.diff-summary-text {
+  font-size: 14px;
+  font-family: PingFang SC;
+  line-height: 22px;
+  color: #222222;
+}
+.diff-summary-spacing {
+  margin-left: 14px;
+  margin-right: 22px;
+}
+.actions-row-center {
+  align-self: center;
+}
+.actions-wrapper {
+  width: 1167px;
+}
+.action-primary {
+  padding: 16px 0;
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  border-radius: 8px;
+  overflow: hidden;
+  width: 192px;
+  height: 48px;
+}
+.action-button {
+  border: none;
+  cursor: pointer;
+}
+.action-button:focus {
+  outline: none;
+}
+.action-button:active {
+  transform: scale(0.99);
+}
+.action-label {
+  font-size: 16px;
+  font-family: PingFang SC;
+  line-height: 15px;
+  font-weight: 600;
+  color: inherit;
+}
+.action-label-primary {
+  color: #ffffff;
+}
+.action-secondary {
+  padding: 16px 0;
+  background-color: #e4f0ff;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 96px;
+  height: 48px;
+}
+.action-label-secondary {
+  color: #217efd;
+}
+.writing-toolbar {
+  margin: 12px 0 8px;
+}
+.writing-toolbar .w-e-toolbar,
+.writing-toolbar .w-e-bar {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+.writing-toolbar .w-e-toolbar {
+  padding: 0 !important;
+}
+.writing-toolbar .w-e-bar {
+  background: transparent;
+}
+.writing-toolbar .w-e-menu {
+  padding: 0 6px;
+}
+.diff-editor {
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+}
+.diff-editor .w-e-text-container {
+  min-height: 120px !important;
+  max-height: 800px !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow-y: auto;
+}
+.diff-editor .w-e-scroll {
+  min-height: 120px !important;
+  max-height: 800px !important;
+  height: auto !important;
+  overflow-y: auto;
+}
+.w-e-text-container *, .w-e-toolbar * {
+    max-height: 650px;
+}
+
+.diff-editor [data-slate-editor] {
+  min-height: 0 !important;
+  padding: 0 8px !important;
+}
+.diff-editor .w-e-text {
+  padding: 0 !important;
+  line-height: 24px;
+  color: #222222;
+}
+.diff-editor p {
+  margin: 0 0 10px;
+  color: #222222;
+  line-height: 24px;
+  text-align: justify;
+}
+.diff-editor ul {
+  margin: 0 0 10px 20px;
+  padding: 0;
+  color: #222222;
+  line-height: 24px;
+}
+
+/* 确认替换弹窗 */
+.replace-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.replace-confirm-overlay.show {
+  display: flex;
+}
+.replace-confirm-modal {
+  position: relative;
+  padding-top: 2rem;
+  width: 18rem;
+}
+.replace-confirm-icon {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 3.51rem;
+  height: 3.51rem;
+  z-index: 1;
+}
+.replace-confirm-content {
+  padding: 2.25rem 0.63rem 0 0.88rem;
+  background-image: linear-gradient(180deg, #e7f1ff 2%, #ffffff 27.6%);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.replace-confirm-title {
+  text-align: center;
+  color: #222222;
+  font-size: 1.13rem;
+  font-family: PingFang SC;
+  font-weight: 600;
+  line-height: 1.05rem;
+}
+.replace-confirm-buttons {
+  display: flex;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  gap: 1rem;
+  margin-top: 0.31rem;
+  border-radius: 0 0 1rem 1rem;
+}
+.replace-confirm-btn {
+  padding: 1rem 0;
+  flex: 1 1 8.25rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  height: 3rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: PingFang SC;
+  font-weight: 600;
+  line-height: 0.94rem;
+  box-sizing: border-box;
+}
+.replace-confirm-btn.cancel {
+  background-color: #e4f0ff;
+  color: #217efd;
+}
+.replace-confirm-btn.confirm {
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  color: #ffffff;
+}

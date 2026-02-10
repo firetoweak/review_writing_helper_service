@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+    {% include "admin/base.html" %}
+    <link href="{{ url_for('static', filename='lib/wang-editor/style.css') }}" rel="stylesheet" type="text/css">
+        <style>
+        .right-side {
+            position: relative; /* 关键：作为子元素sticky的参考 */
+            min-height: 100vh;  /* 确保容器高度足够 */
+            height: 100%;
+            overflow-y: auto; /* 仅内容容器滚动 */
+        }
+        </style>
+    <body class="skin-blue">
+        {% include "admin/header.html" %}
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+            <div class="right-side">
+                <section class="content-header">
+                    <h2>
+                        立项工作流prompt
+                        <small style="font-size: 50%;cursor: pointer" onclick="window.open('/admin/get_check_logs')">查看定制日志</small>
+                    </h2>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        <li class="active">立项工作流prompt</li>
+                    </ol>
+                </section>
+
+
+
+                 <div style="float: left; width: 90%; margin-left: 15px; margin-top: 20px">
+                    <h3>
+                         1. 规则文件
+                        <small>上传大纲规则、评审规则及行业背景，驱动架构解析</small>
+                    </h3>
+                </div>
+
+
+                <div style="float: left; width: 25%; margin-right: 15px; margin-left: 10px">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 18px; display: block; margin-bottom: 4px;">
+                        大纲（全文写作）规则
+                      </b>
+                      <small style="color: #6c757d; display: block; margin-bottom: 12px;">结构解析核心</small>
+                      <!-- 上传按钮：增加交互感 -->
+                      <span
+                        class="fa fa-angle-double-up"
+                        style="font-size: 16px; color: #4e73df; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                        onmouseover="this.style.background='#f8f9fc'"
+                        onmouseout="this.style.background='transparent'" upload_name="outlineRule"
+                      >上传文件</span>
+                       {% if 'outlineRule' in  doc_dict  %}
+                          <span onclick="window.open('/admin/download_lx2_file?filename=outlineRule')"
+                            class="fa fa-angle-double-down"
+                            style="font-size: 16px; color: #4e73df; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                            onmouseover="this.style.background='#f8f9fc'"
+                            onmouseout="this.style.background='transparent'" upload_name="outlineRule"
+                          >下载文件</span>
+                       {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div style="float: left; width: 25%; margin-right: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 18px; display: block; margin-bottom: 4px;">
+                        评审规则
+                      </b>
+                      <small style="color: #6c757d; display: block; margin-bottom: 12px;">质量控制标准</small>
+                      <!-- 上传按钮：增加交互感 -->
+                      <span
+                        class="fa fa-angle-double-up"
+                        style="font-size: 16px; color: #4e73df; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                        onmouseover="this.style.background='#f8f9fc'"
+                        onmouseout="this.style.background='transparent'" upload_name="reviewRule"
+                      >上传文件</span>
+                       {% if 'reviewRule' in  doc_dict  %}
+                          <span
+                            class="fa fa-angle-double-down"
+                             onclick="window.open('/admin/download_lx2_file?filename=reviewRule')"
+                            style="font-size: 16px; color: #4e73df; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                            onmouseover="this.style.background='#f8f9fc'"
+                            onmouseout="this.style.background='transparent'" upload_name="reviewRule"
+                          >下载文件</span>
+                       {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <div style="float: left; width: 25%; margin-right: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 18px; display: block; margin-bottom: 4px;">
+                        行业特点
+                      </b>
+                      <small style="color: #6c757d; display: block; margin-bottom: 12px;">领域知识注入</small>
+                      <!-- 上传按钮：增加交互感 -->
+                      <span
+                        class="fa fa-angle-double-up"
+                        style="font-size: 16px; color: #4e73df; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                        onmouseover="this.style.background='#f8f9fc'"
+                        onmouseout="this.style.background='transparent'" upload_name="industryCharacteristics"
+                      >上传文件</span>
+
+                      {% if 'industryCharacteristics' in  doc_dict  %}
+                          <span
+                            onclick="window.open('/admin/download_lx2_file?filename=industryCharacteristics')"
+                            class="fa fa-angle-double-down"
+                            style="font-size: 16px; color: #4e73df; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.2s;"
+                            onmouseover="this.style.background='#f8f9fc'"
+                            onmouseout="this.style.background='transparent'" upload_name="industryCharacteristics"
+                          >下载文件</span>
+                       {% endif %}
+                    </div>
+                  </div>
+                </div>
+
+
+                <form id ="formContent">
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                        2. 内容生成 Prompt
+                        <small>控制章节大纲、章节要点及小节要点的生成逻辑</small>
+                    </h3>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        章节大纲生成
+                      </b>
+                      <textarea id="chapterOutlinePrompt" name ="chapterOutlinePrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{ prompt_dict['chapterOutlinePrompt'] }}</textarea>
+
+
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        章节要点生成
+                      </b>
+                      <textarea id="chapterPointPrompt" name="chapterPointPrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['chapterPointPrompt']}}</textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        小节要点生成
+                      </b>
+                      <textarea id="sectionPointPrompt"  name="sectionPointPrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['sectionPointPrompt']}}</textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                        <a href="/admin/lx2-chapter-prompt" style="cursor: pointer">3.1 评审 prompt(章)</a>
+                        <small>基于规则解析出的架构，定义各章节与小节的动态评审细则</small>
+                    </h3>
+                </div>
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <textarea id="chapterReviewPrompt" name="chapterReviewPrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{ prompt_dict['chapterReviewPrompt'] }} </textarea>
+                    </div>
+                  </div>
+                </div>
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                         <a href="/admin/lx2-chapter-prompt?act=sectionReviewPrompt" style="cursor: pointer">3.2 评审 prompt(小节)</a>
+                        <small>基于规则解析出的架构，定义各章节与小节的动态评审细则</small>
+                    </h3>
+                </div>
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <textarea id="sectionReviewPrompt" name="sectionReviewPrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{ prompt_dict['sectionReviewPrompt'] }} </textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                        <a href="/admin/lx2-chapter-prompt?act=firstHeuristicWriting" style="cursor: pointer">4. 启发式写作</a>
+                        <small>控制 Agent 在首次及迭代生成时的回复指令</small>
+                    </h3>
+                </div>
+                <div style="float: left; width: 40%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        生成prompt
+                      </b>
+                      <textarea id="firstHeuristicWriting" name="firstHeuristicWriting" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['firstHeuristicWriting']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+                <div style="float: left; width: 40%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        校验prompt
+                      </b>
+                      <textarea id="firstHeuristiccheckPrompt" name="firstHeuristiccheckPrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['firstHeuristiccheckPrompt']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                        5.“我能” Prompt 管理
+                        <small>定义 Agent 的核心能力、角色身份与工作边界</small>
+                    </h3>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        合入整合指令
+                      </b>
+                      <textarea id="iCan" name="iCan" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['iCan']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+
+
+
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                        6. 一键合入
+                        <small>配置将各章节合并为完整报告的 Prompt 逻辑</small>
+                    </h3>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        合入整合指令
+                      </b>
+                      <textarea id="oneKeyCombine" name="oneKeyCombine" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['oneKeyCombine']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                        7. 全文润色
+                        <small>定义针对整份成稿进行语言优化与专业提升的指令</small>
+                    </h3>
+                </div>
+
+
+                <div style="float: left; width: 40%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        指令
+                      </b>
+                      <textarea id="fullTextPolishing" name="fullTextPolishing" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['fullTextPolishing']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+                <div style="float: left; width: 40%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        校验
+                      </b>
+                      <textarea id="checkfullTextPolishingPrompt" name="checkfullTextPolishingPrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['checkfullTextPolishingPrompt']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+
+
+
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                        文采润色指令
+                      </b>
+                      <textarea id="fullTextPolishing" name="fullTextPolishing"  class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['fullTextPolishing']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                    <h3>
+                        7. 全文评审prompt管理
+                        <small>定义针对整份成稿进行语言优化与专业提升的指令</small>
+                    </h3>
+                </div>
+
+                <div style="float: left; width: 90%; margin-left: 15px;">
+                  <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                  <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                    <!-- 内容区域：调整间距，统一对齐 -->
+                    <div style="width: 100%;">
+                      <b style="color: #6f42c1; font-size: 16px; display: block; margin-bottom: 4px;">
+                         全文评审指令
+                      </b>
+                      <textarea id="fullTextPrompt" name="fullTextPrompt"  class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{prompt_dict['fullTextPrompt']  }} </textarea>
+                    </div>
+                  </div>
+                </div>
+
+
+                 </form>
+                 <div  style="float: left; width: 90%; margin-left: 15px;text-align: center;">
+                     <button class="btn btn-danger" id="saveDone">保存全部</button>
+                 </div>
+
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+ layui.use(['jquery', 'layer','upload'], function(){
+    var $ = layui.jquery;
+    var upload = layui.upload;
+    $('.fa-angle-double-up').each(function (){
+        var elem = $(this); // 当前按钮
+        var upload_name = $(this).attr('upload_name');
+            upload.render({
+                elem: elem, // 直接传入 jQuery 对象或 DOM 元素
+                url: '/admin/upload_lx2_file?upload_name='+upload_name,
+                accept: 'file',
+                exts: 'md',
+                before: function() {
+                    layer.load();
+                },
+                done: function(res) {
+                    layer.closeAll();
+                    layer.msg(res.msg || '上传成功');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                },
+                error: function() {
+                    layer.closeAll();
+                    layer.msg('上传失败');
+                }
+            });
+    })
+     $('#saveDone').click(function (){
+            var formData = $("#formContent").serialize();
+           $.ajax({
+                    url: '/admin/lx2_prompt',
+                    type: 'POST',
+                    data: formData,
+                    success: function(res) {
+                        console.log('提交成功', res);
+                        alert('表单提交成功！');
+                        // 重置表单
+                        location.reload()
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('提交失败', error);
+                        alert('提交失败，请重试！');
+                    }
+           });
+     })
+ })
+</script>

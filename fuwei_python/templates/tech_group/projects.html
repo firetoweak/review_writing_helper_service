@@ -1,0 +1,228 @@
+<!-- projects.html -->
+{% extends "tech_group/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>项目管理 - {{ tech_group.name }}-{{ platform.name }}</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('tech_group.get_tech_groups') }}">技术族</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tech_group.get_platforms', group_id=tech_group.id) }}">{{ tech_group.name }}</a></li>
+                <li class="breadcrumb-item active">{{ platform.name }}</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <a href="{{ url_for('tech_group.get_platforms', group_id=tech_group.id) }}" class="btn btn-secondary me-2">
+            <i class="bi bi-arrow-left"></i> 返回上一级
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#projectModal"
+                onclick="resetProjectForm()">
+            <i class="bi bi-plus-circle"></i> 新增
+        </button>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>代码</th>
+            <th>描述</th>
+            <th>版本</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for project in projects %}
+        <tr>
+            <td>{{ project.id }}</td>
+            <td>{{ project.name }}</td>
+            <td>{{ project.code }}</td>
+            <td>{{ project.description or '' }}</td>
+            <td>{{ project.current_version or '' }}</td>
+            <td>
+                <button class="btn btn-sm btn-warning"
+                        data-bs-toggle="modal"
+                        data-bs-target="#projectModal"
+                        onclick="editProject({{ project.id }}, '{{ project.name }}', '{{ project.code }}', '{{ project.description or '' }}', '{{ project.repo_url or '' }}', '{{ project.current_version or '' }}')">
+                    <i class="bi bi-pencil"></i> 编辑
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteProject({{ project.id }}, '{{ project.name }}')">
+                    <i class="bi bi-trash"></i> 删除
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 项目模态框 -->
+<div class="modal fade" id="projectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="projectModalTitle">新增项目</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="projectForm">
+                <input type="hidden" name="platform_id" value="{{ platform.id }}">
+                <input type="hidden" id="projectId" name="id" value="">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">名称</label>
+                                <input type="text" class="form-control" id="projectName" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">代码</label>
+                                <input type="text" class="form-control" id="projectCode" name="code" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">描述</label>
+                        <textarea class="form-control" id="projectDescription" name="description"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">代码库URL</label>
+                                <input type="url" class="form-control" id="projectRepoUrl" name="repo_url">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">当前版本</label>
+                                <input type="text" class="form-control" id="projectCurrentVersion" name="current_version">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 重置表单
+    function resetProjectForm() {
+        document.getElementById('projectModalTitle').innerText = '新增项目';
+        document.getElementById('projectId').value = '';
+        document.getElementById('projectName').value = '';
+        document.getElementById('projectCode').value = '';
+        document.getElementById('projectDescription').value = '';
+        document.getElementById('projectRepoUrl').value = '';
+        document.getElementById('projectCurrentVersion').value = '';
+    }
+
+    // 编辑项目
+    function editProject(id, name, code, description, repoUrl, currentVersion) {
+        document.getElementById('projectModalTitle').innerText = '编辑项目';
+        document.getElementById('projectId').value = id;
+        document.getElementById('projectName').value = name;
+        document.getElementById('projectCode').value = code;
+        document.getElementById('projectDescription').value = description;
+        document.getElementById('projectRepoUrl').value = repoUrl;
+        document.getElementById('projectCurrentVersion').value = currentVersion;
+    }
+
+    // 删除项目
+    function deleteProject(id, name) {
+        if (confirm(`确定要删除项目"${name}"吗？此操作不可恢复。`)) {
+            fetch(`/tech_group/projects/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                // 首先检查HTTP状态码
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || `服务器错误: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 成功删除后刷新页面
+                alert(data.message || '删除成功');
+                window.location.reload();
+            })
+            .catch(error => {
+                alert('删除失败: ' + error.message);
+            });
+        }
+    }
+
+    // 处理项目表单提交
+    document.getElementById('projectForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // 表单验证
+        const nameInput = document.getElementById('projectName');
+        const codeInput = document.getElementById('projectCode');
+
+        if (!nameInput.value.trim()) {
+            alert('项目名称不能为空');
+            nameInput.focus();
+            return;
+        }
+
+        if (!codeInput.value.trim()) {
+            alert('项目代码不能为空');
+            codeInput.focus();
+            return;
+        }
+
+        const formData = new FormData(this);
+        const projectId = document.getElementById('projectId').value;
+        const url = projectId ? `/tech_group/projects/${projectId}` : '/tech_group/projects';
+        const method = projectId ? 'PUT' : 'POST';
+        const action = projectId ? '更新' : '创建';
+
+        // 显示加载状态
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+        submitBtn.disabled = true;
+
+        fetch(url, {
+            method: method,
+            body: formData
+        })
+        .then(response => {
+            // 首先检查HTTP状态码
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || `服务器错误: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`${action}成功`);
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('projectModal'));
+            modal.hide();
+            // 刷新页面
+            window.location.reload();
+        })
+        .catch(error => {
+            alert(`${action}失败: ` + error.message);
+        })
+        .finally(() => {
+            // 恢复按钮状态
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    {% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item active">
+                    {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a> {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+                </li>
+                <li class="breadcrumb-item active">
+                    项目与管理员信息管理
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="container-main">
+        <div class="role-selector">
+            {% include "components/roles_menu.html" %}
+            {% include "components/defect_message.html" %}
+        </div>
+
+        <div class="operate-bar">
+             {{ get_right_style(0)|safe }}
+        </div>
+
+
+        
+        <!-- 操作栏 - 包含切换按钮和搜索区域 -->
+        <div class="operation-bar">
+            <!-- 切换按钮 -->
+            {% include "components/user_menus.html" %}
+        </div>
+        <div style="display: flex;align-items: center;justify-content:space-between;">
+            <div class="layui-tab layui-tab-brief" style="width: 216px;">
+                <ul class="layui-tab-title">
+                    <li  data-type="product" {% if keys['actions']=='version'  %} class="layui-this"  {% endif %} onclick="location.href='/product_line/versions' " >产品线</li>
+                    <li data-type="technology" {% if keys['actions']=='project'  %} class="layui-this"  {% endif %} onclick="location.href='/tech_group/projects' " >技术族</li>
+                </ul>
+            </div>
+            <!-- 搜索区域 -->
+            <div class="search-group">
+                <div class="button" id="batchDelete">批量删除</div>
+                <div class="add-btn" id="addDefectBtn"> 新增 </div>
+            </div>
+        </div>    
+        <!-- 内容区域 -->
+        <div class="tab-content" style="margin-top: 20px;">
+            <!-- 待处理缺陷 内容 -->
+            <div class="tab-pane layui-show" id="processedContent">
+                <!-- 缺陷列表表格 -->
+                <div class="table-container">
+                  {% if pagination.total>0 %}
+                    <table class="layui-table" lay-size="sm" lay-filter="defectTable">
+                        {% if keys['actions'] =='version' %}
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" lay-skin="primary" lay-filter="checkAll" id="checkAll">
+                                </th>
+                                <th>
+                                    产品线
+                                </th>
+                                <th>产品</th>
+                                <th>
+                                    版本
+                                </th>
+                                <th>版本备注</th>
+                                <th>
+                                    管理员
+                                </th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="defectTableBody">
+                            {% for version in versions  %}
+                              <tr>
+                                <td><input type="checkbox" lay-skin="primary" lay-filter="defectCheckbox" data-id="{{ version.id }}"></td>
+                                <td>{{ version.product.product_line.name }}</td>
+                                <td title="{{ version.product.name }}">{{ version.product.name }}</td>
+                                <td>{{ version.version_number }}</td>
+                                <td title="{{ version.release_notes }}">{{ version.release_notes }}</td>
+                                <td>{{ version.member_real_name }}</td>
+                                <td>
+                                    <span class='option-button' style="margin-right:20px" data-action="edit" data-id="{{version.id}}"
+                                          data-level1="{{ version.product.product_line.id }}"
+                                          data-level2="{{ version.product.id }}"
+                                          data-level3="{{ version.version_number }}"
+                                          data-desc="{{ version.release_notes }}"
+                                          data-email="{{ version.member_email }}"
+                                          data-dept="{{ version.member_dept }}"
+                                          data-real_name = "{{ version.member_real_name }}"
+                                    >编辑</span>
+                                    <span class='option-button' data-action="delete" data-id="{{ version.id  }}">删除</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                         {% else %}
+                          <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" lay-skin="primary" lay-filter="checkAll" id="checkAll">
+                                </th>
+                                <th>
+                                    技术族
+                                </th>
+                                <th>平台</th>
+                                <th>
+                                    项目
+                                </th>
+                                <th>项目备注</th>
+                                <th>
+                                    管理员
+                                </th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="defectTableBody">
+                            {% for project in projects  %}
+                              <tr>
+                                <td><input type="checkbox" lay-skin="primary" lay-filter="defectCheckbox" data-id="{{ project.id }}"></td>
+                                <td>{{ project.platform.tech_group.name }}</td>
+                                <td title="{{ project.platform.name }}">{{ project.platform.name }}</td>
+                                <td>{{ project.name }}</td>
+                                <td title="{{ project.description }}">{{ project.description }}</td>
+                                <td>{{ project.member_real_name }}</td>
+                                <td>
+                                    <span class='option-button' style="margin-right:20px" data-action="edit" data-id="{{project.id}}"
+                                          data-level1="{{ project.platform.tech_group.id }}"
+                                          data-level2="{{ project.platform.id }}"
+                                          data-level3="{{ project.name }}"
+                                          data-desc="{{ project.description }}"
+                                          data-email="{{ project.member_email }}"
+                                          data-dept="{{ project.member_dept }}"
+                                          data-real_name = " {{ project.member_real_name }}"
+                                    >编辑</span>
+                                    <span class='option-button' data-action="delete" data-id="{{ project.id  }}">删除</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                         {% endif %}
+                    </table>
+
+                  {% else %}
+                    <div style="display: flex;align-items: center;justify-content: center;width: 100%;margin-top: 40px;" id="noData">
+                        <img src="/static/images/aival/no_record.png">
+                    </div>
+                  {% endif %}
+                </div>
+
+                <!-- 分页区域占位 -->
+{#                <div class="pagination-placeholder" id="paginationPlaceholder" style="display: none;">#}
+{#                            #}
+{#                </div>#}
+                            {% include "pages.html" %}
+            </div>
+
+            <!-- 处理记录 内容 -->
+            <div class="tab-pane" id="processedContent">
+                <div class="table-container">
+                    <div id="processedTableContainer">
+                        <!-- 处理记录内容将通过JS动态生成 -->
+                    </div>
+                </div>
+                <!-- 分页区域占位 -->
+                <div class="pagination-placeholder">
+                    <!-- 分页功能已取消，保留位置 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部区域 -->
+    {% include "user/footer.html" %}
+
+    <!-- Toast 提示容器 -->
+    <div class="toast-container" id="toastContainer" style="display: none;">
+        <div class="toast-success" id="successToast">
+            <i class="layui-icon layui-icon-ok-circle"></i>
+            <div class="toast-message">提交成功！审核工作流已启动</div>
+        </div>
+        <div class="toast-error" id="errorToast" style="display: none;">
+            <i class="layui-icon layui-icon-close-fill"></i>
+            <div class="toast-message">提交失败，请检查网络连接后重试</div>
+        </div>
+        <div class="toast-warning" id="warningToast" style="display: none;">
+            <i class="layui-icon layui-icon-tips"></i>
+            <div class="toast-message">请先完善必填信息后再提交</div>
+        </div>
+        <div class="toast-info" id="infoToast" style="display: none;">
+            <i class="layui-icon layui-icon-about"></i>
+            <div class="toast-message">正在处理中，请稍候...</div>
+        </div>
+    </div>
+
+    <!-- 确认删除弹窗模块 -->
+    <div class="modal fade" id="delModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+            <div class="modal-content" style="border-radius:16px;width: 80%;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px 24px;">
+                <div style="position: absolute;right: 42%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+                <div class="text-center">
+                    <div style="font-size:20px;font-weight:600;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">确定删除记录？</div>
+                    <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" onclick="this.blur()" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button type="button" class="btn btn-danger" onclick="this.blur()" id="confirmDeleteBtn" style="min-width:123px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                            确定删除
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 配置产品线人员 -->
+    <div class="modal fade" id="assignDevTestModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+            <div class="modal-content" style="border-radius:16px;">
+                <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                    <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                        <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                            <div class="flex items-center justify-center">
+                                <img src="/static/images/defect/imga1/aaa2.png" alt="图标" class="test-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;">
+                                <span style="margin-top: 2px;">
+                                    {% if keys['actions']=='version'  %}
+                                    配置项目管理员
+                                     {% else %}
+                                    配置项目管理员
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="this.blur()" aria-label="Close" style="font-size:20px;"></button>
+                </div>
+                <div style="padding: 0 40px;margin-top: 24px;">
+
+                    <!-- 产品线 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;color:#222;margin-bottom: 10px;">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <span style="color: red;">*</span> {% if keys['actions']=='version'  %}产品线{% else %} 技术族 {% endif %}
+                                </div>
+                                <div id="level1Select" style="cursor: pointer;">
+                                    <img src="/static/images/defect/imga1/aaa4.png" alt="管理">
+                                </div>
+                            </div>
+                        </label>
+                        <div class="layui-form">
+                            <select name="level1" lay-verify="" lay-filter="level1" id="level1">
+                                <option value="">{% if keys['actions']=='version'  %}全部产品线{% else %} 全部技术族 {% endif %}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 产品 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;color:#222;margin-bottom: 10px;">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <span style="color: red;">*</span> {% if keys['actions']=='version'  %}产品{% else %} 平台 {% endif %}
+                                </div>
+                                <div id="level2Select" style="cursor: pointer;">
+                                    <img src="/static/images/defect/imga1/aaa4.png" alt="管理">
+                                </div>
+                            </div>
+                            <!-- <span style="color: red;">*</span> 产品 -->
+                        </label>
+                        <div class="layui-form">
+                            <select name="level2" id="level2" lay-verify="" lay-filter="level2" id="level2">
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 版本 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;color:#222;margin-bottom: 10px;">
+                            <span style="color: red;">*</span>  {% if keys['actions']=='version'  %}版本{% else %} 项目 {% endif %}
+                        </label>
+                        <input type="text" style="width:100%" id="level3" placeholder="{% if keys['actions']=='version'  %}版本号{% else %} 项目名称 {% endif %}" autocomplete="off" class="layui-input">
+                        <!-- <input type="text" class="form-control" placeholder="版本" style="width: 100%;height: 40px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;"> -->
+                    </div>
+
+                    
+                    <!-- 人员搜索区域 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                            <span style="color: red;">*</span> Email
+                        </label>
+                        <div style="position: relative;">
+                            <input type="text" id="testMemberSearch" style="width:100%" name="defectNo" placeholder="搜索成员" autocomplete="off" class="layui-input">
+                            <img src="/static/images/defect/imga1/aaa3.png" alt="搜索" style="position: absolute;right: 12px;top: 50%;transform: translateY(-50%);width: 16px;height: 16px;">
+                            <!-- 下拉框 -->
+                            <div id="testMemberDropdown" class="member-dropdown" style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 200px;overflow-y: auto;margin-top: 10px;">
+                                <!-- 动态生成搜索结果 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 姓名显示区域 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;color:#557496;margin-bottom: 10px;">姓名</label>
+                        <div id="selectedTestMemberName" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F8F9FA;color: #999;display: flex;align-items: center;">
+                            通过Email账号搜索人员，此处将会自动填充姓名
+                        </div>
+                    </div>
+                    
+                    <!-- 备注区域 -->
+                    <div class="form-group">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;color:#222;margin-bottom: 10px;">
+                            <span style="color: red;">*</span> 备注
+                        </label>
+                        <textarea id="desc" class="form-control layui-input" placeholder="请输入" style="width: 100%;height: 100px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 12px;font-size: 14px;resize: none;background-color: #F6FAFF;"></textarea>
+                        <input type="hidden" id="record_id">
+                    </div>
+                </div>
+                <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="drawer-buttons" style="width: 60%;height: 100px;display: flex;justify-content: center;align-items: center;gap: 20px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" onclick="this.blur()" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button class="ok-btn" id="confirmAssignTest"  style="width: 120px;background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);border: none;">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 产品线管理、产品管理弹窗 -->
+    <div class="modal fade" id="batchInviteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+            <div class="modal-content" style="border-radius:16px;">
+                <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                    <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                        <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                            <div class="flex items-center justify-center">
+                                <img src="/static/images/defect/p2_03.png" alt="图标" class="invite-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;">
+                                <p style="margin-top: 2px;" class="invite-title">
+                                    产品线管理
+                                </p><br>
+
+                            </div>
+                            <p style="font-size: 14px;color: #557496;font-weight:400;margin-top: 5px;" class="invite-leve2-text">互联网产品线/产品管理</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="this.blur()" aria-label="Close" style="font-size:20px;"></button>
+                </div>
+                <div class="modal-body" style="padding: 0 40px;margin-top: 40px;max-height: 560px;">
+                    <!-- 列表容器 -->
+                    <div id="inviteeMembersContainer">
+                        <!-- 第一项（默认） -->
+                        <div class="invitee-item" data-item-index="1">
+                            <!-- 产品线、产品 -->
+                            <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                                <div class="form-group" style="flex: 1; ">
+                                    <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                        <div class="flex items-center justify-content-between">
+                                            <div><span style="color: red;">*</span> <span class="invitee-label">产品线</span></div>
+                                            <!-- 移除按钮放在右上角 -->
+                                            <div style="text-align: right;">
+                                                <button type="button" class="remove-invitee-btn1" style="color: #FE6380;border: 1px solid #FE6380;background: #fff;border-radius: 100px;padding: 2px 8px;font-size: 12px;cursor: pointer;">移除</button>
+                                            </div>
+                                        </div>
+                                    </label>
+                                    <div style="position: relative;">
+                                        <input type="text" class="form-control layui-input" placeholder="请输入" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 添加 -->
+                    <div class="add-invitee-section flex items-center justify-center" style="border: 1px dashed #217efd;border-radius: 8px;padding:6px 15px;text-align: center;margin: 20px 0;cursor: pointer;transition: all 0.3s;">
+                        <div class="addicon">
+                            <img src="/static/images/defect/news_add.png">
+                        </div>
+                        <div class="add-text">添加</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="drawer-buttons" style="width: 60%;height: 40px;display: flex;justify-content: center;align-items: center;gap: 20px;">
+                        <button class="ok-btn" id="confirmBatchInvite" onclick="this.blur()" style="width: 140px;background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);border: none;">关闭 (<span id="inviteeCount">1</span>)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 引入 -->
+        {% include "defect/base_js.html" %}
+         <script>
+        // 初始化Layui模块
+        layui.use(['element', 'form', 'layer','laypage','dropdown','jquery'], function() {
+            var element = layui.element;
+            var form = layui.form;
+            var layer = layui.layer;
+            var laypage = layui.laypage;
+            var dropdown = layui.dropdown;
+            var $ = layui.jquery;
+            
+            // 全局变量
+            var allDefects = []; // 存储所有缺陷数据
+            var filteredDefects = []; // 存储筛选后的数据
+            var activeTab = 'processed';
+            var pageSize = 10;
+            var currentPage = 1; // 添加当前页码变量
+            var currentSort = {
+                field: null,
+                order: null
+            };
+            
+            // 存储每个下拉菜单的状态
+            var dropdownStates = {};
+            
+
+            let levelData = []
+            let currentLevel2 = []
+            let levelSelect = ""
+            // 初始化产品线下拉框
+            function initLevel1(asy=true) {
+               if(levelData.length==0) {
+                   $.ajax({
+                       url:'{% if keys['actions']=='version' %}/product_line/hierarchy{% else %}/tech_group/hierarchy{% endif %}' , //接口地址
+                       type: 'GET', //请求方法  GET  POST
+                       async: asy, //是否异步 默认true
+                       dataType: 'json', // 1.相应数据的格式  2.是否跨域(jsonp)
+                       success: function (result) {
+                           levelData = result;
+                           var select = $('#level1');
+                           select.empty();
+                           console.log(levelData);
+                           levelData.forEach(function (item) {
+                               select.append('<option value="' + item.id + '">' + item.name + '</option>');
+                           });
+                           initLevel2(levelData[0]['{{ keys['level2'] }}'])
+                           form.on('select(level1)', function (data) {
+                               levelData.forEach(function (item) {
+                                   if (item.id == data.value) {
+                                       console.log(currentLevel2)
+                                       initLevel2(item['{{ keys['level2'] }}'])
+                                   }
+                               });
+                           });
+                       },
+                   })
+               }else{
+                      var select = $('#level1');
+                        select.empty();
+                      levelData.forEach(function (item) {
+                          select.append('<option value="' + item.id + '">' + item.name + '</option>');
+                     });
+                     form.on('select(level1)', function (data) {
+                       levelData.forEach(function (item) {
+                           if (item.id == data.value) {
+                               initLevel2(item['{{ keys['level2'] }}'])
+                           }
+                       });
+                   });
+
+               }
+
+            }
+            // 初始化产品下拉框
+            function initLevel2(products) {
+                console.log(products)
+                currentLevel2 = products
+                var select = $('#level2');
+                select.empty();
+                products.forEach(function(item) {
+                    select.append('<option value="' + item.id + '">' + item.name + '</option>');
+                });
+                form.render('select');
+            }
+            
+            // 页面加载完成后初始化下拉框
+            $(document).ready(function() {
+                initLevel1();
+            });
+            
+            // 添加产品线/产品按钮点击事件
+            $(document).on('click', '.add-invitee-section', function() {
+                var nextIndex = $('.invitee-item').length + 1;
+                var newItemHtml = createNewInviteeItem();
+                
+                var $newItem = $(newItemHtml);
+                $newItem.hide(); // 先隐藏，准备动画
+                $('#inviteeMembersContainer').append($newItem);
+                
+                // 添加淡入动画效果
+                $newItem.fadeIn(300);
+                
+                // 更新计数器
+                updateInviteeCount();
+                
+                // 显示/隐藏移除按钮
+            });
+            
+
+            // 初始化所有下拉菜单
+            function initAllDropdowns() {
+                $('.invitee-item').each(function() {
+                    var index = $(this).data('item-index');
+                    initDropdown(index);
+                });
+            }
+            
+            // 创建新的产品线/产品项
+            function createNewInviteeItem(item=null) {
+                // 根据当前标题判断是产品线还是产品
+                var title = $('.invite-title').text();
+                {% if keys['actions']=='version' %}
+                var label = (title === '产品管理') ? '产品' : '产品线';
+                {% else %}
+                var label = (title === '技术族管理') ? '技术族' : '平台';
+                {% endif %}
+                if(item!=null){
+                     var id = item.id
+                }else{
+                    id = ""
+                }
+                return `
+                    <div class="invitee-item" data-id="${id}">
+                        <!-- 产品线、产品 -->
+                        <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                            <div class="form-group" style="flex: 1; ">
+                                <div class="flex items-center justify-content-between" style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                    <div><span style="color: red;">*</span> <span>${label}</span></div>
+                                    <!-- 移除按钮放在右上角 -->
+                                    <div style="text-align: right;">
+                                        <button type="button" class="remove-invitee-btn1" style="color: #FE6380;border: 1px solid #FE6380;background: #fff;border-radius: 100px;padding: 2px 8px;font-size: 12px;cursor: pointer;">移除</button>
+                                       <button type="button" class="remove-invitee-btn2" style="color: blue;border: 1px solid blue;background: #fff;border-radius: 100px;padding: 2px 8px;font-size: 12px;cursor: pointer;">保存</button>
+                                    </div>
+                                </div>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control layui-input" placeholder="请输入" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 移除产品线/产品按钮点击事件
+            $(document).on('click', '.remove-invitee-btn1', function() {
+
+                var $button = $(this);
+                var $inviteeItem = $button.closest('.invitee-item');
+                var id = $inviteeItem.data('id');
+                let url = ""
+                {% if keys['actions']=='version' %}
+                if(levelSelect==='level1Select'){
+                     url ='/product_line/lines/'+id
+                }else if(levelSelect==='level2Select'){
+                     url ='/product_line/products/'+id
+                }
+                {% else %}
+                if(levelSelect==='level1Select'){
+                     url ='/tech_group/groups/'+id
+                }else if(levelSelect==='level2Select'){
+                     url ='/tech_group/platforms/'+id
+                }
+                {% endif %}
+                else{
+                    return false;
+                }
+                $.ajax({
+                       url: url, //接口地址
+                       type: 'DELETE', //请求方法  GET  POST
+                       async: false, //是否异步 默认true
+                       dataType: 'json', // 1.相应数据的格式  2.是否跨域(jsonp)
+                       contentType: "application/json", // 告诉服务器发送的数据是JSON格式
+                       success: function (result) {
+                           console.log(result);
+
+                      $inviteeItem.fadeOut(300, function() {
+                        $(this).remove();
+
+                        // 重新编号所有项目
+                        reindexInviteeItems();
+
+                        // 更新计数器
+                        updateInviteeCount();
+
+                        // 显示/隐藏移除按钮
+
+                        showToast('已移除');
+                    });
+
+                       }
+                })
+            });
+            //新增
+            $(document).on('click', '.remove-invitee-btn2', function() {
+
+                var $button = $(this);
+                var $inviteeItem = $button.closest('.invitee-item');
+                var id = $inviteeItem.data('id');
+                var name = $inviteeItem.find('input[type="text"]').val();
+                let url = ""
+                var level1_id = ""
+                {% if keys['actions']=='version' %}
+                if(levelSelect==='level1Select'){
+                     url ='/product_line/edit_product_line'
+                }else if(levelSelect==='level2Select'){
+                     level1_id = $('#level1').val()
+                     url ='/product_line/edit_product'
+                }
+                {% else %}
+                if(levelSelect==='level1Select'){
+                     url ='/tech_group/edit_tech_group'
+                }else if(levelSelect==='level2Select'){
+                     level1_id = $('#level1').val()
+                     url ='/tech_group/edit_platforms'
+                }
+                {% endif %}
+                else{
+                    return false;
+                }
+                    $.ajax({
+                       url: url, //接口地址
+                       type: 'POST', //请求方法  GET  POST
+                       async: false, //是否异步 默认true
+                       dataType: 'json', // 1.相应数据的格式  2.是否跨域(jsonp)
+                       contentType: "application/json", // 告诉服务器发送的数据是JSON格式
+                       data:JSON.stringify({id:id,name:name,level1_id:level1_id}),
+                        success: function (result) {
+                            showToast("success",result.message);
+                            $inviteeItem.data('id',result.data.id);
+                        },
+                       error(xhr, status, error){
+                            showToast("error",xhr.responseJSON?.error)
+                       }
+                   })
+            });
+
+
+            
+            // 重新编号项目
+            function reindexInviteeItems() {
+                $('.invitee-item').each(function(index) {
+                    var newIndex = index + 1;
+                    $(this).attr('data-item-index', newIndex);
+                });
+            }
+            
+            // 更新计数器
+            function updateInviteeCount() {
+                var count = $('.invitee-item').length;
+                $('#inviteeCount').text(count);
+            }
+            
+
+            
+            $(document).on('click', '#level1Select', function() {
+                levelSelect = "level1Select"
+                // 修改标题为"产品线管理"
+                {% if keys['actions']=='version' %}
+                    $('.invite-title').text('产品线管理');
+                    $('.invitee-label').text('产品线');
+                {% else %}
+                     $('.invite-title').text('技术族管理');
+                    $('.invitee-label').text('技术族');
+                {% endif %}
+                $('.invite-leve2-text').html("")
+                // 清空容器
+                $('#inviteeMembersContainer').empty();
+                
+                // 根据productLineArr数据创建相应数量的项目
+                for (var i = 0; i < levelData.length; i++) {
+                    var newItemHtml = createNewInviteeItem(levelData[i]);
+                    var $newItem = $(newItemHtml);
+                    $('#inviteeMembersContainer').append($newItem);
+                    // 设置输入框的值为产品线名称
+                    $newItem.find('input[type="text"]').val(levelData[i].name);
+                }
+                
+                updateInviteeCount();
+                var myModalEl = document.getElementById('batchInviteModal')
+                var batchInviteModal = new bootstrap.Modal(myModalEl);
+                batchInviteModal.show();
+                  myModalEl.addEventListener('hide.bs.modal', (event) => {
+                        levelData = []
+                        initLevel1(false)
+                  });
+            });
+            
+            // 产品管理按钮点击事件
+            $(document).on('click', '#level2Select', function() {
+                levelSelect = "level2Select"
+               {% if keys['actions']=='version' %}
+                $('.invite-title').text('产品管理');
+                $('.invitee-label').text('产品');
+                $('.invite-leve2-text').html("所属产品线："+$('#level1 option:selected').text())
+                {% else %}
+                $('.invite-title').text('平台管理');
+                $('.invitee-label').text('平台');
+                $('.invite-leve2-text').html("所属技术族："+$('#level1 option:selected').text())
+                {% endif %}
+                // 清空容器
+                $('#inviteeMembersContainer').empty();
+                // 根据productArr数据创建相应数量的项目
+                for (var i = 0; i < currentLevel2.length; i++) {
+                    var newItemHtml = createNewInviteeItem(currentLevel2[i]);
+                    var $newItem = $(newItemHtml);
+                    $('#inviteeMembersContainer').append($newItem);
+                    // 设置输入框的值为产品名称
+                    $newItem.find('input[type="text"]').val(currentLevel2[i].name);
+                }
+                
+                // 更新计数器
+                updateInviteeCount();
+                var myModalEl = document.getElementById('batchInviteModal')
+                var batchInviteModal = new bootstrap.Modal(myModalEl);
+                batchInviteModal.show();
+                  myModalEl.addEventListener('hide.bs.modal', (event) => {
+                        let level1 = $('#level1').val()
+                        levelData = []
+                        initLevel1(false)
+                        $('#level1').val(level1)
+                        levelData.forEach(function (item) {
+                           if (item.id ==level1) {
+                               initLevel2(item['{{ keys['level2'] }}'])
+                           }
+                        });
+                  });
+
+                // 确保#batchInviteModal的z-index高于#assignDevTestModal
+                setTimeout(function() {
+                    // 获取所有打开的模态框
+                    var $modals = $('.modal.show');
+                    var maxZIndex = 1050; // Bootstrap默认模态框z-index
+                    
+                    // 找到最高的z-index
+                    $modals.each(function() {
+                        var zIndex = parseInt($(this).css('z-index')) || 0;
+                        if (zIndex > maxZIndex) {
+                            maxZIndex = zIndex;
+                        }
+                    });
+                    
+                    // 设置弹窗和蒙层的z-index
+                    var $batchInviteModal = $('#batchInviteModal');
+                    var $batchInviteBackdrop = $('.modal-backdrop:last'); // 获取最新的蒙层
+                    
+                    $batchInviteModal.css('z-index', maxZIndex + 2);
+                    $batchInviteBackdrop.css('z-index', maxZIndex + 1);
+                }, 10);
+            });
+
+
+            // 关闭提醒信息
+            $('#closeNote').on('click', function() {
+                $('#roleNote').slideUp('fast');
+            });
+
+
+            
+            // 初始化单个下拉菜单
+            function initDropdown(elem, field) {
+                var iconElement = elem.find('img');
+                
+                // 从localStorage加载之前保存的状态
+                var savedState = localStorage.getItem('dropdown_state_' + field);
+                if (savedState) {
+                    dropdownStates[field] = JSON.parse(savedState);
+                } else {
+                    // 默认状态：全部选中
+                    // 获取选项数量
+                    var options = getOptionsForField(field);
+                    var optionCount = options.length;
+
+                    // 构建默认选中状态
+                    var defaultItems = {};
+                    for (var i = 1; i <= optionCount; i++) {
+                        defaultItems[i] = true;
+                    }
+
+                    dropdownStates[field] = {
+                        all: true,
+                        items: defaultItems
+                    };
+                }
+                // 定义图标路径
+                var iconNormal = "/static/images/defect/imga1/sx.png";
+                var iconActive = "/static/images/defect/imga1/sxActive.png";
+                // 渲染下拉菜单
+            }
+
+
+            $('#confirmBatchInvite').on('click', function() {
+                // 关闭弹窗
+                {#levelData = []#}
+                {#initLevel1(false)#}
+                $('#batchInviteModal').modal('hide');
+            });
+            // 全选/取消全选功能
+            $(document).on('click', '#checkAll', function() {
+                var checked = $(this).prop('checked');
+                // 获取所有行内复选框
+                var checkboxes = $('#defectTableBody input[type="checkbox"][lay-filter="defectCheckbox"]');
+                console.log(checkboxes);
+                // 设置选中状态
+                checkboxes.each(function() {
+                    $(this).prop('checked', checked);
+                });
+                // 重新渲染表单
+                form.render('checkbox');
+            });
+
+            // 监听行内复选框事件，同步全选框状态
+            $(document).on('change', '#defectTableBody input[type="checkbox"][lay-filter="defectCheckbox"]', function() {
+                var total = $('#defectTableBody input[type="checkbox"][lay-filter="defectCheckbox"]').length;
+                var checked = $('#defectTableBody input[type="checkbox"][lay-filter="defectCheckbox"]:checked').length;
+                // 如果所有行都被选中，则勾选全选框
+                $('#checkAll').prop('checked', total === checked);
+                form.render('checkbox');
+            });
+
+
+            // 角色选择事件
+            form.on('select(roleSelect)', function(data) {
+                showToast('已选择角色：' + data.value, 'info');
+            });
+
+
+            $('#defectTableBody').on('click', 'tr', function() {
+                // 移除所有行的选中样式
+                $('#defectTableBody tr').removeClass('selected');
+                // 为当前点击的行添加选中样式
+                $(this).addClass('selected');
+            });
+
+            // 搜索按钮点击事件
+            $('#searchBtn').on('click', function() {
+                // 获取角色选择的值
+                var roleSelect = $('select[name="role"]').val();
+                
+                // 获取缺陷单号搜索框的值
+                var defectNo = $('#searchInput').val();
+                
+                // 获取状态筛选的值
+                var statusSelect = $('select[name="status"]').val();
+                
+                // 获取等级筛选的选中节点ID
+                var levelFilterId = selectedNodeId;
+                
+                // 组装参数对象
+                var params = {
+                    roleSelect: roleSelect,
+                    defectNo: defectNo,
+                    statusSelect: statusSelect,
+                    levelFilterId: levelFilterId
+                };
+                
+                // 打印参数
+                console.log('搜索参数:', params);
+            });
+            
+            // 删除操作事件处理
+            var currentDeleteId = null; // 用于存储当前要删除的记录ID
+            
+            // 点击删除按钮事件
+            $(document).on('click', '.option-button[data-action="delete"]', function() {
+                currentDeleteId = $(this).data('id');
+                // 显示确认删除弹窗
+                $('#delModal').modal('show');
+            });
+            // 点击编辑按钮事件
+            $(document).on('click', '.option-button[data-action="edit"]', function() {
+                $('#level1').val($(this).data('level1'))
+                levelData.forEach(function (item) {
+                           if (item.id == $('#level1').val()) {
+                               initLevel2(item['{{ keys["level2"] }}'])
+                           }
+                });
+                $('#level2').val($(this).data('level2'))
+                $('#level3').val($(this).data('level3'))
+                $('#testMemberSearch').val($(this).data('email'));
+                selectedTestMember = {
+                    email: $(this).data('email'),
+                    real_name: $(this).data('real_name'),
+                    dept: $(this).data('dept'),
+                };
+                $('#selectedTestMemberName').html($(this).data('real_name')).css('color', '#222');
+                if($(this).data('dept')!=""){
+                    $('#selectedTestMemberName').html($(this).data('real_name') + ' (' + $(this).data('dept')  + ')').css('color', '#222');
+                }
+                $('#desc').val($(this).data('desc'))
+                $('#record_id').val($(this).data('id'))
+                var assignTestModal = new bootstrap.Modal(document.getElementById('assignDevTestModal'));
+                assignTestModal.show();
+            });
+            // 批量删除按钮事件
+            $('#batchDelete').on('click', function() {
+                // 获取所有选中的复选框
+                var selectedCheckboxes = $('#defectTableBody input[type="checkbox"][lay-filter="defectCheckbox"]:checked');
+                const valuesViaSpread = [...selectedCheckboxes].map(checkbox => $(checkbox).data('id'));
+                console.log(valuesViaSpread);
+                // 检查是否有选中的项
+                if (valuesViaSpread.length === 0) {
+                    showToast('请先选择要删除的记录', 'warning');
+                    return;
+                }
+                // 显示确认删除弹窗
+                $('#delModal').modal('show');
+            });
+            
+            // 确认删除按钮事件
+            $('#confirmDeleteBtn').on('click', function() {
+                // 检查是单个删除还是批量删除
+                var selectedCheckboxes = $('#defectTableBody input[type="checkbox"][lay-filter="defectCheckbox"]:checked');
+                const valuesViaSpread = [...selectedCheckboxes].map(checkbox => $(checkbox).data('id'));
+
+                if (currentDeleteId) {
+                    console.log('删除记录ID:', currentDeleteId);
+                    {% if keys['actions']=='version' %}
+                    let url = "/product_line/versions/" + currentDeleteId;
+                    {% else %}
+                    let url = "/tech_group/projects/" + currentDeleteId;
+                    {% endif %}
+
+                    $.ajax({
+                           url: url, //接口地址
+                           type: 'DELETE', //请求方法  GET  POST
+                           async: false, //是否异步 默认true
+                           dataType: 'json', // 1.相应数据的格式  2.是否跨域(jsonp)
+                           contentType: "application/json", // 告诉服务器发送的数据是JSON格式
+                           success: function (result) {
+                                location.reload();
+                           },
+                           error(xhr, status, error){
+                                showToast("error",xhr.responseJSON?.error)
+                                $('#delModal').modal('hide');
+                           }
+                    })
+                    $('#delModal').modal('hide');
+                    currentDeleteId = null;
+                } else if (valuesViaSpread.length > 0) {
+                    console.log(selectedCheckboxes)
+                    {% if keys['actions']=='version' %}
+                    let url = "/product_line/delete_versions"
+                    {% else %}
+                    let url = "/tech_group/delete_projects"
+                    {% endif %}
+
+                    $.ajax({
+                           url: url, //接口地址
+                           type: 'POST', //请求方法  GET  POST
+                           async: false, //是否异步 默认true
+                           dataType: 'json', // 1.相应数据的格式  2.是否跨域(jsonp)
+                           contentType: "application/json", // 告诉服务器发送的数据是JSON格式
+                           data: JSON.stringify(valuesViaSpread),
+                           success: function (result) {
+                               showToast("success",result.message);
+                               setTimeout(function () {
+                                    location.reload();
+                                },2000)
+                           },
+                           error(xhr, status, error){
+                                showToast("error",xhr.responseJSON?.error)
+                           }
+                    })
+                    $('#delModal').modal('hide');
+                } else {
+                    // 没有选中任何项
+                    showToast('未选择任何记录', 'warning');
+                    $('#delModal').modal('hide');
+                }
+            });
+            
+            // 关闭删除弹窗时重置当前删除ID
+            $('#delModal').on('hidden.bs.modal', function () {
+                currentDeleteId = null;
+            });
+            
+            // 新增按钮点击事件
+            $('#addDefectBtn').on('click', function() {
+                initLevel1()
+                $('#level3').val('')
+                $('#testMemberSearch').val('');
+                $('#record_id').val('')
+                $('#selectedTestMemberName').html('通过Email账号搜索人员，此处将会自动填充姓名').css('color', '#999');
+                // 显示指定开发人员测试弹窗
+                var assignTestModal = new bootstrap.Modal(document.getElementById('assignDevTestModal'));
+                assignTestModal.show();
+            });
+            
+            // 测试人员数据
+            var selectedTestMember = null;
+            
+            // 模拟成员数据（实际项目中应该从服务器获取）
+            var allMembers = JSON.parse('{{ user_list|safe }}')
+            
+            // 测试人员搜索功能
+            $('#testMemberSearch').on('input', function() {
+                var searchTerm = $(this).val().toLowerCase().trim();
+                var $dropdown = $('#testMemberDropdown');
+                
+                if (searchTerm.length === 0) {
+                    selectedTestMember = null;
+                    $('#selectedTestMemberName').html('<input type="text" id="real_name" style="width:100%" name="real_name" placeholder="请输入员工真实姓名" autocomplete="off" class="layui-input">');
+                    $('#selectedTestMemberName').css('padding', '0px');
+                    $dropdown.hide();
+                    return;
+                }
+                
+                // 搜索匹配的成员
+                var matchedMembers = allMembers.filter(function(member) {
+                    return member.email.toLowerCase().includes(searchTerm) || 
+                           member.real_name.includes(searchTerm);
+                });
+                
+                if (matchedMembers.length > 0) {
+                    // 生成下拉框内容
+                    var dropdownHtml = '';
+                    matchedMembers.forEach(function(member) {
+                        dropdownHtml += '<div class="test-member-dropdown-item member-dropdown-item" data-email="' + member.email + '" data-real_name="' + member.real_name + '" data-dept="' + member.dept + '">' +
+                                       member.real_name + '/' + member.email + '</div>';
+                    });
+                    
+                    $dropdown.html(dropdownHtml).show();
+                } else {
+                    selectedTestMember = null;
+                    $('#selectedTestMemberName').html('<input type="text" id="input_real_name" style="width:100%" name="input_real_name" placeholder="请输入员工真实姓名" autocomplete="off" class="layui-input">')
+                    $('#selectedTestMemberName').css('padding', '0px');
+                    $dropdown.hide();
+                }
+            });
+            
+            // 测试人员下拉框选项点击事件
+            $(document).on('click', '.test-member-dropdown-item', function() {
+                var $item = $(this);
+                var email = $item.data('email');
+                var real_name = $item.data('real_name');
+                var dept = $item.data('dept');
+                
+                // 设置选中的测试人员
+                selectedTestMember = {
+                    email: email,
+                    real_name: real_name,
+                    dept: dept
+                };
+                
+                // 填充输入框和姓名显示
+                $('#testMemberSearch').val(email);
+                $('#selectedTestMemberName').html(real_name + ' (' + dept + ')').css('color', '#222');
+                $('#selectedTestMemberName').css('padding', '12px');
+
+                // 隐藏下拉框
+                $('#testMemberDropdown').hide();
+            });
+            
+            // 点击其他地方隐藏测试人员下拉框
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#testMemberSearch, #testMemberDropdown').length) {
+                    $('#testMemberDropdown').hide();
+                }
+            });
+            
+            // 确认指定测试按钮点击事件
+            $('#confirmAssignTest').click(function() {
+                var desc = $('#desc').val().trim();
+                var level1 = $('#level1').val()
+                var level2 = $('#level2').val()
+                var level3 = $('#level3').val()
+                let record_id = $('#record_id').val()
+                let email = ""
+                let real_name = ""
+                console.log(selectedTestMember)
+                if(selectedTestMember!=null){
+                     email = selectedTestMember.email;
+                     real_name = selectedTestMember.real_name;
+                }else{
+                     email = $('#testMemberSearch').val();
+                     real_name = $('#input_real_name').val();
+                }
+               $.ajax({
+
+                    url: {% if keys['actions']=='version' %}'/product_line/versions'{% else %}'/tech_group/projects'{% endif %}, //接口地址
+                    type: 'POST', //请求方法  GET  POST
+                    async: false, //是否异步 默认true
+                    dataType: 'json', // 1.相应数据的格式  2.是否跨域(jsonp)
+                    data:{'desc':desc,"level1":level1,'level2':level2,'level3':level3,'email':email,'real_name':real_name,"record_id":record_id},
+                    success: function (result) {
+                        showToast("success",result.message);
+                        setTimeout(function () {
+                            location.reload();
+                        },2000)
+                    },
+                   error(xhr, status, error){
+                        showToast("error",xhr.responseJSON?.error)
+                   }
+               })
+            });
+            
+            // 产品线/技术族标签切换事件
+            $('.layui-tab-title li').on('click', function() {
+                // 移除所有标签的选中状态
+                $('.layui-tab-title li').removeClass('layui-this');
+                // 为当前点击的标签添加选中状态
+                $(this).addClass('layui-this');
+                
+                // 获取标签类型
+                var type = $(this).data('type');
+                
+                // 根据类型更新表格数据
+                if (type === 'product') {
+                    // 更新为产品线数据
+                    showToast('已切换到产品线数据', 'success');
+                } else if (type === 'technology') {
+                    // 更新为技术族数据
+                    showToast('已切换到技术族数据', 'success');
+                }
+                
+            });
+        });
+    </script>
+</body>
+</html>

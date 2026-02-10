@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    {% include "defect/bases.html" %}
+    <style>
+        .button-add {
+            opacity: 1;
+            border-radius: 8px;
+            padding: 5px 15px;
+            background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+            font-size: 14px;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            line-height: 34px;
+            height: 38px;
+            font-weight: 600;
+            width: 80px;
+            margin-left: auto;
+        }
+        .search-group{
+            margin-left: 0px;
+        }
+
+    </style>
+
+
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    {% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item">
+                    {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a>
+                    {% elif request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a>
+                    {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>
+                    {% endif %}
+                </li>
+                <li class="breadcrumb-item active">
+                    缺陷列表
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="container-main">
+        <div class="role-selector">
+            {% include "components/roles_menu.html" %}
+            {% include "components/defect_message.html" %}
+
+        </div>
+
+        <!-- 操作栏 - 包含切换按钮和搜索区域 -->
+        <div class="operation-bar" style="margin-top: 10px;">
+            <!-- 切换按钮 -->
+
+
+            {% include "components/user_menus.html" %}&nbsp;&nbsp;
+
+            <!-- 搜索区域 -->
+            <div class="search-group">
+                <div class="layui-input-inline">
+                    <input type="text" style="width:250px" name="defectNo" placeholder="搜索缺陷单号/标题" value="{{ filters['search'] }}"
+                        autocomplete="off" class="layui-input" id="searchInput">
+                </div>
+
+                {% include "components/layui_checkbox_tree.html" %}
+
+                <div class="button" id="searchBtn" style="width: 102px;display: flex;justify-content: center;align-items: center;">
+                    <i class="fa fa-search" aria-hidden="true"></i>
+                    <span style="margin-left: 4px;">搜索</span>
+                </div>
+
+
+            </div>
+                {% if add_button==1 %}
+                <div class="button-add" id="" style="display: flex;justify-content: center;align-items: center;" onclick="location.href=
+                        {% if request.values.get('defect_type')=="simplified" %}
+                            '/defect/create_simplified'
+                        {% elif request.values.get('defect_type')=="simplified2" %}
+                            '/defect/create_simplified2'
+                        {% else %}
+                            '/defect/create'
+                        {% endif %}   ">
+                    <span style="margin-left: 4px;">新增</span>
+                </div>
+                {% endif %}
+
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="tab-content" style="margin-top: 25px;">
+            <!-- 待处理缺陷 内容 -->
+            <div class="tab-pane layui-show" id="processedContent">
+                <!-- 缺陷列表表格 -->
+                <div class="table-container">
+                    {% if pagination.total>0 %}
+                    <table class="layui-table" lay-size="sm" lay-filter="defectTable">
+                        <thead>
+                            <tr>
+                                <th  style="width: 140px">
+                                    缺陷单号
+                                </th>
+                                <th  style="width: 260px">
+                                    <div class="sort-control">
+                                        <span class="sort-label">所属产品</span>
+                                        <span class="screening-icon dropdown-trigger" data-field="version_projects">
+                                            <img src="/static/images/defect/imga1/sx.png">
+                                        </span>
+                                        <div class="sort-buttons">
+                                            <div class="sort-btn up" data-field="version_projects" data-order="asc">
+                                                <!-- <img src="/static/images/defect/imga1/up2.svg"> -->
+                                            </div>
+                                            <div class="sort-btn down" data-field="version_projects" data-order="desc">
+                                                <!-- <img src="/static/images/defect/imga1/down2.svg"> -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th style="width: 260px">缺陷标题</th>
+                                <th style="width: 80px">缺陷状态</th>
+                                <th style="width: 140px">
+                                    <div class="sort-control">
+                                        <span class="sort-label">流程阶段</span>
+                                        <span class="screening-icon dropdown-trigger" data-field="stage_types_name">
+                                            <img src="/static/images/defect/imga1/sx.png">
+                                        </span>
+                                        <div class="sort-buttons">
+                                            <div class="sort-btn up" data-field="stage_types_name" data-order="asc">
+                                            </div>
+                                            <div class="sort-btn down" data-field="stage_types_name" data-order="desc">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th style="width: 100px">
+                                      处理人
+                                </th>
+                                <th>
+                                    <div class="sort-control">
+                                        <span class="sort-label">缺陷等级</span>
+                                        <span class="screening-icon dropdown-trigger" data-field="severity">
+                                            <img src="/static/images/defect/imga1/sx.png">
+                                        </span>
+                                        <div class="sort-buttons">
+                                            <div class="sort-btn up" data-field="severity" data-order="asc">
+                                            </div>
+                                            <div class="sort-btn down" data-field="severity" data-order="desc">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="sort-control">
+                                        <span class="sort-label">是否可重现</span>
+                                        <span class="screening-icon dropdown-trigger" data-field="reproducible">
+                                            <img src="/static/images/defect/imga1/sx.png">
+                                        </span>
+                                        <div class="sort-buttons">
+                                            <div class="sort-btn up" data-field="reproducible" data-order="asc">
+                                            </div>
+                                            <div class="sort-btn down" data-field="reproducible" data-order="desc">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="sort-control">
+                                        <span class="sort-label">已创建时间</span>
+                                        <!--
+                                        <span class="screening-icon dropdown-trigger" data-field="days">
+                                            <img src="/static/images/defect/imga1/sx.png">
+                                        </span>
+                                        -->
+                                        <div class="sort-buttons">
+                                            <div class="sort-btn up" data-field="days" data-order="asc">
+                                            </div>
+                                            <div class="sort-btn down" data-field="days" data-order="desc">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="defectTableBody">
+                           {% for defect in defects %}
+                             <tr>
+                                <td>
+                                        <a style="color: blue"  href="
+                                        {% if request.values.get("defect_type")=='simplified' %}
+                                            {{ url_for('defect.defect_detail_simplified', defect_id=defect.id) }}
+                                        {% elif request.values.get("defect_type")=='simplified2' %}
+                                            {{ url_for('defect.defect_detail_simplified2', defect_id=defect.id) }}
+                                        {% else %}
+                                            {{ url_for('defect.defect_detail', defect_id=defect.id) }}
+                                        {% endif %}
+                                            " target="_blank">{{ defect.defect_number }} </a>
+                                </td>
+                                <td title="{{ defect.product_or_version }}"  style="white-space: nowrap;overflow: hidden;text-overflow:ellipsis">
+                                    {{ defect.product_or_version }}
+                                </td>
+                                <td title="{{ defect.title }}" style="white-space: nowrap;overflow: hidden;text-overflow:ellipsis;width: 260px">{{ defect.title }}</td>
+                                <td title="{{ defect.status_name }}" style="white-space: nowrap;overflow: hidden;text-overflow:ellipsis;width: 80px">{{ defect.status_name }}</td>
+                                <td title="{{ defect.stage_name }}">{{ defect.stage_name }}</td>
+                                <td>
+                                    {{ defect.current_stage.assignee.real_name }}
+                                </td>
+                                <td>
+                                    <span class="status-tag {{defect.severity_class }}">
+                                    {{ defect.severity }}
+                                    </span>
+                                </td>
+                                <td>{{defect.defect_reproducibility}}</td>
+                                <td>{{defect.days_passed}}天</td>
+                             </tr>
+                           {% endfor %}
+
+                            <!-- 表格数据将通过JS动态生成 -->
+                        </tbody>
+                    </table>
+
+                    {% else %}
+                    <div style="display: flex;align-items: center;justify-content: center;width: 100%;margin-top: 40px;" id="noData">
+                        <img src="/static/images/aival/no_record.png">
+                    </div>
+                    {% endif %}
+                </div>
+                {% include "pages.html" %}
+                <!-- 分页区域占位 -->
+        </div>
+
+            <!-- 处理记录 内容 -->
+            <div class="tab-pane" id="processedContent">
+                <div class="table-container">
+                    <div id="processedTableContainer">
+                        <!-- 处理记录内容将通过JS动态生成 -->
+                    </div>
+                </div>
+                <!-- 分页区域占位 -->
+                <div class="pagination-placeholder">
+                    <!-- 分页功能已取消，保留位置 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部区域 -->
+    {% include "user/footer.html" %}
+
+    <!-- JavaScript 引入 -->
+    {% include "defect/base_js.html" %}
+    <script>
+        var dropdownStates = {};
+        $('.tab-btn1').on('click', function(){
+            location.href = "/defect?deal_status=pending&search={{ filters['search'] }}&version_projects={{ filters['version_projects'] }}&defect_type={{ request.values.get("defect_type") }}"
+        })
+        $('.tab-btn2').on('click', function(){
+            location.href = "/defect?deal_status=processed&search={{ filters['search'] }}&version_projects={{ filters['version_projects'] }}&defect_type={{ request.values.get("defect_type") }}"
+        })
+        // 初始化Layui模块
+        layui.use(['element', 'form', 'layer','laypage','dropdown'], function() {
+            var element = layui.element;
+            var form = layui.form;
+            var layer = layui.layer;
+            var laypage = layui.laypage;
+            var dropdown = layui.dropdown;
+
+            // 全局变量
+            var allDefects = []; // 存储所有缺陷数据
+            var filteredDefects = []; // 存储筛选后的数据
+            var activeTab = 'processed';
+            var pageSize = 10;
+            var currentPage = 1; // 添加当前页码变量
+            var currentSort = {
+                field: null,
+                order: null
+            };
+
+            // 存储每个下拉菜单的状态
+
+            // 关闭提醒信息
+            $('#closeNote').on('click', function() {
+                $('#roleNote').slideUp('fast');
+            });
+            // 树形结构筛选器数据
+            // 定义图标路径
+            var iconNormal = "/static/images/defect/imga1/sx.png";
+            var iconActive = "/static/images/defect/imga1/sxActive.png";
+
+            // 初始化所有下拉菜单
+            function initAllDropdowns() {
+                $('.dropdown-trigger').each(function() {
+                    var field = $(this).data('field');
+                    initDropdown($(this), field);
+                });
+            }
+
+
+
+            let HttpChosenDropdownState = {{chosen_dropdown_states|safe}}
+
+            // 初始化单个下拉菜单
+            function initDropdown(elem, field) {
+                var iconElement = elem.find('img');
+
+                // 从localStorage加载之前保存的状态
+                if(field in HttpChosenDropdownState){
+                    dropdownStates[field] = HttpChosenDropdownState[field];
+                } else {
+                    // 默认状态：全部选中
+                    // 获取选项数量
+                    var options = getOptionsForField(field);
+
+                    // 构建默认选中状态
+                    var defaultItems = {};
+                    if(field==='version_projects'){
+                        console.log(options)
+                        for (let key in options['project']) {
+                            defaultItems['p3-'+key] = true;
+                        }
+                        for (let key in options['version']) {
+                            defaultItems['v3-'+key] = true;
+                        }
+                        console.log(defaultItems);
+                    }else{
+                        for (var i = 0; i <= options.length; i++) {
+                            defaultItems[options[i]] = true;
+                        }
+                    }
+                    dropdownStates[field] = {
+                        all: true,
+                        items: defaultItems
+                    };
+                }
+                // 判断当前筛选是否全选，如果是则使用iconNormal，如果不是则使用iconActive
+                var currentState = dropdownStates[field];
+                if (currentState && currentState.all) {
+                    iconElement.attr('src', iconNormal);
+                    elem.removeClass('active');
+                } else {
+                    iconElement.attr('src', iconActive);
+                    elem.addClass('active');
+                }
+                // 渲染下拉菜单
+                dropdown.render({
+                    elem: elem[0],
+                    align: 'center',
+                    content: `<div class="tree-filter-buttons" style="flex-shrink: 0; padding: 10px; border-bottom: 1px solid #e6e6e6; text-align: right; background-color: #fafafa;height: 50px">
+                                    <button type="button" class="layui-btn layui-btn-sm" style="margin-left: 10px;" data-field="${field}" >筛选刷新</button>
+                              </div>`+buildDropdownContent(field),
+                    className: 'demo-dropdown-tabs',
+                    style: 'width: auto;max-height:300px;box-shadow: 1px 1px 30px rgba(0, 0, 0, 0.24); overflow-y: auto;',
+                    ready: function() {
+                        form.render('checkbox');
+                        iconElement.attr('src', iconActive);
+                        elem.addClass('active');
+
+                        // 应用保存的状态
+                        applyDropdownState(field);
+
+                        // 绑定事件 - 简化版本
+                        bindDropdownEventsSimplified(field);
+
+                        $('.layui-btn').click(function() {
+                            let currentState = dropdownStates[field];
+                            let url_params = []
+                            for(const key in currentState.items) {
+                                if(currentState.items[key]){
+                                     url_params.push(key)
+                                }
+                            }
+                            location.href = "/defect/?" + field + "=" + url_params.join(',');
+
+                        })
+                    },
+                    close: function() {
+                        // 判断当前筛选是否全选，如果是则改变状态
+                    }
+                });
+            }
+
+            // 构建下拉菜单内容
+            function buildDropdownContent(field) {
+                var options = getOptionsForField(field);
+                var content = [
+                    '<div class="layui-form" style="padding: 10px;">',
+                    '   <div class="layui-form-item" data-item="all">',
+                    '       <input type="checkbox" name="all" id="all-checkbox-' + field + '" lay-filter="all-' + field + '" lay-skin="primary" title="全部">',
+                    '   </div>'
+                ];
+
+                if(field === 'version_projects') {
+                       Object.entries(options['version']).forEach(function([key, value]) {
+                            content.push(
+                                '   <div class="layui-form-item" data-item="v3-' + key + '">',
+                                '       <input type="checkbox" name="item" value="v3-' + key + '" lay-filter="item-' + field + '" lay-skin="primary" title="' + value + '">',
+                                '   </div>'
+                            );
+                    });
+                    Object.entries(options['project']).forEach(function([key, value]) {
+                        content.push(
+                            '   <div class="layui-form-item" data-item="p3-' + key + '">',
+                            '       <input type="checkbox" name="item" value="p3-' + key + '" lay-filter="item-' + field + '" lay-skin="primary" title="' + value + '">',
+                            '   </div>'
+                        );
+                    });
+                }
+                else {
+                    options.forEach(function (option, index) {
+                        content.push(
+                            '   <div class="layui-form-item" data-item="' + option+ '">',
+                            '       <input type="checkbox" name="item" value="' + option + '" lay-filter="item-' + field + '" lay-skin="primary" title="' + option + '">',
+                            '   </div>'
+                        );
+                    });
+                }
+
+                content.push('</div>');
+                return content.join('');
+            }
+
+            // 根据字段获取选项
+            function getOptionsForField(field) {
+                // 这里需要根据实际情况返回相应字段的选项数组
+                if (field === 'version_projects') {
+                    return JSON.parse('{{ version_projects|safe }}'); // 动态选项
+                } else if (field === 'stage_types_name') {
+                    return JSON.parse('{{ stage_types_name|safe }}'); // 动态选项
+                } else if (field === 'severity') {
+                    return JSON.parse('{{ severity|safe }}'); // 动态选项
+                } else if (field === 'reproducible') {
+                    return JSON.parse('{{ reproducible|safe }}'); // 动态选项
+                } else if (field === 'days') {
+                    return ['今天', '昨天', '本周', '本月', '更早']; // 动态选项
+                }
+                // 默认返回空数组
+                return [];
+            }
+
+            // 应用下拉菜单状态
+            function applyDropdownState(field) {
+                var state = dropdownStates[field];
+                var options = getOptionsForField(field);
+
+                // 设置"全部"复选框状态
+                $('#all-checkbox-' + field).prop('checked', state.all);
+
+                // 设置各个选项状态
+                $.each(state.items, function(key, value) {
+                    var $checkbox = $('input[name="item"][lay-filter="item-' + field + '"][value="' + key + '"]');
+                    if ($checkbox.length) {
+                        $checkbox.prop('checked', value);
+
+                        // 获取父级layui-form-item元素
+                        var $parentItem = $checkbox.closest('.layui-form-item');
+
+                        // 根据选中状态添加或移除item-checked类
+                        if (value) {
+                            $parentItem.addClass('item-checked');
+                        } else {
+                            $parentItem.removeClass('item-checked');
+                        }
+                    }
+                });
+
+                // 处理"全部"选项的样式
+                var $allCheckbox = $('#all-checkbox-' + field);
+                var $allParentItem = $allCheckbox.closest('.layui-form-item');
+
+                if (state.all) {
+                    $allParentItem.addClass('item-checked');
+                } else {
+                    $allParentItem.removeClass('item-checked');
+                }
+
+                form.render('checkbox');
+            }
+
+            // 下拉菜单事件绑定
+            function bindDropdownEventsSimplified(field) {
+                // 全选复选框事件
+                form.on('checkbox(all-' + field + ')', function(data){
+                    var checkStatus = data.elem.checked;
+
+                    // 更新所有子选项
+                    $('input[name="item"][lay-filter="item-' + field + '"]').each(function(){
+                        $(this).prop('checked', checkStatus);
+                        // 更新父级样式
+                        var $parentItem = $(this).closest('.layui-form-item');
+                        if (checkStatus) {
+                            $parentItem.addClass('item-checked');
+                        } else {
+                            $parentItem.removeClass('item-checked');
+                        }
+                    });
+
+                    // 更新"全部"选项的样式
+                    var $allParentItem = $('#all-checkbox-' + field).closest('.layui-form-item');
+                    if (checkStatus) {
+                        $allParentItem.addClass('item-checked');
+                    } else {
+                        $allParentItem.removeClass('item-checked');
+                    }
+
+                    form.render('checkbox');
+
+                    // 更新状态
+                    updateDropdownState(field);
+                    saveDropdownState(field);
+                });
+
+                // 子选项复选框事件
+                form.on('checkbox(item-' + field + ')', function(data){
+                    // 更新当前选项的父级样式
+                    var $parentItem = $(data.elem).closest('.layui-form-item');
+                    if (data.elem.checked) {
+                        $parentItem.addClass('item-checked');
+                    } else {
+                        $parentItem.removeClass('item-checked');
+                    }
+
+                    var allChecked = $('input[name="item"][lay-filter="item-' + field + '"]:checked').length ===
+                                    $('input[name="item"][lay-filter="item-' + field + '"]').length;
+
+                    $('#all-checkbox-' + field).prop('checked', allChecked);
+
+                    // 更新"全部"选项的样式
+                    var $allParentItem = $('#all-checkbox-' + field).closest('.layui-form-item');
+                    if (allChecked) {
+                        $allParentItem.addClass('item-checked');
+                    } else {
+                        $allParentItem.removeClass('item-checked');
+                    }
+
+                    form.render('checkbox');
+
+                    // 更新状态
+                    updateDropdownState(field);
+                    saveDropdownState(field);
+                });
+            }
+
+            // 更新下拉菜单状态
+            function updateDropdownState(field) {
+                var state = {
+                    all: $('#all-checkbox-' + field).prop('checked'),
+                    items: {}
+                };
+
+                // 获取所有选项
+                $('input[name="item"][lay-filter="item-' + field + '"]').each(function() {
+                    state.items[$(this).val()] = $(this).prop('checked');
+                });
+
+                dropdownStates[field] = state;
+            }
+
+            // 保存下拉菜单状态到localStorage
+            function saveDropdownState(field) {
+                localStorage.setItem('dropdown_state_' + field, JSON.stringify(dropdownStates[field]));
+            }
+
+
+            var levels = [{
+                    name: '<span style="fonts-size:18px">•</span> 致命',
+                    class: 'status-urgent'
+                },
+                {
+                    name: '<span style="fonts-size:18px">•</span> 严重',
+                    class: 'status-serious'
+                },
+                {
+                    name: '<span style="fonts-size:18px">•</span> 一般',
+                    class: 'status-normal'
+                },
+                {
+                    name: '<span style="fonts-size:18px">•</span> 提示',
+                    class: 'status-minor'
+                }
+            ];
+            $(document).on('click', '.sort-btn', function() {
+                var field = $(this).data('field');
+                var order = $(this).data('order');
+
+                location.href="./?deal_status={{filters['deal_status']}}&sort="+field+","+order
+
+            });
+
+            // 角色选择事件
+            form.on('select(roleSelect)', function(data) {
+                showToast('已选择角色：' + data.value, 'info');
+            });
+
+            // 通用Toast提示函数
+            function showToast(message, type, duration) {
+                // 隐藏所有Toast
+                $('#successToast, #errorToast, #warningToast, #infoToast').hide();
+
+                // 根据类型显示对应的Toast
+                var $toast;
+                switch(type) {
+                    case 'success':
+                        $toast = $('#successToast');
+                        break;
+                    case 'error':
+                        $toast = $('#errorToast');
+                        break;
+                    case 'warning':
+                        $toast = $('#warningToast');
+                        break;
+                    case 'info':
+                        $toast = $('#infoToast');
+                        break;
+                    default:
+                        $toast = $('#infoToast');
+                }
+
+                // 设置消息内容
+                $toast.find('.toast-message').text(message);
+
+                // 显示Toast容器和对应的Toast
+                $('#toastContainer').show();
+                $toast.show();
+
+                // 设置自动隐藏
+                if (duration !== false) {
+                    setTimeout(function() {
+                        $toast.fadeOut();
+                        $('#toastContainer').fadeOut();
+                    }, duration || 1500);
+                }
+            }
+
+            // 关闭Toast的函数
+            function hideToast() {
+                $('#toastContainer').fadeOut();
+            }
+
+            // 初始化页面
+            initAllDropdowns();
+
+            // 添加表格行点击事件处理
+            $('#defectTableBody').on('click', 'tr', function() {
+                // 移除所有行的选中样式
+                $('#defectTableBody tr').removeClass('selected');
+                // 为当前点击的行添加选中样式
+                $(this).addClass('selected');
+            });
+
+            // 搜索按钮点击事件
+            $('#searchBtn').on('click', function() {
+                console.log(checkedChildIds)
+                var ids = checkedChildIds.join(',')
+                var searchInput = $('#searchInput').val();
+                location.href="./?deal_status={{filters['deal_status']}}&version_projects="+ids+"&search="+searchInput+"&defect_type={{request.values.get('defect_type')}}"
+            });
+        });
+    </script>
+</body>
+</html>

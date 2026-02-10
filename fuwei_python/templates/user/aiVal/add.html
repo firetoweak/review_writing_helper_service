@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI评估 - 锋矢AI蓝军</title>
+    {% include "user/base.html" %}
+    <link href="{{ url_for('static', filename='lib/wang-editor/style.css') }}" rel="stylesheet" type="text/css">
+    <style>
+
+            .editor-container,
+            .editor-container .w-e-text-container,
+            .editor-container .w-e-text {
+                background-color: #F6FAFF !important;
+            }
+            .toolbar-container .w-e-toolbar {
+                background-color: #F6FAFF !important;
+            }
+
+            .container-editor{
+                overflow: hidden; 
+                max-width: 1280px; 
+                margin-top: 20px; 
+                border: 1px solid #e6dcdd;
+                border-radius: 8px;
+                padding: 0px;
+                margin: 0 auto;
+            }
+            .container-editor-title{
+                 max-width: 1280px;
+                 margin-top: 20px;
+                 font-family: PingFang SC;
+                 font-weight: 600;
+                 font-size: 24px;
+                 line-height: 36px;
+                 letter-spacing: 0%;
+                 vertical-align: middle;
+                 margin: 0 auto;
+                 position: relative;
+            }
+            .right-menu{
+                 color: #557496;
+                 padding: 15px 0px;
+                 position: absolute;
+                 right: 5%;
+                 top: 400px; 
+                 background-color: white;  
+                 border: 1px solid #f3f0f0;
+                 border-radius: 8px;
+                 height: 149px;
+                 width: 94px;
+                 font-family: PingFang SC;
+                 font-weight: 400;
+                 font-size: 12px;
+                 line-height: 18px;
+                 letter-spacing: 0%;
+                 z-index: 99;
+            }
+            .right-menu div{
+                height: 20%;;
+                width: 80%;
+                float: left;
+                padding: 0px 0px 0px 10px;
+                margin-bottom: 10px;
+                z-index: 20;
+                position: relative;
+                cursor: pointer;
+            }
+            .right-menu .right-menu-active{
+                height: 100%;
+                width: 20%;
+                float: left; 
+                border-right: 1px solid #C0D7F4;
+            }
+            .container-editor-title img{
+                margin-right: 10px;
+            }
+            .right-menu-active-img{
+                margin-right: 0px;
+                position: absolute;
+                left: -6%;
+                margin-top: 3%;
+            }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <!-- 顶部导航栏 -->
+    {% include "components/header.html" %}
+    <div class="right-menu">
+        <div class="right-menu-active"></div>
+        <div onclick="rightMenuLocation('container-editor-title-1',this)">
+            <img class="right-menu-active-img" src="/static/images/aival/left-tag.svg" alt="" >
+            {{pageShow['menu-step1']}}
+        </div>
+        <div onclick="rightMenuLocation('container-editor-title-2',this)">
+            {{pageShow['menu-step2']}}
+        </div>
+        <div onclick="rightMenuLocation('container-editor-title-3',this)">
+            {{pageShow['menu-step3']}}
+        </div>
+        <div onclick="rightMenuLocation('container-editor-title-4',this)">
+            {{pageShow['menu-step4']}}
+        </div>
+    </div>
+
+    <!-- 顶部横幅 -->
+    <section class="banner" style="position: relative">
+        <div class="banner-content">
+            <div class="d-flex align-items-center mb-3">
+                <h1 class="banner-title mb-0">{{pageShow['title_list']}}</h1>
+                <img src="/static/images/aival/3star.png" alt="" style="margin-bottom: 35px;margin-left: 10px">
+            </div>
+            <p class="banner-subtitle">这里有与你相关的工作质量评估</p>
+            <div style="width: 380px;height: 300px;position: absolute;right: 10%;top: 20%;">
+                <img src="/static/images/aival/banner-edit.png" alt="" style="width: 100%;height: 100%;">
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item">
+                    <a href="/user/aiVal/list?type={{g.type}}">{{pageShow['title_list']}}AI评估</a>
+                </li>
+                <li class="breadcrumb-item active">
+                    新增
+                </li>
+            </ol>
+        </nav>
+    </div>
+        <div class="container-editor-title" id="container-editor-title-1" >
+
+            <img src="/static/images/fengchi_tag.svg" alt="" >你的{{pageShow['step1']}}是?
+        </div>
+
+        <div class="container-editor">
+            <div id="tb1" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e1" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+        <div class="container-editor-title" id="container-editor-title-2">
+            <img src="/static/images/fengchi_tag.svg" alt=""> 你的{{pageShow['step2']}}是?
+        </div>
+        <div class="container-editor">
+            <div id="tb2" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e2" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+        <div class="container-editor-title" id="container-editor-title-3">
+            <img src="/static/images/fengchi_tag.svg" alt="" >你的{{pageShow['step3']}}是？
+        </div>
+        <div class="container-editor">
+            <div id="tb3" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e3" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+        <div class="container-editor-title" id="container-editor-title-4">
+            <img src="/static/images/fengchi_tag.svg" alt="" >你的{{pageShow['step4']}}是？
+        </div>
+        <div class="container-editor">
+            <div id="tb4" class="toolbar-container"><!-- 工具栏 --></div>
+            <div id="e4" class="editor-container"><!-- 编辑器 --></div>
+        </div>
+        <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+            <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                <button class="btn-batch mr-3" style="width: 86px;" onclick="location.href='/user/aiVal/list?type={{type}}'">返回</button>
+                <button class="btn-batch mr-3" style="width: 86px;" id="save">暂存</button>
+                <button class="ok-btn" style="width: 400px;" id="start-done-btn" >开始评估 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+            </div>
+        </div>
+
+    <!-- 底部区域 -->
+    {% include "user/footer.html" %}
+
+    <!-- 登录弹框背景遮罩 -->
+
+    {% include "user/base_js.html" %}
+    {% include "components/timing_confirm.html" %}
+    {% include "user/base_toast.html" %}
+    {% include "components/confirm_win.html" %}
+    <script src="{{ url_for('static', filename='lib/wang-editor/index.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/public_editor.js')}}"></script>
+    <script>
+        function rightMenuLocation(id,obj){
+            var element = document.getElementById(id);
+            element.scrollIntoView({ behavior: 'smooth' }); // 平滑滚动
+            setTimeout(function() {
+                    window.scrollBy({
+                        top: -50, // 向上偏移80px，可以根据需要调整这个值
+                        behavior: 'smooth'
+                    });
+                }, 500); // 等待滚动完成再执行偏移
+                $('.right-menu-active-img').remove()
+                $(obj).prepend('<img class="right-menu-active-img" src="/static/images/aival/left-tag.svg" alt="" >')
+        }
+        $(document).ready(function() {
+            // 卡片点击效果
+            $('.ai-card-btn').click(function() {
+                const cardTitle = $(this).closest('.ai-card').find('.ai-card-title').text();
+                alert('开始' + cardTitle);
+                // 这里可以添加跳转到评估详情页面的逻辑
+            });
+            // Header滚动效果
+            $(window).scroll(function() {
+                const header = $('.header');
+                const scrollPosition = $(this).scrollTop();
+                const scrollThreshold = 50; // 滚动阈值
+                const scrollRightMenu =  400
+                if (header.length) { // 确保header元素存在
+                    if (scrollPosition > scrollThreshold) {
+                        header.addClass('header-scrolled');
+                    } else {
+                        header.removeClass('header-scrolled');
+                    }
+                    if (scrollPosition > scrollRightMenu) {
+                       $('.right-menu').css('position','fixed')
+                       $('.right-menu').css('top',"50px")
+
+                    }else{
+                        $('.right-menu').css('position','absolute')
+                        $('.right-menu').css('top',"400px")
+                    }
+                }
+            });
+        });
+        var type = '{{g.type}}'
+        $(document).ready(function(){
+            $("#start-done-btn").on("click",function(){
+                var id =  addDone(type,-2,"val")
+                if(id==0) return
+                valDone(type,id)
+            })
+            $("#save").on("click",function(){
+                addDone(type,0,"add")
+            })
+        })
+
+    </script>
+</body>
+</html> 

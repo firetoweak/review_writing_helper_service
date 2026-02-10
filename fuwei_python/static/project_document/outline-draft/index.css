@@ -1,0 +1,594 @@
+/* ========== 页面级样式 static/project_document/outline-draft/index.css========== */
+@font-face {
+    font-family: 'DingTalk JinBuTi';
+    src: url('/static/css/fonts/DingTalk-JinBuTi.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+.writing-page {
+
+  background-color: #f6faff;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+/* ========== 页头导航 ========== */
+.page-header {
+  padding: 1.31rem 2.5rem;
+  background-color: #ffffff;
+  box-shadow: 0rem 0.25rem 0.25rem #217efd14;
+  backdrop-filter: blur(0.31rem);
+}
+
+.back-link {
+  position: absolute;
+  left: 2.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.back-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.back-text {
+  margin-left: 0.56rem;
+  color: #217efd;
+  font-size: 1.38rem;
+  font-family: DingTalk JinBuTi;
+  line-height: 1.19rem;
+}
+
+/* ========== 步骤条 ========== */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.56rem;
+}
+
+.step-badge {
+  padding: 0.25rem 0;
+  background-color: #217efd;
+  border-radius: 6.25rem;
+  width: 1.13rem;
+  height: 1.13rem;
+}
+
+.step-badge--inactive {
+  opacity: 0.5;
+}
+
+.step-number {
+  font-size: 0.75rem;
+  font-family: PingFang SC;
+  line-height: 0.56rem;
+  color: #ffffff;
+}
+
+.step-label {
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 0.82rem;
+  color: #217efd;
+}
+
+.step-label--inactive {
+  opacity: 0.5;
+}
+
+.step-divider {
+  background-color: #217efd80;
+  width: 1.5rem;
+  height: 0.063rem;
+}
+
+.toast-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  transform: translateX(-50%);
+  background: rgba(34, 34, 34, 0.9);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  font-size: 0.88rem;
+  z-index: 9999;
+}
+.toast-hint.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-0.25rem);
+}
+
+/* ========== 下一步按钮 ========== */
+.next-button {
+  padding: 0.75rem 0;
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  border-radius: 0.5rem;
+  width: 5rem;
+  position: absolute;
+  right: 2.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.next-button-text {
+  font-size: 1rem;
+  font-family: PingFang SC;
+  line-height: 0.94rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* ========== 主内容区 ========== */
+.content-area {
+  padding: 2.5rem;
+}
+
+/* ========== 表单卡片 ========== */
+.form-card {
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  border: solid 0.063rem #c0d7f3;
+}
+
+.form-card--name {
+  padding-bottom: 1.25rem;
+}
+
+.name-input {
+  margin: 1.25rem 0.88rem 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 1.5;
+  color: #222222;
+  background: transparent;
+  width: calc(100% - 1.76rem);
+}
+.name-input::placeholder {
+  color: #b1bbcd;
+}
+
+.form-card--idea {
+  margin-top: 2.44rem;
+}
+
+.form-card--material {
+  margin-top: 2.44rem;
+}
+
+.card-header {
+  background-color: #f2f8ff;
+  border-radius: 0.5rem 0.5rem 0rem 0rem;
+  overflow: hidden;
+  height: 3.25rem;
+  border: solid 0.063rem #c0d7f4;
+}
+
+.card-header-bg {
+  margin-top: -1rem;
+  opacity: 0.24;
+  width: 95.8333vw;
+  height: 5vw;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-family: PingFang SC;
+  line-height: 0.94rem;
+  font-weight: 600;
+  color: #222222;
+  position: absolute;
+  left: 1.03rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.required-mark {
+  color: #ff4d4f;
+  line-height: 0.44rem;
+}
+
+.hint-text {
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 0.82rem;
+  color: #b1bbcd;
+  margin-left: 0.88rem;
+}
+
+.hint-text--name {
+  margin-top: 1.25rem;
+}
+
+.hint-text--idea {
+  margin-top: 1.25rem;
+}
+
+/* ========== 工具栏 ========== */
+.toolbar-strip {
+  background-color: #ffffff;
+  box-shadow: 0rem 0.063rem 0rem #c0d7f4;
+  padding: 1rem;
+}
+
+.toolbar-container {
+  border-bottom: 1px solid #e5e7eb;
+  width: 100%;
+}
+.editor-container {
+  min-height: 17.5rem !important; /* 从35rem改为17.5rem */
+  height: auto !important;
+  max-height: calc(50vh - 8rem); /* 从calc(100vh - 16rem)改为calc(50vh - 8rem) */
+  overflow-y: auto;
+  background: #fff;
+  width: 100%;
+}
+.editor-container .w-e-text-container {
+  min-height: 17.5rem !important; /* 从35rem改为17.5rem */
+  max-height: calc(50vh - 8rem); /* 从calc(100vh - 16rem)改为calc(50vh - 8rem) */
+  overflow-y: auto;
+}
+.editor-container .w-e-text-container [data-slate-editor] {
+  min-height: 17.5rem !important; /* 从35rem改为17.5rem */
+  max-height: calc(50vh - 8rem); /* 从calc(100vh - 16rem)改为calc(50vh - 8rem) */
+}
+.editor-container .w-e-text-placeholder {
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 1.5;
+  color: #b1bbcd;
+  white-space: nowrap;
+}
+
+/* ========== 文件上传区域 ========== */
+.file-grid {
+  padding: 1rem 0.88rem;
+  display: flex;
+  gap: 0.94rem;
+}
+
+.file-card {
+  padding: 1.5rem 0;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0rem 0.25rem 1rem #217efd1f;
+  width: 10.5rem;
+  height: 10.5rem;
+  border: solid 0.063rem #c0d7f3;
+}
+
+.file-card--alt {
+  padding: 1.88rem 0 1.56rem;
+}
+
+/* 上传中状态 */
+.file-card--uploading {
+  position: relative;
+}
+.file-card--uploading .file-icon {
+  position: relative;
+  z-index: 1;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.file-card--uploading .upload-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #9767FF 0%,
+    #217EFD var(--progress, 0%),
+    #e5e7eb var(--progress, 0%),
+    #e5e7eb 100%
+  );
+  -webkit-mask: radial-gradient(transparent 60%, #000 61%);
+  mask: radial-gradient(transparent 60%, #000 61%);
+}
+
+/* 上传成功状态 */
+.file-card--success {
+  border-color: #52c41a;
+}
+.file-card--success .file-actions {
+  cursor: pointer;
+}
+
+@keyframes spin {
+  to {
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+
+.file-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.file-icon--small {
+  width: 2.63rem;
+  height: 2.63rem;
+}
+
+.file-name {
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 0.82rem;
+  font-weight: 600;
+  color: #222222;
+  margin-top: 0.75rem;
+}
+
+.file-actions {
+  margin-top: 1.25rem;
+  width: 3rem;
+  height: 1rem;
+}
+
+/* ========== 添加文件按钮 ========== */
+.add-file-card {
+  padding: 2.5rem 0;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0rem 0.25rem 1rem #217efd1f;
+  width: 10.5rem;
+  height: 10.5rem;
+  border: dotted 0.063rem #217efd;
+}
+
+.add-file-icon {
+  width: 5.5rem;
+  height: 5.5rem;
+}
+
+/* ========== 拖拽上传区 ========== */
+.upload-dropzone {
+  margin-right: 33.75rem;
+  padding: 1.75rem 1rem 1.13rem;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0rem 0.25rem 1rem #217efd1f;
+  width: 10.5rem;
+  height: 10.5rem;
+  border: dotted 0.063rem #217efd;
+}
+
+.upload-icon {
+  width: 2.75rem;
+  height: 2.13rem;
+}
+
+.upload-text {
+  margin-top: 1.44rem;
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 0.82rem;
+  font-weight: 600;
+  color: transparent;
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  -webkit-background-clip: text;
+}
+
+.upload-hint {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  font-family: PingFang SC;
+  line-height: 1.13rem;
+  color: #557496;
+  text-align: center;
+}
+
+.file-action-group {
+    margin-top: 0.25rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.file-action-icon {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+}
+
+/* ========== 删除确认弹窗 ========== */
+.delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+}
+.delete-confirm-overlay.show {
+  display: flex;
+}
+.delete-confirm-modal {
+  position: relative;
+  padding-top: 2rem;
+  width: 18rem;
+}
+.delete-confirm-icon {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 3.51rem;
+  height: 3.51rem;
+  z-index: 1;
+}
+.delete-confirm-content {
+  padding: 2.25rem 0.63rem 0 0.88rem;
+  background-image: linear-gradient(180deg, #e7f1ff 2%, #ffffff 27.6%);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.delete-confirm-title {
+  text-align: center;
+  color: #222222;
+  font-size: 1.13rem;
+  font-family: PingFang SC;
+  font-weight: 600;
+  line-height: 1.05rem;
+}
+.delete-confirm-buttons {
+  display: flex;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  gap: 1rem;
+  margin-top: 0.31rem;
+  border-radius: 0 0 1rem 1rem;
+}
+.delete-confirm-btn {
+  padding: 1rem 0;
+  flex: 1 1 8.25rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  height: 3rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: PingFang SC;
+  font-weight: 600;
+  line-height: 0.94rem;
+  box-sizing: border-box;
+}
+.delete-confirm-btn.cancel {
+  background-color: #e4f0ff;
+  color: #217efd;
+}
+.delete-confirm-btn.confirm {
+  background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+  color: #ffffff;
+}
+
+/* 参数检查显示的错误提示 */
+ .error-message {
+    color: #ff4757;
+    font-size: 14px;
+    margin-top: 5px;
+    display: none;
+}
+
+.generate-outline-overlay,
+.generate-success-overlay,
+.generate-error-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.generate-outline-overlay.show,
+.generate-success-overlay.show,
+.generate-error-overlay.show {
+  display: flex; /* 显示时设为flex */
+}
+
+.generate-outline-modal,
+.generate-success-modal,
+.generate-error-modal {
+  width: 400px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.generate-outline-icon,
+.generate-success-icon,
+.generate-error-icon {
+  width: 60px;
+  height: 60px;
+  margin: 20px auto 10px;
+  display: block;
+}
+
+.generate-outline-content,
+.generate-success-content,
+.generate-error-content {
+  padding: 0 20px 20px;
+}
+
+.generate-outline-title,
+.generate-success-title,
+.generate-error-title {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.generate-success-message,
+.generate-error-message {
+  font-size: 14px;
+  color: #666666;
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.generate-outline-buttons,
+.generate-success-buttons,
+.generate-error-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.generate-outline-btn,
+.generate-success-btn,
+.generate-error-btn {
+  padding: 8px 32px;
+  background: #217efd;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border: none;
+  text-align: center;
+}
+
+.generate-outline-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.generate-outline-clock {
+  width: 2rem;
+  height: 2.06rem;
+}
+
+.generate-success-btn:hover,
+.generate-error-btn:hover {
+  background: #1a6ed8;
+}
+
+.generate-error-btn {
+  background: #ff4d4f;
+}
+
+.generate-error-btn:hover {
+  background: #e63e40;
+}

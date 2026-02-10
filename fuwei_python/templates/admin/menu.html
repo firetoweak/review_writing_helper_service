@@ -1,0 +1,112 @@
+
+
+<!-- 非管理员  -->
+
+<ul class="sidebar-menu" style="margin-top: 5px">
+    {% for menu in g.show_menu %}
+        {% if menu['child']|length == 0 %}
+        <li {% if g.menu_id==menu['id'] %}class="active" {% endif %}>
+            <a href="/admin{{menu.url}}">
+                <i class="fa {{menu.icon}}"></i> <span>{{menu.name}}</span>
+            </a>
+        </li>
+        {% else %}
+            <li class="treeview{% if g.menu_pid==menu.id %} active{% endif %}" >
+                <a href="#">
+                    <i class="fa {{menu.icon}}"></i> <span>{{menu.name}}</span>
+                    <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                </a>
+                <ul class="treeview-menu"  style="{% if g.menu_pid==menu['id'] %} display: block;{% else %} display: none; {% endif %}">
+                    {% for child in menu['child'] %}
+                    <li {% if g.menu_id==child['id'] %}class="active" {% endif %} >
+                        <a href="/admin{{child.url}}"><i class="fa {{child.icon}}"></i> {{child.name}}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endif %}
+    {% endfor %}
+</ul>
+
+
+<!--<ul class="sidebar-menu" style="margin-top: 5px">-->
+<!--    <li>-->
+<!--        <a href="/admin//models">-->
+<!--            <i class="fa fa-dashboard"></i> <span>选择模型</span>-->
+<!--        </a>-->
+<!--    </li>-->
+
+
+
+<!--    <li class="active">-->
+<!--        <a href="/admin//profile">-->
+<!--            <i class="fa fa-th"></i> <span>修改资料</span>-->
+<!--        </a>-->
+<!--    </li>-->
+
+
+
+<!--    <li class="treeview">-->
+<!--        <a href="#">-->
+<!--            <i class="fa fa-laptop"></i> <span>Prompt设置</span>-->
+<!--            <span class="pull-right-container">-->
+<!--                    <i class="fa fa-angle-left pull-right"></i>-->
+<!--                </span>-->
+<!--        </a>-->
+<!--        <ul class="treeview-menu">-->
+<!--            <li>-->
+<!--                <a href="/admin/explDoc"><i class="fa fa-circle-o"></i> 需求prompt</a>-->
+<!--            </li>-->
+<!--            <li>-->
+<!--                <a href="/admin/explDoc"><i class="fa fa-circle-o"></i> 缺陷prompt</a>-->
+<!--            </li>-->
+<!--            <li>-->
+<!--                <a href="/admin/explDoc"><i class="fa fa-circle-o"></i> 立项prompt</a>-->
+<!--            </li>-->
+<!--            <li>-->
+<!--                <a href="/admin/cammands">-->
+<!--                    <i class="fa fa-reply-all"></i> <span>指令设置</span>-->
+<!--                </a>-->
+<!--            </li>-->
+<!--        </ul>-->
+<!--    </li>-->
+
+
+
+
+<!--    <li class="treeview">-->
+<!--        <a href="#">-->
+<!--            <i class="fa fa-edit"></i> <span>评估管理</span>-->
+<!--            <span class="pull-right-container">-->
+<!--                    <i class="fa fa-angle-left pull-right"></i>-->
+<!--                </span>-->
+<!--        </a>-->
+<!--        <ul class="treeview-menu">-->
+<!--            <li>-->
+<!--                <a href="/admin//usersDocs?type=0"><i class="fa fa-circle-o"></i> 产品评估管理</a>-->
+<!--            </li>-->
+<!--            <li>-->
+<!--                <a href="/admin//usersDocs?type=1"><i class="fa fa-circle-o"></i> 缺陷评估管理</a>-->
+<!--            </li>-->
+<!--            <li>-->
+<!--                <a href="/admin//lxDocs"><i class="fa fa-circle-o"></i> 立项评估管理</a>-->
+<!--            </li>-->
+<!--        </ul>-->
+<!--    </li>-->
+
+
+
+<!--    <li>-->
+<!--        <a href="/admin//mobile_users">-->
+<!--            <i class="fa fa-smile-o"></i> <span>用户管理</span>-->
+<!--        </a>-->
+<!--    </li>-->
+<!--    <li>-->
+<!--        <a href="/admin//admin_user">-->
+<!--            <i class="fa fa-user-circle-o"></i> <span>后台用户管理</span>-->
+<!--        </a>-->
+<!--    </li>-->
+
+<!--</ul>-->

@@ -1,0 +1,1533 @@
+﻿/* ===== 合并的样式文件 - 来自 a1.html 到 a9.html ===== */
+
+/* 字体定义 */
+@font-face {
+    font-family: 'DingTalk JinBuTi';
+    src: url('/static/css/fonts/DingTalk-JinBuTi.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 基础样式 */
+body {
+    background-color: #fff;
+    font-family: "PingFang SC", Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.banner-title {
+    font-style: initial;
+}
+
+/* 按钮样式 */
+.option-button {
+    color: #217EFD;
+    cursor: pointer;
+}
+
+
+    /* 统计页面表单布局 - 使用CSS Grid实现均匀分布 */
+    .info-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* 图表加载样式 */
+    .chart-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        color: #999;
+        font-size: 14px;
+    }
+
+    /* 加载动画 */
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    .export-icon
+    {
+        cursor: pointer;
+    }
+
+    /* 蓝色系列 note-info 样式 */
+    .note-info {
+        padding: 12px 16px;
+        border: 1px solid #b3d9ff;
+        border-radius: 8px;
+        color: #0066cc;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 5px;
+        border-left: 4px solid #217EFD;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        box-shadow: 0 2px 4px rgba(33, 126, 253, 0.1);
+    }
+
+    .note-info::before {
+        content: "💡";
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 1300px) {
+        .chart-container {
+            flex-direction: column;
+        }
+
+        .item-chart {
+            width: 100% !important;
+            margin-bottom: 20px;
+        }
+    }
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+        .note-info {
+            padding: 10px 12px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .note-info::before {
+            font-size: 14px;
+        }
+    }
+
+/* 统计页面表单布局 结束 */
+
+
+.add-btn {
+    width: 80px;
+    opacity: 1;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    height: 38px;
+    line-height: 38px;
+    text-align: center;
+}
+
+.button {
+    opacity: 1;
+    border-radius: 8px;
+    padding: 5px 20px;
+    background: #E4F0FF;
+    font-size: 14px;
+    color: #217EFD;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 28px;
+    height: 38px;
+    font-weight: 600;
+    margin-left: 20px;
+}
+
+/* 切换按钮样式 */
+.tab-btn {
+    min-width: 150px;
+    text-align: center;
+    padding: 0px 15px;
+    cursor: pointer;
+    display: inline-block;
+    border: 1px solid #F3EEFF;
+    transition: all 0.3s ease;
+    user-select: none;
+    height: 38px;
+    line-height: 34px;
+    font-size: 18px;
+}
+
+.tab-btn.active {
+    color: #217EFD;
+    border-color: #217EFD;
+    background: rgba(33, 126, 253, 0.05);
+}
+
+.tab-btn.active a {
+    color: #217EFD;
+}
+
+.tab-btn:not(.active) {
+    color: #333;
+}
+
+.tab-btn:hover:not(.active) {
+    color: #217EFD;
+    border-color: #217EFD;
+    background: rgba(33, 126, 253, 0.02);
+}
+
+/* 布局样式 */
+.content {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.container-fluid {
+    --bs-gutter-x: 0;
+}
+
+.container-main {
+    width: 1280px;
+    margin: 0 auto;
+    font-family: PingFang SC;
+}
+
+/* 顶部区域样式 */
+.top-bar {
+    background-color: #fff;
+    border-radius: 6px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.company-info {
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.company-info i {
+    margin-right: 6px;
+    color: #1E9FFF;
+}
+
+/* 标题区域样式 */
+.title-section {
+    position: relative;
+}
+
+.title-section img {
+    width: 100%;
+    height: auto;
+}
+
+.placeholder-image {
+    position: absolute;
+    right: 260px;
+    top: 19px;
+    width: 307px !important;
+    height: 270px !important;
+}
+
+.main-title {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.sub-title {
+    font-size: 13px;
+    color: #999;
+}
+
+/* 面包屑导航 */
+.layui-breadcrumb {
+    padding: 30px 0;
+}
+
+.layui-breadcrumb a {
+    color: #666 !important;
+}
+
+.layui-breadcrumb a:hover {
+    color: #1E9FFF !important;
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+    font-size: 14px;
+}
+
+/* 角色选择区域 */
+.role-selector {
+    padding: 12px 0px;
+    display: flex;
+    align-items: center;
+}
+
+.role-box {
+    display: flex;
+    align-items: center;
+}
+
+.role-label {
+    margin-right: 10px;
+    color: #222;
+    font-weight: bold;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    font-size: 16px;
+}
+
+.note-box {
+    flex: 1;
+    border: 1px solid #C3A7FF;
+    background-color: #F3EEFF;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin: 35px 0 0 30px;
+    display: flex;
+    align-items: center;
+    height: 38px;
+}
+
+.note-icon {
+    background-color: #fff;
+    border-radius: 2px;
+    color: #9767FF;
+    font-size: 12px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    width: 56px;
+    justify-content: center;
+}
+
+.note-icon img {
+    width: 12px;
+    height: 12px;
+}
+
+.note-icon span {
+    margin-left: 4px;
+}
+
+.role-note {
+    color: #222;
+    font-size: 14px;
+    flex-grow: 1;
+}
+
+.close-note {
+    cursor: pointer;
+    color: #929292;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0.8;
+}
+
+.close-note:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+/* 操作按钮区域 */
+.operation-bar {
+    background-color: #fff;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 17px;
+}
+
+.tab-btn .active .status-badge {
+    display: inline-block;
+    padding: 0 8px;
+    height: 22px;
+    line-height: 22px;
+    border-radius: 11px;
+    color: #217EFD;
+}
+
+.search-group {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* 表格区域 */
+.table-container {
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+/* 分页区域占位样式 */
+.pagination-placeholder {
+    height: 60px;
+    background-color: #fff;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: end;
+}
+
+/* 底部导航 */
+.footer-nav {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.footer-copyright {
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+
+
+
+
+
+
+/* 表格操作按钮样式 */
+.layui-btn-xs {
+    padding: 0 8px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 12px;
+}
+
+.tab-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.tab-btn1 {
+    border-radius: 8px 0 0 8px;
+}
+
+.tab-btn2 {
+    border-radius: 0 8px 8px 0;
+}
+
+/* 动画效果 */
+.layui-btn {
+    transition: all 0.2s ease;
+}
+
+.layui-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 表单样式 */
+.layui-form-select .layui-input,
+.layui-input,
+.layui-textarea {
+    border-color: #D5E8FF;
+    border-radius: 8px;
+    background: #F6FAFF;
+}
+
+.layui-form-select dl {
+    max-height: 250px;
+}
+
+.layui-form-select dl dd.layui-this {
+    background-color: #fff;
+    color: #000;
+}
+
+.layui-input:focus, .layui-textarea:focus {
+    border-color: none !important;
+    box-shadow: none;
+}
+
+/* 空状态样式 */
+.empty-state {
+    text-align: center;
+    padding: 50px 0;
+    color: #999;
+}
+
+.empty-state img {
+    width: 120px;
+    height: 150px;
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* 搜索框placeholder颜色 */
+#searchInput::-webkit-input-placeholder {
+    color: #B1BBCD;
+}
+
+#searchInput::-moz-placeholder {
+    color: #B1BBCD;
+}
+
+#searchInput:-ms-input-placeholder {
+    color: #B1BBCD;
+}
+
+#searchInput::placeholder {
+    color: #B1BBCD;
+}
+
+/* 排序控制样式 */
+.sort-control {
+    display: flex;
+    align-items: center;
+}
+
+.sort-label {
+}
+
+.screening-icon {
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    margin-top: 1px;
+}
+
+.sort-buttons {
+    display: flex;
+    flex-direction: column;
+    margin-left: 6px;
+    justify-content: center;
+    position: relative;
+    top: 1px;
+}
+
+.sort-btn {
+    height: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.6;
+    position: relative;
+    z-index: 1;
+}
+
+.sort-btn:hover {
+    transform: scale(1.15);
+    opacity: 1;
+}
+
+.sort-btn.active {
+    opacity: 1;
+}
+
+.sort-btn.active.asc img {
+    filter: brightness(0) saturate(100%) invert(37%) sepia(90%) saturate(465%) hue-rotate(190deg) brightness(95%) contrast(90%);
+}
+
+.sort-btn.active.desc img {
+    filter: brightness(0) saturate(100%) invert(37%) sepia(90%) saturate(465%) hue-rotate(190deg) brightness(95%) contrast(90%);
+}
+
+.sort-btn img {
+    width: 8px;
+    height: 4px;
+}
+
+/* 分页样式 */
+.layui-laypage .layui-laypage-curr .layui-laypage-em {
+    background: #217EFD;
+}
+
+.layui-laypage input:focus, .layui-laypage select:focus {
+    border-color: #217EFD !important;
+}
+
+/* 表单项目样式 */
+.layui-form-item {
+    margin-bottom: 0;
+}
+
+.layui-form-item:hover {
+    background: #9CA7BB;
+    color: #217EFD;
+}
+
+.demo-dropdown-tabs .layui-form-item {
+    margin-bottom: 0;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.layui-form-item .layui-form-checkbox[lay-skin=primary] {
+    margin-top: 0;
+}
+
+.demo-dropdown-tabs .layui-form-item:hover {
+    background-color: #f3faff !important;
+}
+
+.demo-dropdown-tabs .layui-form-item:hover .layui-form-checkbox span {
+    color: #217EFD !important;
+}
+
+/* 选中状态样式 */
+.item-checked, .demo-dropdown-tabs .layui-form-item.item-checked:hover {
+    background-color: #E6F4FF !important;
+}
+
+.item-checked .layui-form-checkbox span,
+.layui-form-checked span {
+    color: #217EFD !important;
+}
+
+/* 确保复选框和表单项的样式一致 */
+.demo-dropdown-tabs .layui-form-checkbox {
+    width: 100%;
+    margin: 0;
+}
+
+.demo-dropdown-tabs .layui-form-checkbox[lay-skin="primary"] {
+    padding-left: 30px;
+}
+
+/* 字母样式 */
+.letter {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    background-color: #E4F0FF;
+    color: #217EFD;
+    border-radius: 50%;
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+/* 树形结构筛选器样式 */
+.level-filter-container {
+    position: relative;
+    width: 100%;
+}
+
+.level-filter-trigger {
+    position: relative;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #F6FAFF;
+}
+
+.level-filter-input {
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #D5E8FF !important;
+    outline: none;
+}
+
+.level-filter-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s;
+}
+
+.level-filter-trigger.active .level-filter-icon {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.level-filter-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #D5E8FF;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    margin-top: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+}
+
+.level-filter-dropdown.show {
+    display: block;
+}
+
+.level-filter-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.level-filter-item:hover {
+    background-color: #f3faff;
+}
+
+.level-filter-item.selected {
+    background-color: #E6F4FF;
+    color: #217EFD;
+}
+
+.level-filter-item .tree-icon {
+    display: inline-block;
+    width: 12px;
+    text-align: center;
+    margin-right: 5px;
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+
+.level-filter-item .tree-icon.rotated {
+    transform: rotate(90deg);
+}
+
+.level-filter-item .item-content {
+    flex: 1;
+}
+
+.level-filter-item .checkbox {
+    margin-right: 8px;
+}
+
+.level-filter-item.children > .item-content {
+    font-weight: bold;
+}
+
+.level-filter-item.children.collapsed > .item-content {
+    font-weight: normal;
+}
+
+/* 树形结构样式 */
+.layui-tree-entry {
+    cursor: pointer;
+    height: 40px;
+    padding: 0;
+}
+
+.layui-tree {
+    line-height: 40px;
+}
+
+.layui-tree-entry:hover,
+.layui-tree-set.selected > .layui-tree-entry {
+    background: #E6F4FF;
+}
+
+.layui-tree-entry:hover .layui-tree-txt,
+.layui-tree-set.selected > .layui-tree-entry > .layui-tree-main > .layui-tree-txt {
+    color: #217EFD;
+}
+
+.layui-tree-txt {
+    color: #222;
+}
+
+/* 树形结构checkbox样式 */
+.layui-tree-checkbox {
+    margin-right: 8px;
+    cursor: pointer;
+    position: relative;
+}
+
+.layui-tree-checkbox:hover {
+    background-color: #f3faff;
+}
+
+.layui-tree-checkbox.layui-form-checked {
+    background-color: #E6F4FF;
+}
+
+.layui-tree-checkbox.layui-form-checked:before {
+    color: #217EFD;
+}
+
+/* 确保checkbox点击区域不会影响树形结构 */
+.layui-tree-checkbox * {
+    pointer-events: none;
+}
+
+.layui-tree-checkbox {
+    pointer-events: auto;
+}
+
+/* 选中状态的节点样式 */
+.layui-tree-set.checked .layui-tree-entry {
+    background: #E6F4FF;
+}
+
+.layui-tree-set.checked .layui-tree-txt {
+    color: #217EFD;
+    font-weight: 500;
+}
+
+/* 树形筛选器容器样式 */
+.tree-filter-container {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+}
+
+.tree-filter-buttons {
+    flex-shrink: 0;
+    padding: 10px;
+    border-bottom: 1px solid #e6e6e6;
+    text-align: right;
+    background-color: #fafafa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.tree-filter-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.tree-filter-buttons .layui-btn {
+    min-width: 60px;
+}
+
+.tree-filter-buttons .layui-btn-primary {
+    border-color: #d2d2d2;
+    color: #666;
+}
+
+.tree-filter-buttons .layui-btn-primary:hover {
+    border-color: #217EFD;
+    color: #217EFD;
+}
+
+/* 确保树形结构在滚动容器内正确显示 */
+.tree-filter-content .layui-tree {
+    border: none;
+}
+
+/* 下拉菜单样式 */
+.demo-dropdown-tree {
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* 表单区域样式 */
+.form-section {
+    margin: 40px 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.clor1 {
+    color: #557496;
+    font-size: 16px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    color: #222222;
+    font-weight: 500;
+}
+
+.section-title img {
+    margin-right: 5px;
+}
+
+.fz {
+    font-family: 'DingTalk JinBuTi';
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.Card {
+    border: 1px solid #C0D7F4;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(33, 126, 253, 0.12);
+}
+
+/* 弹窗样式 */
+.layui-layer-title {
+    display: none;
+}
+
+.layui-layer-dialog {
+    position: relative;
+    border-radius: 10px !important;
+    background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);
+}
+
+.delete-img {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+.layui-layer-setwin {
+    display: none;
+}
+
+.layui-layer-content {
+    padding-top: 60px !important;
+    font-weight: bold !important;
+    text-align: center !important;
+}
+
+.layui-layer-btn {
+    text-align: center !important;
+}
+
+.layui-layer-btn0 {
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    border: none !important;
+    border-radius: 3px !important;
+}
+
+.layui-layer-btn1 {
+    border-radius: 3px !important;
+    background: #E4F0FF !important;
+    color: #217EFD !important;
+}
+
+/* Toast 消息样式 */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toast-success, .toast-error, .toast-warning, .toast-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 300px;
+}
+
+.toast-success {
+    background-color: #F6FFED;
+    border: 1px solid #B7EB8F;
+}
+
+.toast-error {
+    background-color: #FFF1F0;
+    border: 1px solid #FFA39E;
+}
+
+.toast-warning {
+    background-color: #FFFBE6;
+    border: 1px solid #FFE58F;
+}
+
+.toast-info {
+    background-color: #E6F4FF;
+    border: 1px solid #91CAFF;
+}
+
+.toast-success i {
+    color: #52C41A;
+}
+
+.toast-error i {
+    color: #F5222D;
+}
+
+.toast-warning i {
+    color: #FAAD14;
+}
+
+.toast-info i {
+    color: #217EFD;
+}
+
+.toast-message {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.88);
+}
+
+/* AI验证相关样式 */
+.ai-val-card-blank {
+    position: relative;
+    height: 147px;
+    width: 304px;
+    flex-shrink: 0;
+}
+
+.ai-val-detail-table-tag {
+    position: absolute;
+    top: 0;
+    z-index: 1000;
+    left: -23px;
+    width: 22px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Tab样式 */
+.layui-tab .layui-tab-title li {
+    width: 108px;
+    font-size: 20px;
+    color: #557496;
+}
+
+.layui-tab .layui-tab-title:after {
+    border: none;
+}
+
+.layui-tab-brief > .layui-tab-title .layui-this {
+    color: #217EFD;
+}
+
+/* 表单选择器样式 */
+.layui-form-select .layui-edge {
+    display: none;
+}
+
+.layui-form-select::after {
+    content: "";
+    position: absolute;
+    top: 60%;
+    right: 11px;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background-image: url("/static/images/defect/imga1/Vector1.png");
+    background-repeat: no-repeat;
+    pointer-events: none;
+    transition: transform 0.5s;
+}
+
+/* 表格尺寸样式 */
+.layui-table[lay-size=sm] td, .layui-table[lay-size=sm] th {
+    font-size: 14px;
+}
+
+/* 表单选择器下拉样式 */
+.layui-form-select dl dd:hover, .layui-form-select dl dd.layui-this {
+    color: #217EFD;
+    background-color: #E6F4FF;
+}
+
+/* 响应式设计 */
+@media (max-width: 1780px) {
+    .banner-img {
+        display: none;
+    }
+}
+
+/* ===== a6.html 新增样式 ===== */
+
+/* 特定表格内容区域样式 */
+#processedContent td {
+    height: 40px;
+}
+
+/* 邀请成员项目样式 - 来自a6.html */
+.invitee-item {
+    border: none;
+    box-shadow: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* 树形筛选器输入框焦点样式 - 来自a6.html */
+.level-filter-trigger .layui-input:focus {
+    border: #217EFD 1px solid !important;
+    box-shadow: none;
+    padding: 0 10px;
+}
+
+/* 自定义选择器箭头样式 - 来自a6.html */
+.custom-select {
+    /* 隐藏默认箭头 */
+    background-image: none !important;
+}
+
+/* ===== a7.html 新增样式 ===== */
+
+/* 字体定义 - 来自a7.html */
+
+/* 特定表格内容区域样式 - 来自a7.html */
+
+/* 排序按钮样式 - 来自a7.html (重命名避免冲突) */
+.sort-btn-a7 {
+    height: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform: scale(1.15);
+}
+
+.sort-btn-a7:hover {
+    transform: scale(1.25);
+}
+
+.sort-btn-a7.up {
+    background: url("/static/images/defect/imga1/up1.svg") no-repeat;
+    background-position: center;
+    width: 9px;
+    height: 5px;
+}
+
+.sort-btn-a7.down {
+    background: url("/static/images/defect/imga1/down1.svg") no-repeat;
+    background-position: center;
+    width: 9px;
+    height: 5px;
+    margin-top: 2px;
+}
+
+.sort-btn-a7.up.active {
+    background: url("/static/images/defect/imga1/up2.svg") no-repeat;
+    background-position: center;
+}
+
+.sort-btn-a7.down.active {
+    background: url("/static/images/defect/imga1/down2.svg") no-repeat;
+    background-position: center;
+}
+
+/* 自定义选择器箭头样式 - 来自a7.html (重命名避免冲突) */
+.custom-select-a7 {
+    background-image: none !important;
+}
+
+/* 自定义箭头样式 - 来自a7.html */
+.layui-form-select .layui-edge {
+    display: none;
+}
+
+.layui-form-select::after {
+    content: "";
+    position: absolute;
+    top: 60%;
+    right: 11px;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background-image: url("/static/images/defect/imga1/Vector1.png");
+    background-repeat: no-repeat;
+    pointer-events: none;
+    transition: transform 0.5s;
+}
+
+.layui-form-select dl dd.layui-this {
+    font-weight: 400;
+}
+
+/* 树形筛选器输入框焦点样式 - 来自a7.html */
+.level-filter-trigger .layui-input:focus {
+    border: #217EFD 1px solid !important;
+    box-shadow: none;
+    padding: 0 10px;
+}
+
+/* 树形结构筛选器样式 - 来自a7.html */
+.level-filter-container {
+    position: relative;
+    width: 100%;
+}
+
+.level-filter-trigger {
+    position: relative;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #F6FAFF;
+}
+
+.level-filter-input {
+    cursor: pointer;
+    background: transparent;
+    border: none !important;
+    outline: none;
+}
+
+.level-filter-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s;
+}
+
+.level-filter-trigger.active .level-filter-icon {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.level-filter-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #D5E8FF;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    margin-top: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+}
+
+.level-filter-dropdown.show {
+    display: block;
+}
+
+.level-filter-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.level-filter-item:hover {
+    background-color: #f3faff;
+}
+
+.level-filter-item.selected {
+    background-color: #E6F4FF;
+    color: #217EFD;
+}
+
+.level-filter-item .tree-icon {
+    display: inline-block;
+    width: 12px;
+    text-align: center;
+    margin-right: 5px;
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+
+.level-filter-item .tree-icon.rotated {
+    transform: rotate(90deg);
+}
+
+.level-filter-item .item-content {
+    flex: 1;
+}
+
+.level-filter-item .checkbox {
+    margin-right: 8px;
+}
+
+.level-filter-item.children>.item-content {
+    font-weight: bold;
+}
+
+.level-filter-item.children.collapsed>.item-content {
+    font-weight: normal;
+}
+
+.layui-tree-entry {
+    height: 40px;
+    padding: 0;
+    cursor: pointer;
+}
+
+.layui-tree {
+    line-height: 40px;
+}
+
+.demo-dropdown-tree {
+    border-radius: 8px;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+.layui-tree-entry:hover,
+.layui-tree-set.selected>.layui-tree-entry {
+    background: #E6F4FF!important;
+}
+
+.layui-tree-entry:hover .layui-tree-txt,
+.layui-tree-set.selected>.layui-tree-entry>.layui-tree-main>.layui-tree-txt {
+    color: #217EFD!important;
+}
+
+.layui-tree-txt {
+    color: #222;
+}
+
+.level-filter-input {
+    border: 1px solid #D5E8FF !important;
+}
+
+/* 自定义下拉菜单样式 - 来自a7.html */
+.demo-dropdown-tabs {
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    padding: 0px 0;
+}
+
+.demo-dropdown-tabs .layui-form-item {
+    margin-bottom: 0;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+.layui-form-item .layui-form-checkbox[lay-skin=primary] {
+    margin-top: 0;
+}
+
+.demo-dropdown-tabs .layui-form-item:hover {
+    background-color: #f3faff !important;
+}
+
+.demo-dropdown-tabs .layui-form-item:hover .layui-form-checkbox span {
+    color: #217EFD !important;
+}
+
+.item-checked,
+.demo-dropdown-tabs .layui-form-item.item-checked:hover {
+    background-color: #E6F4FF !important;
+}
+
+.item-checked .layui-form-checkbox span,
+.layui-form-checked span {
+    color: #217EFD !important;
+}
+
+.demo-dropdown-tabs .layui-form-checkbox {
+    width: 100%;
+    margin: 0;
+}
+
+.demo-dropdown-tabs .layui-form-checkbox[lay-skin="primary"] {
+    padding-left: 30px;
+}
+
+/* 字母标识样式 - 来自a7.html */
+.letter {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    background-color: #E4F0FF;
+    color: #217EFD;
+    border-radius: 50%;
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+/* 排序控制样式 - 来自a7.html */
+.sort-control {
+    display: flex;
+    align-items: center;
+}
+
+.sort-label {}
+
+.screening-icon {
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    margin-top: 1px;
+}
+
+.sort-buttons {
+    display: flex;
+    flex-direction: column;
+    margin-left: 6px;
+    justify-content: center;
+    position: relative;
+    top: 1px;
+}
+
+/* 表单项目样式 - 来自a7.html */
+.layui-form-item {
+    margin-bottom: 0;
+}
+
+.layui-form-item:hover {
+    background: #9CA7BB;
+    color: #217EFD;
+}
+
+/* 表格样式 - 来自a7.html */
+.layui-table[lay-size=sm] td,
+.layui-table[lay-size=sm] th {
+    font-size: 14px;
+}
+
+.layui-form-select dl dd:hover,
+.layui-form-select dl dd.layui-this {
+    color: #217EFD;
+    background-color: #E6F4FF;
+}
+
+/* 分页样式 - 来自a7.html */
+.layui-laypage .layui-laypage-curr .layui-laypage-em {
+    background: #217EFD;
+}
+
+.layui-laypage input:focus,
+.layui-laypage select:focus {
+    border-color: #217EFD !important;
+}
+
+/* 面包屑样式 - 来自a7.html */
+.breadcrumb-item+.breadcrumb-item::before {
+    font-size: 14px;
+}
+
+/* 容器样式 - 来自a7.html */
+.container-fluid {
+    --bs-gutter-x: 0;
+}
+
+.container-main {
+    width: 1280px;
+    margin: 0 auto;
+    font-family: PingFang SC;
+}
+
+/* AI验证卡片样式 - 来自a7.html */
+.ai-val-card-blank {
+    position: relative;
+    height: 147px;
+    width: 304px;
+    flex-shrink: 0;
+}
+
+.ai-val-detail-table-tag {
+    position: absolute;
+    top: 0;
+    z-index: 1000;
+    left: -23px;
+    width: 22px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* 标签页样式 - 来自a7.html */
+.layui-tab .layui-tab-title li {
+    width: 108px;
+    font-size: 20px;
+    color: #557496;
+}
+
+.layui-tab .layui-tab-title:after {
+    border: none;
+}
+
+.layui-tab-brief>.layui-tab-title .layui-this {
+    color: #217EFD;
+}
+.sort-btn.up {
+    background: url(/static/images/defect/imga1/up1.svg) no-repeat;
+    background-position: center;
+    width: 9px;
+    height: 5px;
+}
+.sort-btn.down {
+    background: url(/static/images/defect/imga1/down1.svg) no-repeat;
+    background-position: center;
+    width: 9px;
+    height: 5px;
+    margin-top: 2px;
+}
+.layui-table {
+    margin: 0;
+    border-radius: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed; /* 固定表格布局 */
+    width: 100%; /* 设置表格总宽度 */
+}
+
+#defectTableBody td {
+    height: 40px;
+    line-height: 40px;
+    border-bottom: 1px solid #E4F0FF !important;
+    color: #222;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.layui-table th {
+    font-weight: 500;
+    color: #557496;
+    border: none !important;
+    /* padding: 10px 8px; */
+    background: linear-gradient(to bottom, #fff 0%, #E4F0FF 100%);
+    height: 48px;
+    font-size: 14px !important;
+    overflow: hidden; /* 隐藏溢出内容 */
+    text-overflow: ellipsis; /* 显示省略号 */
+    white-space: nowrap; /* 不换行 */
+}
+.layui-table td {
+    padding: 12px 8px;
+    border: none !important;
+    overflow: hidden; /* 隐藏溢出内容 */
+    text-overflow: ellipsis; /* 显示省略号 */
+    white-space: nowrap; /* 不换行 */
+}
+.layui-table tr:last-child td {
+    border-bottom: none;
+}
+
+.layui-table tr:hover {
+    background-color: #d5e8ff;
+}
+
+/* 选中行样式 */
+.layui-table tr.selected {
+    background-color: #e6f7ff !important;
+}
+
+.layui-table tr.selected td {
+    background-color: #e6f7ff !important;
+    font-weight: 600;
+}
+
+.layui-table tr td:first-child {
+    color: #217EFD !important;
+}
+

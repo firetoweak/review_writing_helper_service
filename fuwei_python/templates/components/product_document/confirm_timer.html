@@ -1,0 +1,159 @@
+<div class="unmerged-modal-overlay" id="regenerate-confirm-overlay-common">
+      <div class="unmerged-modal">
+        <img class="unmerged-modal-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="unmerged-modal-content">
+          <div class="unmerged-modal-title" id="regenerate-confirm-modal-common">将对全文进行评审，是否继续？</div>
+          <div id="waitingArea-common" class="review-waiting-body" style="display:none">
+                <img class="review-waiting-clock" src="/static/project_document/images/writing-workspace/review-waiting-clock.png">
+                <div class="review-waiting-content">
+                  <span class="review-waiting-time">00:00</span>
+                  <div class="review-waiting-text">
+                    <span>AI正在全文评审，请耐心等待</span>
+                    <span>大约 1～3 分钟完成</span>
+                  </div>
+                </div>
+          </div>
+          <div class="unmerged-modal-buttons">
+            <div class="unmerged-modal-btn cancel" id="regenerate-confirm-cancel-common">取消</div>
+            <div class="unmerged-modal-btn confirm" id="regenerate-confirm-continue-common">继续</div>
+          </div>
+        </div>
+      </div>
+</div>
+<script>
+    let commonTimerInterval = null
+    $('#btn-full-text-review').click(function (){
+        const confirmModalOverlay = document.getElementById('regenerate-confirm-overlay-common');
+        if (confirmModalOverlay) {
+            confirmModalOverlay.classList.add('show');
+            $('#regenerate-confirm-modal-common').html("将对全文进行评审，是否继续？")
+        }
+        $('#regenerate-confirm-cancel-common').click(function (){
+            confirmModalOverlay.classList.remove('show');
+        })
+        $('#regenerate-confirm-continue-common').click(function (){
+                $('.unmerged-modal-buttons').hide()
+                $('#waitingArea-common').show();
+                startCommonTimer()
+                $.ajax({
+                type: 'POST',
+                contentType: "application/json;charset=UTF-8",
+                url: '/project_document/review/full',
+                data:JSON.stringify({
+                    'document_id': {{document_id}}
+                }),
+                async:true,
+                success: function (data) {
+                    if(data.code===200) {
+                        setTimeout(() => {
+                            stopCommonTimer()
+                            showCommonSuccess("全文评审完成！即将跳转到对比页面...",{{document_id}})
+                        }, 2000);
+                    }else {
+                        setTimeout(() => {
+                            stopCommonTimer()
+                            showCommonError("全文评审失败，服务器端错误","是否重试",confirmModalOverlay)
+                        }, 2000);
+                    }
+                },
+                 error:function (error) {
+                       setTimeout(() => {
+                            stopCommonTimer()
+                            showCommonError("全文评审失败，服务器端错误","是否重试",confirmModalOverlay)
+                        }, 2000);
+                 }
+              })
+        })
+    })
+
+    function startCommonTimer() {
+        stopCommonTimer();
+        let commonSeconds = 0;
+
+        const waitingArea_common = document.querySelector('#waitingArea-common');
+        if (waitingArea_common) {
+            waitingArea_common.style.display = 'block';
+            const timeElement = waitingArea_common.querySelector('.review-waiting-time');
+            if (timeElement) {
+                timeElement.textContent = '00:00';
+            }
+        }
+
+        commonTimerInterval = setInterval(() => {
+            commonSeconds++;
+            const minutes = Math.floor(commonSeconds / 60);
+            const seconds = commonSeconds % 60;
+            const formattedTime =
+                minutes.toString().padStart(2, '0') + ':' +
+                seconds.toString().padStart(2, '0');
+
+            const timeElement = document.querySelector('#waitingArea-common .review-waiting-time');
+            if (timeElement) {
+                timeElement.textContent = formattedTime;
+            }
+        }, 1000);
+    }
+    function stopCommonTimer() {
+        if (commonTimerInterval) {
+            clearInterval(commonTimerInterval);
+            commonTimerInterval = null;
+        }
+    }
+
+    function showCommonSuccess(showText,document_id) {
+
+        const waitingArea = document.querySelector('#waitingArea-common');
+        if (waitingArea) {
+            waitingArea.innerHTML = `
+                <div class="review-waiting-content">
+                    <span class="review-waiting-time" style="color: #52c41a;">✓</span>
+                    <div class="review-waiting-text">
+                        <span style="color: #52c41a;">${showText}</span>
+                    </div>
+                </div>
+            `;
+         setTimeout(() => {
+                location.href = '/project_document/full-text-review/'+document_id
+            }, 2000);
+
+        }
+    }
+
+    function showCommonError(errorMessage1,errorMessage2,confirmModalOverlay) {
+        const waitingArea = document.querySelector('#waitingArea-common');
+        if (waitingArea) {
+            let tmpHtml = waitingArea.getHTML()
+            waitingArea.innerHTML = `
+                <div class="review-waiting-content">
+                    <span class="review-waiting-time" style="color: #ff4d4f;">✗</span>
+                    <div class="review-waiting-text">
+                        <span style="color: #ff4d4f;">${errorMessage1}</span>
+                        <div style="margin-top: 10px;">
+                            <button class="merge-retry-btn btn btn-primary" id="common-retry-btn">重试</button>
+                            <button class="merge-cancel-btn btn btn-secondary" id="common-cancel-btn">取消</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#regenerate-confirm-modal-common').html(errorMessage2)
+            // 绑定重试按钮事件
+            const retryBtn = document.getElementById('common-retry-btn');
+            const cancelBtn = document.getElementById('common-cancel-btn');
+
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => {
+                    waitingArea.innerHTML = tmpHtml
+                    $('.review-waiting-time').html("00:00")
+                    $('#regenerate-confirm-continue-common').click()
+                });
+            }
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    confirmModalOverlay.classList.remove('show');
+                });
+            }
+        }
+    }
+
+</script>

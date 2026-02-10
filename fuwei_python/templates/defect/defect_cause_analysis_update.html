@@ -1,0 +1,346 @@
+<!-- templates/defect/defect_cause_analysis_update.html -->
+{% extends "defect/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- 更新原因分析表单 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">缺陷信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">缺陷单号:</div>
+                        <div class="col-md-10">{{ defect.defect_number }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">标题:</div>
+                        <div class="col-md-10">{{ defect.title }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">描述:</div>
+                        <div class="col-md-10">{{ defect.description }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">严重程度:</div>
+                        <div class="col-md-4">{{ defect.severity }}</div>
+                        <div class="col-md-2 fw-bold">复现概率:</div>
+                        <div class="col-md-4">{{ defect.defect_reproducibility }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">阶段:</div>
+                        <div class="col-md-4">
+                            <span class="badge bg-{{ 'success' if defect.status == 'CLOSED' else 'warning' if defect.status == 'OPEN' else 'secondary' }}">
+                                {{ current_stage_name }}
+                            </span>
+                        </div>
+                        <div class="col-md-2 fw-bold">创建者:</div>
+                        <div class="col-md-4">{{ defect.creator.real_name if defect.creator else '未知' }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 fw-bold">创建时间:</div>
+                        <div class="col-md-4">{{ defect.created_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                        <div class="col-md-2 fw-bold">更新时间:</div>
+                        <div class="col-md-4">{{ defect.updated_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">原因分析</h5>
+                </div>
+                <div class="card-body">
+                    <form id="analysisForm" method="post" action="{{ url_for('defect.submit_analysis', defect_id=defect.id) }}">
+                        <div id="analysisItems">
+                            <!-- 动态生成分析项 -->
+                            {% if stage_data and stage_data.content and stage_data.content.analyses %}
+                                {% for analysis in stage_data.content.analyses %}
+                                <div class="analysis-item mb-2">
+                                    <div class="input-group">
+                                        <span class="input-group-text">{{ loop.index }}</span>
+                                        <input type="text" class="form-control" name="analysis-{{ loop.index }}" value="{{ analysis }}" placeholder="请输入原因分析">
+                                        <button type="button" class="btn btn-danger remove-analysis" {{ 'disabled' if loop.index == 1 else '' }}>
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- 默认显示一个空的分析项 -->
+                                <div class="analysis-item mb-2">
+                                    <div class="input-group">
+                                        <span class="input-group-text">1</span>
+                                        <input type="text" class="form-control" name="analysis-1" placeholder="请输入原因分析">
+                                        <button type="button" class="btn btn-danger remove-analysis" disabled>
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="button" id="addAnalysis" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-plus"></i> 添加原因分析
+                            </button>
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary me-2" id="saveDraftBtn_in_cause_analysis">保存草稿</button>
+                            <button type="button" class="btn btn-outline-dark me-2" id="aiReviewBtn_in_cause_analysis">AI自评</button>
+                            <button type="submit" class="btn btn-primary">提交审核</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- 当前阶段信息 -->
+            {% if current_stage %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">当前阶段: {{ current_stage_name }}</h5>
+                    <span class="badge bg-{{ 'success' if current_stage.status == 'COMPLETED' else 'primary' if current_stage.status == 'IN_PROGRESS' else 'warning' }}">
+                        {{ current_stage.status }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">负责人:</div>
+                        <div class="col-md-3">{{ current_stage.assignee.real_name if current_stage.assignee else '未分配' }}</div>
+                        <div class="col-md-3 fw-bold">创建时间:</div>
+                        <div class="col-md-3">{{ current_stage.created_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+
+                    <!-- 阶段特定内容 -->
+                    {% if stage_data %}
+                    <div class="mt-3">
+                        <h6>当前阶段内容:</h6>
+                        <div class="border p-3 bg-light">
+                            {% if stage_data.data_type == 'DEFECT_DESCRIPTION' %}
+                                <p><strong>标题:</strong> {{ stage_data.content.title }}</p>
+                                <p><strong>描述:</strong> {{ stage_data.content.description }}</p>
+                                <p><strong>严重程度:</strong> {{ defect.severity }}</p>
+                                <p><strong>复现概率:</strong> {{ defect.defect_reproducibility }}</p>
+                            {% elif stage_data.data_type == 'CAUSE_ANALYSIS' %}
+                                <p><strong>原因分析:</strong>
+                                    {% if stage_data.content.analyses %}
+                                        <ul>
+                                            {% for analysis in stage_data.content.analyses %}
+                                                <li>{{ analysis }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        暂无分析内容
+                                    {% endif %}
+                                </p>
+                                <p><strong>提交时间:</strong> {{ stage_data.content.submitted_at if stage_data.content.submitted_at else '未知' }}</p>
+                            {% else %}
+                                <pre>{{ stage_data.content | tojson(indent=2) }}</pre>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 阶段历史 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">阶段历史</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for stage in stages %}
+                        <div class="timeline-item {% if stage.id == defect.current_stage_id %}timeline-item-active{% endif %}">
+                            <div class="timeline-item-marker"></div>
+                            <div class="timeline-item-content">
+                                <h6>{{ stage.stage_type }}</h6>
+                                <p class="mb-1">负责人: {{ stage.assignee.real_name if stage.assignee else '未分配' }}</p>
+                                <p class="mb-1">状态:
+                                    <span class="badge bg-{{ 'success' if stage.status == 'COMPLETED' else 'primary' if stage.status == 'IN_PROGRESS' else 'warning' }}">
+                                        {{ stage.status }}
+                                    </span>
+                                </p>
+                                <p class="text-muted small">{{ stage.created_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-item-marker {
+    position: absolute;
+    left: -20px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #6c757d;
+}
+.timeline-item-active .timeline-item-marker {
+    background-color: #0d6efd;
+    box-shadow: 0 0 0 2px #0d6efd;
+}
+.timeline-item-content {
+    padding: 10px;
+    border-left: 2px solid #dee2e6;
+    margin-left: 10px;
+}
+.timeline-item:last-child .timeline-item-content {
+    border-left: 2px solid transparent;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 动态添加分析项
+    let analysisCount = {{ stage_data.content.analyses|length if stage_data and stage_data.content and stage_data.content.analyses else 1 }};
+
+    document.getElementById('addAnalysis').addEventListener('click', function() {
+        analysisCount++;
+        const newItem = document.createElement('div');
+        newItem.className = 'analysis-item mb-2';
+        newItem.innerHTML = `
+            <div class="input-group">
+                <span class="input-group-text">${analysisCount}</span>
+                <input type="text" class="form-control" name="analysis-${analysisCount}" placeholder="请输入原因分析">
+                <button type="button" class="btn btn-danger remove-analysis">
+                    <i class="bi bi-dash"></i>
+                </button>
+            </div>
+        `;
+        document.getElementById('analysisItems').appendChild(newItem);
+
+        // 启用第一个分析项的删除按钮（如果有多个分析项）
+        if (analysisCount > 1) {
+            document.querySelectorAll('.remove-analysis')[0].removeAttribute('disabled');
+        }
+    });
+
+    // 删除分析项
+    document.getElementById('analysisItems').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-analysis') ||
+            e.target.parentElement.classList.contains('remove-analysis')) {
+            const button = e.target.classList.contains('remove-analysis') ?
+                e.target : e.target.parentElement;
+            const item = button.closest('.analysis-item');
+
+            // 至少保留一个分析项
+            if (document.querySelectorAll('.analysis-item').length > 1) {
+                item.remove();
+                analysisCount--;
+
+                // 重新编号所有分析项
+                document.querySelectorAll('.analysis-item').forEach((item, index) => {
+                    const numberSpan = item.querySelector('.input-group-text');
+                    const input = item.querySelector('input');
+                    numberSpan.textContent = index + 1;
+                    input.name = `analysis-${index + 1}`;
+                });
+
+                // 如果只剩下一个分析项，禁用其删除按钮
+                if (document.querySelectorAll('.analysis-item').length === 1) {
+                    document.querySelector('.remove-analysis').setAttribute('disabled', 'disabled');
+                }
+            }
+        }
+    });
+
+    // 表单提交前的验证
+    document.getElementById('analysisForm').addEventListener('submit', function(e) {
+        let hasContent = false;
+        document.querySelectorAll('#analysisItems input').forEach(input => {
+            if (input.value.trim() !== '') {
+                hasContent = true;
+            }
+        });
+
+        if (!hasContent) {
+            e.preventDefault();
+            alert('请至少填写一个原因分析');
+        }
+    });
+
+    // 其他原有JavaScript代码保持不变...
+    // 获取严重程度选项
+    fetch('/defect/api/defect_severity_options')
+        .then(response => response.json())
+        .then(options => {
+            const select = document.getElementById('severity');
+            if (select) {
+                const currentValue = select.dataset.currentValue;
+                select.innerHTML = '<option value="">请选择严重程度</option>';
+
+                options.forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option.value;
+                    optElement.textContent = option.text;
+                    if (option.value === currentValue) {
+                        optElement.selected = true;
+                    }
+                    select.appendChild(optElement);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('获取缺陷级别选项失败:', error);
+            if (document.getElementById('severity')) {
+                document.getElementById('severity').innerHTML =
+                    '<option value="" disabled selected>加载失败，请刷新重试</option>';
+            }
+        });
+
+    // 获取缺陷重现性选项
+    fetch('/defect/api/defect_reproducibility_options')
+        .then(response => response.json())
+        .then(options => {
+            const select = document.getElementById('defect_reproducibility');
+            if (select) {
+                const currentValue = select.dataset.currentValue;
+                select.innerHTML = '<option value="">请选择复现概率</option>';
+
+                options.forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option.value;
+                    optElement.textContent = option.text;
+                    if (option.value === currentValue) {
+                        optElement.selected = true;
+                    }
+                    select.appendChild(optElement);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('获取缺陷重现性选项失败:', error);
+            if (document.getElementById('defect_reproducibility')) {
+                document.getElementById('defect_reproducibility').innerHTML =
+                    '<option value="" disabled selected>加载失败，请刷新重试</option>';
+            }
+        });
+});
+</script>
+{% endblock %}

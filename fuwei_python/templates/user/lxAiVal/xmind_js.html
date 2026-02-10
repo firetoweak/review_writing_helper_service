@@ -1,0 +1,54 @@
+<script>
+    window.onload = function() {
+        var options = {
+            container: 'jsmind_container',
+            editable: true,
+            theme: 'primary',
+            mode: 'side',
+            direction: 'left',
+            view: {
+                hmargin: 100, // 设置思维导图距容器外框的最小水平距离为 100 像素
+                vmargin: 50,  // 设置思维导图距容器外框的最小垂直距离为 50 像素
+                engine: 'canvas', // 节点之间线条的渲染引擎
+                line_width: 1, // 线条宽度
+                line_color: '#555', // 线条颜色
+                line_style: 'curved', // 线条样式，直线或曲线
+                custom_line_render: null, // 自定义线条渲染方法
+                draggable: true, // 是否允许拖动画布
+                hide_scrollbars_when_draggable: true, // 当 draggable 为 true 时是否隐藏滚动条
+                node_overflow: 'wrap', // 节点文本过长时的样式
+                enable_device_pixel_ratio: false, // 根据设备像素比渲染高清思维导图
+                expander_style: 'char', // 子节点展开器的样式
+                zoom: { // 缩放配置
+                    min: 0.5, // 最小缩放比例
+                    max: 5.0, // 最大缩放比例
+                    step: 0.1, // 缩放步长
+                    mask_key: 4096 // Ctrl Key
+                },
+                custom_node_render: null, // 自定义节点渲染方法
+            },
+        };
+        var data = JSON.parse('{{xmind|safe}}')
+        var mindData = {
+            "meta": {
+                "name": "示例思维导图",
+                "author": "jsMind",
+                "version": "0.1"
+            },
+            "format": "node_tree",
+            "data": data
+        };
+
+        var jm = new jsMind(options);
+        jm.show(mindData);
+        $('#jsmind_container').css('height', (parseInt($('.theme-primary').css('height')) + 5).toString())
+        let jsmindWidth = parseInt($('.jsmind').css('width'))
+        let jsmindContainerWith = 1280
+        if (jsmindWidth > jsmindContainerWith) {
+            let zoomNum = (jsmindContainerWith / jsmindWidth)*  0.98
+            $('.jsmind').css('zoom', zoomNum)
+            $('.theme-primary').css('zoom', zoomNum)
+            $('#jsmind_container').css('height', parseInt($('#jsmind_container').css('height')) * zoomNum)
+        }
+    }
+</script>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+    {% include "admin/base.html" %}
+    <body class="skin-blue">
+        <!-- header logo: style can be found in header.less -->
+        {% include "admin/header.html" %}
+
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+
+            <!-- Right side column. Contains the navbar and content of the page -->
+            <aside class="right-side">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>
+                        用户权限管理
+                        <small>Preview page</small>
+                    </h1>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        <li><a href="/admin/mobile_users"><i class="fa fa-dashboard"></i> 用户列表</a></li>
+                        <li class="active">用户权限编辑</li>
+                    </ol>
+                </section>
+                <section class="content">
+                    <div>手机号码：{{user.mobile}} &nbsp;&nbsp;真实姓名：{{user.real_name}} &nbsp;&nbsp;公司：{{user.company_name}}</div>
+                </section>
+
+                {% for  item in items %}
+                <section class="content">
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;text-align: left;">
+                            <b>
+                                {% if item.type==0 %}
+                                    缺陷管理
+                                {%elif item.type==1  %}
+                                    需求管理
+                                {%elif item.type==2  %}
+                                    立项管理
+                                {%else%}
+                                    IT缺陷流
+                                {% endif %}
+                            </b>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;">
+                            <div style="float: left;width: 30%;padding-top: 8px">可邀同事总数：</div>
+                            <div style="float: left;width: 40%">
+                                <input id="user_total_num{{item.type}}" name="user_total_num{{item.type}}" type="text" class="form-control" placeholder="可邀同事总数" value="{{item.user_total_num}}">
+                            </div>
+                            <div style="float: left;width: 30%;padding-top: 8px; text-align: left">已邀请：{{item.invited_user_num}}；剩余：{{item.user_total_num-item.invited_user_num}};入库总数：{{item.emailUserNum}} </div>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;">
+                            <div style="float: left;width: 30%;padding-top: 8px">剩余几人可邀请发短信提醒：</div>
+                            <div style="float: left;width: 40%">
+                                 <input type="text" id="remind_invited_num{{item.type}}"  placeholder="置空则取消短信"  name="remind_invited_num{{item.type}}" class="form-control" value="{% if item.remind_invited_num>0 %}{{item.remind_invited_num}}{% endif %}">
+                            </div>
+                            <div style="float: left;width: 30%;padding-top: 8px"></div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;">
+                            <div style="float: left;width: 30%;padding-top: 8px">可提问总次数：</div>
+                            <div style="float: left;width: 40%">
+                                <input id="request_num{{item.type}}" name="request_num{{item.type}}" type="text" class="form-control" placeholder="可提问总次数" value="{{item.request_num}}">
+                            </div>
+                            <div style="float: left;width: 30%;padding-top: 8px; text-align: left ">已提问：{{item.requested_num}}；剩余：{{item.request_num-item.requested_num}}</div>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;">
+                            <div style="float: left;width: 30%;padding-top: 8px">剩余几次可提问发短信提醒：</div>
+                            <div style="float: left;width: 40%">
+                                <input type="text" id="remind_request_num{{item.type}}" placeholder="置空则取消短信"  name="remind_request_num{{item.type}}" class="form-control"    value="{% if item.remind_request_num>0 %}{{item.remind_request_num}}{% endif %}">
+                            </div>
+                            <div style="float: left;width: 30%;padding-top: 8px"></div>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;">
+                            <div style="float: left;width: 30%;padding-top: 8px">到期日期：</div>
+                            <div style="float: left;width: 40%">
+                                <input type="text" id="to_date{{item.type}}" name="to_date{{item.type}}" class="form-control" data-inputmask="'alias': 'yyyy-mm-dd'" placeholder=yyyy-mm-dd   data-mask  value="{{item.to_date}}">
+                            </div>
+                            <div style="float: left;width: 30%;padding-top: 8px"></div>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;">
+                            <div style="float: left;width: 30%;padding-top: 8px">短信通知日期（置空则取消短信）：</div>
+                            <div style="float: left;width: 40%">
+                                <input type="text" id="remind_date{{item.type}}"   name="remind_date{{item.type}}" class="form-control"  data-inputmask="'alias': 'yyyy-mm-dd'" placeholder=yyyy-mm-dd   data-mask value="{{item.remind_date}}">
+                            </div>
+                            <div style="float: left;width: 30%;padding-top: 8px"></div>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 800px;">
+                            <div style="float: left;width: 30%;padding-top: 8px">状态：</div>
+                            <div style="float: left;width: 40%">
+                                <select class="form-control" name="state{{item.type}}" id="state{{item.type}}">
+                                    <option value="0"{% if item.state==0 %}selected {% endif %} >免费试用</option>
+                                    <option value="1"{% if item.state==1 %}selected {% endif %}>正常使用</option>
+                                </select>
+                            </div>
+                            <div style="float: left;width: 30%;padding-top: 8px"></div>
+                        </div>
+                    </div>
+                    <div class="row" style="text-align: center;margin-top: 15px">
+                        <button  type="button" class="btn btn-primary" serve_type="{{item.type}}" record_id="{{item.id}}">提交</button>
+                    </div>
+                </section>
+                {% endfor %}
+            </aside>
+    </body>
+</html>
+
+<script src="{{ url_for('static', filename='admin/js/common.js')}}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='admin/js/plugins/input-mask/jquery.inputmask.js')}}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='admin/js/plugins/input-mask/jquery.inputmask.date.extensions.js')}}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='admin/js/plugins/input-mask/jquery.inputmask.extensions.js')}}" type="text/javascript"></script>
+
+
+<script>
+    $(function () {
+
+        $("[data-mask]").inputmask();
+        $('.btn').click(function (){
+            if(confirm("本次修改将会改变用户的使用权限，是否继续")){
+                $.ajax({
+                    url: "/admin/mobile_user_edit",
+                    type: "POST",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify({
+                        user_total_num: $('#user_total_num'+$(this).attr('serve_type')).val(),
+                        request_num  : $('#request_num'+$(this).attr('serve_type')).val(),
+                        to_date  : $('#to_date'+$(this).attr('serve_type')).val(),
+                        state  : $('#state'+$(this).attr('serve_type')).val(),
+                        remind_invited_num : $('#remind_invited_num'+$(this).attr('serve_type')).val(),
+                        remind_request_num: $('#remind_request_num'+$(this).attr('serve_type')).val(),
+                        remind_date: $('#remind_date'+$(this).attr('serve_type')).val(),
+                        id: $(this).attr('record_id')
+                    }),
+                    dataType: "json",
+                    success: function (data) {
+                        alert(data.msg);
+                        location.reload();
+                    }
+                })
+            }
+        })
+
+    })
+</script>

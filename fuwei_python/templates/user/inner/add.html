@@ -1,0 +1,104 @@
+<div class="add-colleague-drawer" id="addColleagueDrawer-add" style="display: none;">
+    <div class="drawer-overlay-list"></div>
+    <div class="drawer-container">
+        <div class="drawer-header">
+            <div class="drawer-title-container">
+                <div class="drawer-title"></div>
+            </div>
+        </div>
+        <div class="drawer-content">
+            <div class="drawer-form">
+                <div class="form-group">
+                    <label class="form-label">被邀请同事的真实姓名</label>
+                    <div class="form-input-container">
+                        <input type="text" class="form-input" placeholder="请输入" id="add-real_name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">他的电子邮件，用于接收帐号密码</label>
+                    <div class="form-input-container">
+                        <input type="email" class="form-input" placeholder="请输入" id="add-email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">部门</label>
+                    <div class="form-input-container">
+                        <input type="email" class="form-input" placeholder="请输入" id="add-dept">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">职位</label>
+                    <div class="form-input-container">
+                        <input type="email" class="form-input" placeholder="请输入" id="add-position">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">他的帐号密码，至少6位</label>
+                    <div class="form-input-container">
+                        <input type="password" class="form-input" placeholder="请输入"  id="add-password">
+                    </div>
+                </div>
+            </div>
+            <div class="drawer-buttons">
+                <button class="btn-batch mr-3" id="user-add">提交</button>
+                <button class="btn-submit-continue" id="userAddAndContinue">提交并继续新增</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('.btn-add').click(function() {
+        $('#addColleagueDrawer-add').fadeIn(300);
+        $('#addColleagueDrawer-add .drawer-container').animate({right: 0}, 300);
+    });
+
+    // 点击关闭按钮关闭抽屉
+    $('#closeDrawer, .drawer-overlay-list').click(function() {
+        $('#addColleagueDrawer-add .drawer-container').animate({right: '-500px'}, 300, function() {
+            $('#addColleagueDrawer-add').fadeOut(300);
+        });
+    });
+
+    // 防止点击抽屉内容时关闭抽屉
+    $('#addColleagueDrawer-add .drawer-container').click(function(e) {
+        e.stopPropagation();
+    });
+
+    $('#user-add,#userAddAndContinue').click(function () {
+        var objId = $(this).attr('id');
+        $(this).attr('disabled',true);
+        $.ajax({
+            url: "/user/inner/add?type={{type}}",
+            type: "POST",
+            contentType: "application/json;charset=UTF-8",
+            data: JSON.stringify({
+                real_name: $('#add-real_name').val(),
+                email: $('#add-email').val(),
+                dept:$('#add-dept').val(),
+                position:$('#add-position').val(),
+                password:$('#add-password').val()
+            }),
+            dataType: "json",
+            success: function (data) {
+                if(data.code==1) {
+                    showToast('success', data.msg);
+                    if(objId=="user-add"){
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    }else{
+                        $('#addColleagueDrawer-add input').val('')
+                    }
+                }else {
+                    if(data.code==-2){
+                        $('#NoInvite').modal('show')
+                    }
+                    else{
+                        showToast('warning', data.msg);
+                    }
+                }
+                $('#'+objId).attr('disabled',false);
+            }
+        })
+    })
+</script>

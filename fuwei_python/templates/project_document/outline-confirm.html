@@ -1,0 +1,83 @@
+<!-- outline-confirm.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>确认大纲 - AI智能写作</title>
+    {% include "project_document/base.html" %}
+    <!-- 添加全局变量传递 document_id -->
+    <script>
+      // 从URL路径中提取document_id
+      const pathParts = window.location.pathname.split('/');
+      const DOCUMENT_ID = pathParts[pathParts.length - 1];
+      // 或者如果Flask传递了变量，可以使用模板变量
+      // const DOCUMENT_ID = {{ document_id|default('null') }};
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/outline-confirm/index.css')}}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/outline-confirm/index.js')}}"></script>
+  </head>
+  <body>
+    <div class="flex-col writing-page scrollbar-custom">
+      <!-- 页头导航 -->
+      <div class="flex-row justify-center items-center relative page-header">
+        <!-- 返回按钮 -->
+        <div class="flex-row items-center back-link" id="back-link">
+          <img class="shrink-0 back-icon" src="/static/project_document/images/outline-confirm/icon-back.png" />
+          <span class="back-text">返回上一步</span>
+        </div>
+
+        <!-- 步骤条 -->
+        <div id="steps-container" class="flex-row items-center"></div>
+
+        <!-- 操作按钮 -->
+        <div class="flex-row header-actions">
+          <div class="flex-col justify-start items-center btn-secondary" id="prev-button">
+            <span class="btn-text btn-text--secondary">上一步</span>
+          </div>
+          <div class="flex-col justify-start items-center btn-primary" id="next-button">
+            <span class="btn-text btn-text--primary">继续写作</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主内容区 -->
+      <div class="flex-row justify-center items-center content-area">
+        <!-- 全文要点面板 -->
+        <div class="flex-col overview-panel">
+          <div class="flex-col justify-start items-start self-stretch relative card-header">
+            <img class="shrink-0 card-header-bg" src="/static/project_document/images/common/bg-card-header.png" />
+            <span class="card-title">全文要点</span>
+          </div>
+          <!-- 5W 内容由 JS 动态生成 -->
+          <div id="overview-content" class="flex-col">
+            <!-- 加载状态 -->
+            <div id="overview-loading" class="loading-state">
+              <div class="loading-spinner"></div>
+              <div class="loading-text">加载中...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 箭头图标 -->
+        <img class="arrow-icon" src="/static/project_document/images/outline-confirm/icon-arrow-thin-right.png" />
+
+        <!-- 章节列表 -->
+        <div class="flex-col chapters-container" id="chapters-container">
+          <!-- 章节卡片由 JS 动态生成 -->
+          <div id="chapters-loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">加载中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 全局加载状态 -->
+      <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">处理中，请稍候...</div>
+      </div>
+    </div>
+  </body>
+</html>

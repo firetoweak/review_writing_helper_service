@@ -1,0 +1,730 @@
+/************************************************************
+** 请将全局样式拷贝到项目的全局 CSS 文件或者当前页面的顶部 **
+** 否则页面将无法正常显示                                  **
+************************************************************/
+
+@font-face {
+  font-family: 'DingTalk JinBuTi';
+  src: url('/static/css/fonts/DingTalk-JinBuTi.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+html {
+  font-size: 16px;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: 'DingTalk JinBuTi', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', 'Microsoft Yahei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+body * {
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-baseline {
+  align-items: baseline;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+.self-start {
+  align-self: flex-start;
+}
+
+.self-end {
+  align-self: flex-end;
+}
+
+.self-center {
+  align-self: center;
+}
+
+.self-baseline {
+  align-self: baseline;
+}
+
+.self-stretch {
+  align-self: stretch;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.grow-0 {
+  flex-grow: 0;
+}
+
+.shrink {
+  flex-shrink: 1;
+}
+
+.shrink-0 {
+  flex-shrink: 0;
+}
+
+.relative {
+  position: relative;
+}
+
+.ml-space-two {
+  margin-left: 0.13rem;
+}
+
+.mt-space-two {
+  margin-top: 0.13rem;
+}
+
+.ml-space-four {
+  margin-left: 0.25rem;
+}
+
+.mt-space-four {
+  margin-top: 0.25rem;
+}
+
+.ml-space-six {
+  margin-left: 0.38rem;
+}
+
+.mt-space-six {
+  margin-top: 0.38rem;
+}
+
+.ml-space-eight {
+  margin-left: 0.5rem;
+}
+
+.mt-space-eight {
+  margin-top: 0.5rem;
+}
+
+.ml-space-ten {
+  margin-left: 0.63rem;
+}
+
+.mt-space-ten {
+  margin-top: 0.63rem;
+}
+
+.ml-space-twelve {
+  margin-left: 0.75rem;
+}
+
+.mt-space-twelve {
+  margin-top: 0.75rem;
+}
+
+.ml-space-fourteen {
+  margin-left: 0.88rem;
+}
+
+.mt-space-fourteen {
+  margin-top: 0.88rem;
+}
+
+.ml-space-sixteen {
+  margin-left: 1rem;
+}
+
+.mt-space-sixteen {
+  margin-top: 1rem;
+}
+
+.ml-space-eighteen {
+  margin-left: 1.13rem;
+}
+
+.mt-space-eighteen {
+  margin-top: 1.13rem;
+}
+
+.ml-space-twenty {
+  margin-left: 1.25rem;
+}
+
+.mt-space-twenty {
+  margin-top: 1.25rem;
+}
+
+.ml-space-twenty-two {
+  margin-left: 1.38rem;
+}
+
+.mt-space-twenty-two {
+  margin-top: 1.38rem;
+}
+
+.ml-space-twenty-four {
+  margin-left: 1.5rem;
+}
+
+.mt-space-twenty-four {
+  margin-top: 1.5rem;
+}
+
+.ml-space-twenty-six {
+  margin-left: 1.63rem;
+}
+
+.mt-space-twenty-six {
+  margin-top: 1.63rem;
+}
+
+.ml-space-twenty-eight {
+  margin-left: 1.75rem;
+}
+
+.mt-space-twenty-eight {
+  margin-top: 1.75rem;
+}
+
+.ml-space-thirty {
+  margin-left: 1.88rem;
+}
+
+.mt-space-thirty {
+  margin-top: 1.88rem;
+}
+
+.ml-space-thirty-two {
+  margin-left: 2rem;
+}
+
+.mt-space-thirty-two {
+  margin-top: 2rem;
+}
+
+.ml-space-thirty-four {
+  margin-left: 2.13rem;
+}
+
+.mt-space-thirty-four {
+  margin-top: 2.13rem;
+}
+
+.ml-space-thirty-six {
+  margin-left: 2.25rem;
+}
+
+.mt-space-thirty-six {
+  margin-top: 2.25rem;
+}
+
+.ml-space-thirty-eight {
+  margin-left: 2.38rem;
+}
+
+.mt-space-thirty-eight {
+  margin-top: 2.38rem;
+}
+
+.ml-space-forty {
+  margin-left: 2.5rem;
+}
+
+.mt-space-forty {
+  margin-top: 2.5rem;
+}
+
+.ml-space-forty-two {
+  margin-left: 2.63rem;
+}
+
+.mt-space-forty-two {
+  margin-top: 2.63rem;
+}
+
+.ml-space-forty-four {
+  margin-left: 2.75rem;
+}
+
+.mt-space-forty-four {
+  margin-top: 2.75rem;
+}
+
+.ml-space-forty-six {
+  margin-left: 2.88rem;
+}
+
+.mt-space-forty-six {
+  margin-top: 2.88rem;
+}
+
+.ml-space-forty-eight {
+  margin-left: 3rem;
+}
+
+.mt-space-forty-eight {
+  margin-top: 3rem;
+}
+
+.ml-space-fifty {
+  margin-left: 3.13rem;
+}
+
+.mt-space-fifty {
+  margin-top: 3.13rem;
+}
+
+.ml-space-fifty-two {
+  margin-left: 3.25rem;
+}
+
+.mt-space-fifty-two {
+  margin-top: 3.25rem;
+}
+
+.ml-space-fifty-four {
+  margin-left: 3.38rem;
+}
+
+.mt-space-fifty-four {
+  margin-top: 3.38rem;
+}
+
+.ml-space-fifty-six {
+  margin-left: 3.5rem;
+}
+
+.mt-space-fifty-six {
+  margin-top: 3.5rem;
+}
+
+.ml-space-fifty-eight {
+  margin-left: 3.63rem;
+}
+
+.mt-space-fifty-eight {
+  margin-top: 3.63rem;
+}
+
+.ml-space-sixty {
+  margin-left: 3.75rem;
+}
+
+.mt-space-sixty {
+  margin-top: 3.75rem;
+}
+
+.ml-space-sixty-two {
+  margin-left: 3.88rem;
+}
+
+.mt-space-sixty-two {
+  margin-top: 3.88rem;
+}
+
+.ml-space-sixty-four {
+  margin-left: 4rem;
+}
+
+.mt-space-sixty-four {
+  margin-top: 4rem;
+}
+
+.ml-space-sixty-six {
+  margin-left: 4.13rem;
+}
+
+.mt-space-sixty-six {
+  margin-top: 4.13rem;
+}
+
+.ml-space-sixty-eight {
+  margin-left: 4.25rem;
+}
+
+.mt-space-sixty-eight {
+  margin-top: 4.25rem;
+}
+
+.ml-space-seventy {
+  margin-left: 4.38rem;
+}
+
+.mt-space-seventy {
+  margin-top: 4.38rem;
+}
+
+.ml-space-seventy-two {
+  margin-left: 4.5rem;
+}
+
+.mt-space-seventy-two {
+  margin-top: 4.5rem;
+}
+
+.ml-space-seventy-four {
+  margin-left: 4.63rem;
+}
+
+.mt-space-seventy-four {
+  margin-top: 4.63rem;
+}
+
+.ml-space-seventy-six {
+  margin-left: 4.75rem;
+}
+
+.mt-space-seventy-six {
+  margin-top: 4.75rem;
+}
+
+.ml-space-seventy-eight {
+  margin-left: 4.88rem;
+}
+
+.mt-space-seventy-eight {
+  margin-top: 4.88rem;
+}
+
+.ml-space-eighty {
+  margin-left: 5rem;
+}
+
+.mt-space-eighty {
+  margin-top: 5rem;
+}
+
+.ml-space-eighty-two {
+  margin-left: 5.13rem;
+}
+
+.mt-space-eighty-two {
+  margin-top: 5.13rem;
+}
+
+.ml-space-eighty-four {
+  margin-left: 5.25rem;
+}
+
+.mt-space-eighty-four {
+  margin-top: 5.25rem;
+}
+
+.ml-space-eighty-six {
+  margin-left: 5.38rem;
+}
+
+.mt-space-eighty-six {
+  margin-top: 5.38rem;
+}
+
+.ml-space-eighty-eight {
+  margin-left: 5.5rem;
+}
+
+.mt-space-eighty-eight {
+  margin-top: 5.5rem;
+}
+
+.ml-space-ninety {
+  margin-left: 5.63rem;
+}
+
+.mt-space-ninety {
+  margin-top: 5.63rem;
+}
+
+.ml-space-ninety-two {
+  margin-left: 5.75rem;
+}
+
+.mt-space-ninety-two {
+  margin-top: 5.75rem;
+}
+
+.ml-space-ninety-four {
+  margin-left: 5.88rem;
+}
+
+.mt-space-ninety-four {
+  margin-top: 5.88rem;
+}
+
+.ml-space-ninety-six {
+  margin-left: 6rem;
+}
+
+.mt-space-ninety-six {
+  margin-top: 6rem;
+}
+
+.ml-space-ninety-eight {
+  margin-left: 6.13rem;
+}
+
+.mt-space-ninety-eight {
+  margin-top: 6.13rem;
+}
+
+.ml-space-one-hundred {
+  margin-left: 6.25rem;
+}
+
+.mt-space-one-hundred {
+  margin-top: 6.25rem;
+}
+
+/* 全文要点 样式 */
+        /* 标题样式 */
+        #overview-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+
+        #overview-content > ol > li > p:first-of-type {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a5fb4;
+            margin-left: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        /* 有序列表样式 */
+        #overview-content > ol {
+            counter-reset: item;
+            padding-left: 1.2rem;
+            margin-top: 0;
+        }
+
+        #overview-content > ol > li {
+            counter-increment: item;
+            margin-bottom: 2rem;
+            list-style: none;
+            position: relative;
+        }
+
+        #overview-content > ol > li:before {
+            content: counter(item) ".";
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: #1a5fb4;
+            background-color: #f0f7ff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 表格样式 */
+        #overview-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0 2rem 0;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 表格标题行 */
+        #overview-content thead {
+            background-color: #1a5fb4;
+            color: white;
+        }
+
+        #overview-content th {
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #1a5fb4;
+            position: relative;
+        }
+
+        #overview-content th:not(:last-child):after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 15%;
+            height: 70%;
+            width: 1px;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 表格数据行 */
+        #overview-content td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        /* 表格行交替背景色 */
+        #overview-content tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        #overview-content tbody tr:hover {
+            background-color: #f0f7ff;
+            transition: background-color 0.2s;
+        }
+
+        /* 表格列宽度优化 */
+        #overview-content th:nth-child(1),
+        #overview-content td:nth-child(1) {
+            width: 12%;
+            font-weight: 600;
+        }
+
+        #overview-content th:nth-child(2),
+        #overview-content td:nth-child(2) {
+            width: 20%;
+        }
+
+        #overview-content th:nth-child(3),
+        #overview-content td:nth-child(3) {
+            width: 22%;
+        }
+
+        #overview-content th:nth-child(4),
+        #overview-content td:nth-child(4) {
+            width: 23%;
+        }
+
+        #overview-content th:nth-child(5),
+        #overview-content td:nth-child(5) {
+            width: 23%;
+        }
+
+        /* 段落样式 */
+        #overview-content p {
+            margin-top: 0.8rem;
+            margin-bottom: 1rem;
+            color: #444;
+            text-align: justify;
+        }
+/* 全文要点 样式 结束 */
+
+/* 章节要点 样式  */
+.chapter-points-paragraph{
+  font-size: 0.88rem;
+  line-height: 1.5rem;
+  color: var(--color-muted);
+  display: block;
+  overflow-y: auto;
+}
+/* 全文要点 样式 结束 */
+
+/* ========== Toast提示 ========== */
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+}
+
+.toast-hint {
+  background: #333;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s ease;
+}
+
+.toast-hint.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-success {
+  background: #4CAF50;
+}
+
+.toast-error {
+  background: #f44336;
+}
+
+.toast-info {
+  background: #2196F3;
+}
+
+/* ========== AI侧正文 样式 ========== */
+.vfy-del { text-decoration: line-through; color: #999; background-color: #f0f0f0; }
+.vfy-valid { color: #15803d; background-color: #dcfce7; border-bottom: 2px solid #86efac; }
+.vfy-hal { color: #b91c1c; background-color: #fee2e2; text-decoration: underline wavy #ef4444; }
+.vfy-unk { color: #92400e; background-color: #fef3c7; border-bottom: 2px dashed #f59e0b; }
+.vfy-added { color: #15803d; background-color: #dcfce7; border-bottom: 2px solid #86efac; }
+.vfy-block-del { margin-top: 12px; padding: 8px; border: 1px dashed #999; background: #fafafa; }
+.vfy-block-del h4 { margin: 0 0 6px 0; font-size: 14px; }
+.vfy-block-del pre { margin: 0; white-space: pre-wrap; }
+/* ========== AI侧正文 样式结束 ========== */

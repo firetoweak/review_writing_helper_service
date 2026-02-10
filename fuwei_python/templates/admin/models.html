@@ -1,0 +1,145 @@
+<html>
+    {% include "admin/base.html" %}
+    <body class="skin-blue">
+        {% include "admin/header.html" %}
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+
+            <!-- Right side column. Contains the navbar and content of the page -->
+            <aside class="right-side">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>
+                        模型选择
+                        <small>Preview page</small>
+                    </h1>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        <li class="active">模型选择</li>
+                    </ol>
+                </section>
+
+                <!-- Main content -->
+                <section class="content">
+                    <div class="row" style="text-align: center;margin-top: 10px;">
+                        <div style="display: inline-block; margin: 0 auto; width: 600px;">
+                            <div style="float: left;width: 20%;padding-top: 8px">缺陷模型选择：</div>
+                            <div style="float: left;width: 40%">
+                                <select id="model_bug" class="form-control">
+                                    <option value="0" >请选择</option>
+                                    {% for item in items %}
+                                    <option value="{{item.id}}"  {% if module_all['0']['id']==item.id  %} selected {% endif %}>{{item.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div style="float: left;width: 25%;margin-left: 5px">
+                                <select id="model_bug_shake" class="form-control">
+                                    <option value="closed"  {% if module_all['0']['anti_shake_status']=='closed'  %} selected {% endif %}>关闭防抖</option>
+                                    <option value="open"  {% if module_all['0']['anti_shake_status']=='open'  %} selected {% endif %}>开启防抖</option>
+                                </select>
+                            </div>
+                            <div style="float: left;width: 10%;"><button type="button" class="btn btn-primary" select_id="bug"  module="0" >提交</button></div>
+                        </div>
+                    </div><!-- /.row -->
+
+
+                    <div class="row" style="text-align: center;margin-top: 10px;">
+                        <div style="display: inline-block; margin: 0 auto; width: 600px;">
+                            <div style="float: left;width: 20%;padding-top: 8px">需求模型选择：</div>
+                            <div style="float: left;width: 40%">
+                                <select id="model_demand" class="form-control">
+                                    <option value="0" >请选择</option>
+                                    {% for item in items %}
+                                    <option value="{{item.id}}"  {% if module_all['1']['id']==item.id  %} selected  {% endif %}      >{{item.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div style="float: left;width: 25%;margin-left: 5px">
+                                <select id="model_demand_shake" class="form-control" >
+                                    <option value="closed"  {% if module_all['1']['anti_shake_status']=='closed'  %} selected {% endif %}>关闭防抖</option>
+                                    <option value="open"  {% if module_all['1']['anti_shake_status']=='open'  %} selected {% endif %}   >开启防抖</option>
+                                </select>
+                            </div>
+                            <div style="float: left;width: 10%;"><button type="button" class="btn btn-primary" select_id="demand"  module="1" >提交</button></div>
+                        </div>
+                    </div><!-- /.row -->
+                    <div class="row" style="text-align: center;margin-top: 10px;">
+                        <div style="display: inline-block; margin: 0 auto; width: 600px;">
+                            <div style="float: left;width: 20%;padding-top: 8px">立项模型选择：</div>
+                            <div style="float: left;width: 40%">
+                                <select id="model_lx" class="form-control">
+                                    <option value="0" >请选择</option>
+                                    {% for item in items %}
+                                     {% if item.key_name!="xj-qianwen" %}
+                                    <option value="{{item.id}}"  {% if module_all['2']['id']==item.id  %} selected {% endif %}>{{item.name}}</option>
+                                     {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                           <div style="float: left;width: 25%;margin-left: 5px">
+                                <select id="model_lx_shake" class="form-control">
+                                    <option value="closed"  {% if module_all['2']['anti_shake_status']=='closed'  %} selected {% endif %}>关闭防抖</option>
+                                    <option value="open"  {% if module_all['2']['anti_shake_status']=='open'  %} selected {% endif %}>开启防抖</option>
+                                </select>
+                            </div>
+
+                            <div style="float: left;width: 10%;"><button type="button" class="btn btn-primary" select_id="lx"  module="2" >提交</button></div>
+                        </div>
+                    </div><!-- /.row -->
+
+
+                    <div class="row" style="text-align: center;margin-top: 15px">
+
+                    </div>
+                </section>
+            </aside>
+    </body>
+</html>
+<script>
+    if($('#model_demand').val()==="7"){
+        $('#model_demand_shake').prop("disabled",true)
+    }
+    if($('#model_bug').val()==="7"){
+        $('#model_bug_shake').prop("disabled",true)
+    }
+
+    $(function () {
+        $('.btn').click(function () {
+            let modelId = "model_"+$(this).attr('select_id');
+            let module = $(this).attr('module');
+            let shakeId = "model_"+$(this).attr('select_id')+"_shake";
+            $.ajax({
+                url: "/admin/models",
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                  model: $('#'+modelId).val(),
+                  module:module,
+                  shake:$('#'+shakeId).val()
+                }),
+                dataType: "json",
+                success: function (data) {
+                    alert(data.msg);
+                }
+            })
+        })
+
+       $('#model_demand,#model_bug').change(function (){
+           if($(this).val()==="7"){
+               $('#'+$(this).attr("id")+"_shake").val("open")
+               $('#'+$(this).attr("id")+"_shake").prop("disabled",true)
+           }else{
+               $('#'+$(this).attr("id")+"_shake").prop("disabled",false)
+           }
+       })
+    })
+</script>

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    <!-- JavaScript 引入 -->
+    {% include "defect/base_js.html" %}
+    {% include "defect/bases.html" %}
+    <style>
+        /* 样式保持不变 */
+        .tab-container {
+            margin: 20px;
+        }
+        .tab-header {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            background-color: #ffffff;
+            font-size: 16px;
+            color: #557496;
+            min-width: 100px;
+            text-align: center;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            color: #217EFD;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0px 0px 16px 16px;
+            min-height: 400px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .template-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .template-item input, .template-item textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .template-item textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .item-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .remove-tag {
+            padding: 5px 12px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .remove-tag:hover {
+            background-color: #ff5252;
+        }
+        .add-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        .add-section:hover {
+            border-color: #007bff;
+            background-color: #e9f7fe;
+        }
+        .addicon {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .add-text {
+            display: inline-block;
+            color: #557496;
+            font-size: 16px;
+        }
+        .drawer-buttons {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 16px;
+        }
+        .message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            display: none;
+            font-weight: bold;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+{% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item active">
+                    {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a> {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+                </li>
+                <li class="breadcrumb-item active">
+                    描述模板
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="container-main">
+        <div class="role-selector">
+            {% include "components/roles_menu.html" %}
+            {% include "components/defect_message.html" %}
+        </div>
+
+        <!-- 操作栏 - 包含切换按钮和搜索区域 -->
+        <div class="operation-bar" style="justify-content: space-between;">
+            {{ get_right_style(0)|safe }}
+
+            <!-- 切换按钮 -->
+            {% include "components/user_menus.html" %}
+        </div>
+
+    <div class="tab-container">
+        <div class="tab-header">
+            <div class="tab active" data-tab="defect">缺陷描述</div>
+            <div class="tab" data-tab="cause">原因分析</div>
+            <div class="tab" data-tab="solution">解决措施</div>
+            <div class="tab" data-tab="regression">回归测试</div>
+        </div>
+
+        <div class="tab-content active" id="defect-content">
+            <div id="defect-message" class="message"></div>
+            <div id="defect-items"></div>
+            <!-- 添加描述 缺陷描述 -->
+            {% if is_global_admin %}
+            <div class="add-section flex items-center justify-center" id="addSectionDefectDes" onclick="addItem('defect')">
+                <div class="addicon">
+                    <img src="/static/images/defect/news_add.png">
+                </div>
+                <div class="add-text">添加描述项</div>
+            </div>
+            <div class="drawer-buttons">
+                <button class="ok-btn" style="width: 150px;" onclick="saveTemplate('defect')">保存缺陷描述模板</button>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="tab-content" id="cause-content">
+            <div id="cause-message" class="message"></div>
+            <div id="cause-items"></div>
+            <!-- 添加描述 原因分析 -->
+            {% if is_global_admin %}
+            <div class="add-section flex items-center justify-center" id="addSectionCause" onclick="addItem('cause')">
+                <div class="addicon">
+                    <img src="/static/images/defect/news_add.png">
+                </div>
+                <div class="add-text">添加描述项</div>
+            </div>
+            <div class="drawer-buttons">
+                <button class="ok-btn" style="width: 150px;" onclick="saveTemplate('cause')">保存原因分析模板</button>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="tab-content" id="solution-content">
+            <div id="solution-message" class="message"></div>
+            <div id="solution-items"></div>
+            <!-- 添加描述 解决措施 -->
+            {% if is_global_admin %}
+            <div class="add-section flex items-center justify-center" id="addSectionSolution" onclick="addItem('solution')">
+                <div class="addicon">
+                    <img src="/static/images/defect/news_add.png">
+                </div>
+                <div class="add-text">添加描述项</div>
+            </div>
+            <div class="drawer-buttons">
+                <button class="ok-btn" style="width: 150px;" onclick="saveTemplate('solution')">保存解决措施模板</button>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="tab-content" id="regression-content">
+            <div id="regression-message" class="message"></div>
+            <div id="regression-items"></div>
+            <!-- 添加描述 回归测试 -->
+            {% if is_global_admin %}
+            <div class="add-section flex items-center justify-center" id="addSectionRegression" onclick="addItem('regression')">
+                <div class="addicon">
+                    <img src="/static/images/defect/news_add.png">
+                </div>
+                <div class="add-text">添加描述项</div>
+            </div>
+            <div class="drawer-buttons">
+                <button class="ok-btn" style="width: 150px;" onclick="saveTemplate('regression')">保存回归测试模板</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- 底部区域 -->
+{% include "user/footer.html" %}
+<!-- JavaScript 引入 -->
+{% include "defect/base_js.html" %}
+
+    <script>
+        // 检查是否有错误信息
+        {% if error_message %}
+            showToast("error", "{{ error_message }}", 5000);
+        {% endif %}
+
+        let currentTab = 'defect';
+        let templates = {
+            'defect': null,
+            'cause': null,
+            'solution': null,
+            'regression': null
+        };
+
+        // 模板类型映射
+        const templateTypeMap = {
+            'defect': '缺陷描述',
+            'cause': '原因分析',
+            'solution': '解决措施',
+            'regression': '回归测试'
+        };
+
+        // 页面加载时初始化
+        $(document).ready(function() {
+            // 加载当前激活的标签页模板
+            loadTemplate('defect');
+
+            // 绑定标签切换事件
+            $('.tab').click(function() {
+                const tab = $(this).data('tab');
+                switchTab(tab);
+            });
+
+        });
+
+        // 切换标签页
+        function switchTab(tab) {
+            if (tab === currentTab) return;
+
+            $('.tab').removeClass('active');
+            $(`.tab[data-tab="${tab}"]`).addClass('active');
+
+            $('.tab-content').removeClass('active');
+            $(`#${tab}-content`).addClass('active');
+
+            currentTab = tab;
+
+            // 如果还没有加载过该模板，则加载
+            if (!templates[tab]) {
+                loadTemplate(tab);
+            } else {
+                // 如果已经加载过，重新渲染
+                renderTemplateItems(templates[tab].items, tab);
+            }
+        }
+
+        // 加载模板
+        function loadTemplate(tab) {
+            const typeName = templateTypeMap[tab];
+            if (!typeName) {
+                showToast('error', '未知的模板类型');
+                return;
+            }
+
+            $.ajax({
+                url: `/template/${typeName}`,
+                type: 'GET',
+                beforeSend: function() {
+                    // 显示加载状态
+                    $(`#${tab}-items`).html('<div class="empty-state">加载中...</div>');
+                },
+                success: function(response) {
+                    console.log(`${typeName} API Response:`, response);
+
+                    templates[tab] = response;
+
+                    if (response.items && response.items.length > 0) {
+                        renderTemplateItems(response.items, tab);
+                    } else {
+                        // 显示空状态
+                        $(`#${tab}-items`).html(`
+                            <div class="empty-state">
+                                <p>暂无${typeName}模板项</p>
+                                {% if is_global_admin %}
+                                <p>点击下方"添加描述项"按钮创建第一个模板项</p>
+                                {% endif %}
+                            </div>
+                        `);
+                    }
+
+                    showToast('success', `${typeName}模板加载成功`);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.error : '加载失败';
+
+                    // 如果是404错误，说明模板不存在
+                    if (xhr.status === 404) {
+                        $(`#${tab}-items`).html(`
+                            <div class="empty-state">
+                                <p>${typeName}模板不存在</p>
+                                {% if is_global_admin %}
+                                <p>点击下方"保存${typeName}模板"按钮创建默认模板</p>
+                                {% endif %}
+                            </div>
+                        `);
+                    } else {
+                        showToast('error', `加载${typeName}模板失败: ${error}`);
+                        $(`#${tab}-items`).html('<div class="empty-state">加载失败，请重试</div>');
+                    }
+                }
+            });
+        }
+
+        // 渲染模板项
+        function renderTemplateItems(items, tab) {
+            const container = $(`#${tab}-items`);
+            container.empty();
+
+            if (!items || items.length === 0) {
+                container.html('<div class="empty-state">暂无模板项</div>');
+                return;
+            }
+
+            // 按排序顺序排序
+            items.sort((a, b) => a.sort_order - b.sort_order);
+
+            items.forEach((item, index) => {
+                // 处理content字段
+                let content;
+                if (typeof item.content === 'string') {
+                    try {
+                        content = JSON.parse(item.content);
+                    } catch (e) {
+                        console.error('解析content失败:', e);
+                        content = { title: '', description: '' };
+                    }
+                } else {
+                    content = item.content || {};
+                }
+
+                // 安全地转义HTML
+                const title = escapeHtml(content.title || '');
+                const description = escapeHtml(content.description || '');
+
+                const itemHtml = `
+                    <div class="template-item" data-id="${item.id || 'new'}">
+                        <input type="text" class="item-title" placeholder="模板标题" value="${title}">
+                        <textarea class="item-description" placeholder="模板描述">${description}</textarea>
+                        <div class="item-actions">
+                            {% if is_global_admin %}
+                            <button type="button" class="remove-tag" onclick="removeItem(this, '${tab}')">移除</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                `;
+
+                container.append(itemHtml);
+            });
+        }
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // 添加新项
+        function addItem(tab) {
+            const container = $(`#${tab}-items`);
+            // 移除空状态提示（如果有）
+            if (container.find('.empty-state').length) {
+                container.empty();
+            }
+
+            const itemHtml = `
+                <div class="template-item" data-id="new">
+                    <input type="text" class="item-title" placeholder="模板标题">
+                    <textarea class="item-description" placeholder="模板描述"></textarea>
+                    <div class="item-actions">
+                        <button type="button" class="remove-tag" onclick="removeItem(this, '${tab}')">移除</button>
+                    </div>
+                </div>
+            `;
+
+            container.append(itemHtml);
+
+            // 滚动到新添加的项
+            container.find('.template-item:last')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 删除项
+        function removeItem(button, tab) {
+            const itemElement = $(button).closest('.template-item');
+            const itemId = itemElement.data('id');
+
+            if (confirm('确定要删除这个模板项吗？')) {
+                itemElement.remove();
+
+                // 如果没有项了，显示空状态
+                if ($(`#${tab}-items .template-item`).length === 0) {
+                    $(`#${tab}-items`).html('<div class="empty-state">暂无模板项</div>');
+                }
+            }
+        }
+
+        // 保存模板
+        function saveTemplate(tab) {
+            const typeName = templateTypeMap[tab];
+            if (!typeName) {
+                showToast('error', '未知的模板类型');
+                return;
+            }
+
+            const items = [];
+
+            $(`#${tab}-items .template-item`).each(function(index) {
+                const id = $(this).data('id');
+                const title = $(this).find('.item-title').val().trim();
+                const description = $(this).find('.item-description').val().trim();
+
+                items.push({
+                    id: id !== 'new' ? id : undefined,
+                    content: JSON.stringify({ title, description }),
+                    sort_order: index,
+                    is_removable: true,
+                    is_required: false
+                });
+            });
+
+            // 检查是否有空的项
+            const emptyItems = items.filter(item => {
+                const content = JSON.parse(item.content);
+                return !content.title && !content.description;
+            });
+
+            if (emptyItems.length > 0 && !confirm('存在未填写内容的模板项，是否继续保存？')) {
+                return;
+            }
+
+            $.ajax({
+                url: `/template/${typeName}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ items }),
+                beforeSend: function() {
+                    // 显示保存中状态
+                    $(`#${tab}-message`).removeClass('success error').addClass('success').text('保存中...').show();
+                },
+                success: function(response) {
+                    templates[tab] = response;
+
+                    // 更新标签状态
+                    const tabElement = $(`.tab[data-tab="${tab}"]`);
+                    tabElement.find('.badge').remove();
+                    tabElement.append(` <span class="badge badge-success" style="background-color: #28a745; color: white; padding: 2px 6px; border-radius: 10px; font-size: 12px;">已保存</span>`);
+
+                    $(`#${tab}-message`).removeClass('error').addClass('success').text(`${typeName}模板保存成功`).show();
+                    setTimeout(() => {
+                        $(`#${tab}-message`).fadeOut();
+                    }, 3000);
+
+                    showToast('success', `${typeName}模板保存成功`);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.error : '保存失败';
+                    $(`#${tab}-message`).removeClass('success').addClass('error').text(`保存失败: ${error}`).show();
+                    showToast('error', `保存${typeName}模板失败: ${error}`);
+                }
+            });
+        }
+
+        // 显示消息
+        function showMessage(message, type, tab) {
+            const messageEl = $(`#${tab}-message`);
+            messageEl.removeClass('success error').addClass(type).text(message).show();
+
+            setTimeout(() => {
+                messageEl.fadeOut();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

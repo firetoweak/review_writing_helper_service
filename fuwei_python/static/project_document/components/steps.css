@@ -1,0 +1,41 @@
+.steps-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.56rem;
+}
+
+.steps-bar .step-badge {
+  padding: 0.25rem 0;
+  background-color: #217efd;
+  border-radius: 6.25rem;
+  width: 1.13rem;
+  height: 1.13rem;
+}
+
+.steps-bar .step-badge--inactive {
+  opacity: 0.5;
+}
+
+.steps-bar .step-number {
+  font-size: 0.75rem;
+  font-family: PingFang SC;
+  line-height: 0.56rem;
+  color: #ffffff;
+}
+
+.steps-bar .step-label {
+  font-size: 0.88rem;
+  font-family: PingFang SC;
+  line-height: 0.82rem;
+  color: #217efd;
+}
+
+.steps-bar .step-label--inactive {
+  opacity: 0.5;
+}
+
+.steps-bar .step-divider {
+  background-color: #217efd80;
+  width: 1.5rem;
+  height: 0.063rem;
+}

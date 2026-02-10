@@ -1,0 +1,594 @@
+<style>
+  .wrong-input{
+    height: 20px;
+    width: 100px;
+    border-width:0px 0px 1px 0px; /* 去除边框 */
+    background-color: #ffffff; /* 设置背景颜色 */
+  }
+  .batch-model-font{
+    width: 100%;
+    float: left;
+    margin-top: 20px;
+    font-family: PingFang SC;
+    font-weight: 550;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0px;
+    color: rgba(34, 34, 34, 1);
+  }
+  .lx-pub-doc-title-s{
+    width: 100%;
+    float: left;
+    font-family: PingFang SC,serif;
+    font-weight: 700;
+    font-size: 20px;
+    leading-trim: NONE;
+    line-height: 100%;
+    letter-spacing: 0px;
+  }
+
+  .lx-select-text{
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: PingFang SC;
+    font-weight: 600;
+    font-size: 17px;
+    leading-trim: NONE;
+    line-height: 24px;
+    vertical-align: middle;
+    margin-top: 25px;
+    margin-left: 20px;
+  }
+  .select-container{
+    float: left;
+    height: 108px;
+    width: 100%;
+    border-bottom: 2px solid rgba(227, 231, 238, 1);
+  }
+
+  .form-control {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    padding: 0 16px;
+    font-size: 16px;
+    color: #222222;
+    position: relative;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid #D5E8FF;
+    background-color: #F6FAFF;
+    overflow: hidden
+  }
+
+  .circle-progress-box {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+  }
+  .circle-progress {
+    position: relative;
+    z-index: 1;
+    display: block;
+  }
+  .circle-bg {
+    stroke: #EAF2FF;
+  }
+  .circle-bar {
+    stroke: url(#circle-gradient);
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dasharray 0.5s;
+  }
+  .circle-center-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 48px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+  }
+  .uploading-box{
+    height:auto;
+    display: grid;
+    place-items: center;
+    background: #F6FAFF;
+    margin:16px 24px 10px 24px;
+    border: 1.5px dashed #D5E8FF;
+    border-radius: 8px;
+  }
+  .uploading-box-inner{
+      height:200px;
+      display: grid;
+      place-items: center;
+      background:white;
+      margin:16px 24px;
+      width: 688px;
+      border: 1.5px dashed #D5E8FF;
+      border-radius: 8px;
+  }
+
+  .circle-progress-box-shield{
+    position: relative;
+    width: 263px;
+    height: 119px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .sucess-font{
+    width: 100%;
+    text-align: center;
+    font-family: PingFang SC;
+    font-weight: 550;
+    font-size: 20px;
+    leading-trim: NONE;
+    line-height: 30px;
+    letter-spacing: 0px;
+    text-align: center;
+    margin-top: 30px;
+  }
+  .button-div,.button-div-2{
+    width: 100%;
+    display: none;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px
+  }
+  .select-div{
+    width: 80px;
+    height: 48px;
+    float: right;
+    margin-left: 20px;
+    margin-top: 28px;
+    cursor: pointer;
+  }
+  .select-item{
+    float: left;
+    height: 104px;
+    width: auto;
+    width: 480px
+  }
+
+  .select-item-p{
+    margin-top: 8px;
+    margin-left: 20px;
+    height: 22px;
+    cursor: pointer;
+  }
+
+</style>
+
+<!-- 发布立项第一步 -->
+<div class="modal fade" id="pubDoc1" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" >
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;"> <img src="/static/images/aival/clip.png">新增产品立项</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;">
+        <img src="/static/images/aival/pub_state1.png" style="width: 378px;height: 46px;">
+      </div>
+      <div style="font-size:14px;color:#9CA7BB;margin:16px 24px 10px 24px;">
+        <div class="batch-model-font">
+            <img src="/static/images/fengchi_tag.svg" alt="" style="margin-bottom: 8px">填写立项主题
+        </div>
+        <div class="batch-model-font">
+          <input type="text" class="form-control" placeholder="请输入" id="title">
+          <input type="hidden" class="form-control" id="record_id" value="0">
+        </div>
+      </div>
+      <div style="font-size:14px;color:#9CA7BB;margin:16px 24px 10px 24px;" >
+        <div style="width: 31%;float: left;margin-top: 10px;"  class="batch-model-font">
+          <img src="/static/images/fengchi_tag.svg" alt="">再上传完善后的导入模板
+        </div>
+      </div>
+
+      <div id="wait-upload-div" style="cursor: pointer;">
+          <img src="/static/images/aival/upload_doc_pic.png" style="width: 100%;height: 100%;">
+      </div>
+
+      <div class="uploading-box" style="display: none" id="uploading-box-1" >
+        <div class="uploading-box-inner">
+          <div class="circle-progress-box">
+              <svg class="circle-progress" width="120" height="120">
+                <defs>
+                  <linearGradient id="circle-gradient" x1="0%" y1="10%" x2="100%" y2="10%">
+                    <stop offset="0%" stop-color="#2D8CFF"/>
+                    <stop offset="100%" stop-color="#A259FF"/>
+                  </linearGradient>
+                </defs>
+                <circle class="circle-bg" cx="60" cy="60" r="54" stroke-width="12" fill="none"/>
+                <circle class="circle-bar" cx="60" cy="60" r="54" stroke-width="12" fill="none"/>
+              </svg>
+              <img src="/static/images/user-management/batch_file.svg" class="circle-center-icon" />
+          </div>
+        </div>
+      </div>
+
+      <div class="uploading-box" style="display: none"  id="uploading-box-2" >
+        <div class="uploading-box-inner">
+          <div class="circle-progress-box-shield" >
+            <img src="/static/images/user-management/batch_sucess_icon.svg" style="width: 55px;height: 65px;margin: 0 auto;">
+            <div class="sucess-font">
+              附件上传成功
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="button-div">
+        <button class="btn-batch mr-3" style="width: 112px;">重新上传</button>
+        <button class="ok-btn"   style="width: 192px;display: inline" data_id="" >AI自评 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+      </div>
+      <div class="button-div-2">
+        <button class="btn-batch mr-3" style="width: 112px;">重新上传</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<div class="modal fade" id="pubDoc2" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:801px;">
+    <div class="modal-content" style="border-radius:16px;height: 770px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;"> <img src="/static/images/aival/clip.png">  新增产品立项质量</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/aival/pub_state2.png" style="width: 378px;height: 46px;"></div>
+      <div style="height:60%;place-items: center;margin:36px 40px 10px 40px;  border-radius: 8px;overflow-y: auto;">
+          <div class="lx-pub-doc-title-s" >
+            <img src="/static/images/fengchi_tag.svg" style="margin-bottom: 5px">请选择本次立项的驱动源
+          </div>
+
+         <div class="select-container">
+            <img src="/static/images/aival/report-samll.png" style="float: left">
+            <div class="select-item">
+               <P class="lx-select-text" >重大机会驱动型立项</P>
+               <p class="select-item-p" tip-tag="1"  tip-data="产品立项既需要满足某些已经出现的、不能丢失的重大项目机会，又需要清晰地分析目标市场中存在的机会或者威胁，并基于此形成整体收益可能性判断，才能实现整体的产品投资收益目标。">
+                 <img src="/static/images/aival/help.png" style="float: left" >
+               </p>
+           </div>
+           <div  class="select-div" data-value="0" able="0">
+                <img src="/static/images/aival/radio2.png" >
+           </div>
+         </div>
+
+        <div class="select-container">
+          <img src="/static/images/aival/report-samll.png" style="float: left">
+          <div class="select-item">
+            <P class="lx-select-text" >市场机会/威胁分析驱动型立项</P>
+            <p class="select-item-p"  tip-tag="2" tip-data="产品的商业价值来自对目标市场中机会或者威胁的详细分析，产品的投资收益不过分依赖某些独立的具体项目。">
+              <img src="/static/images/aival/help.png" style="float: left" >
+            </p>
+          </div>
+          <div  class="select-div"  data-value="1" able="1">
+            <img src="/static/images/aival/radio.png" >
+          </div>
+        </div>
+        <div class="select-container">
+          <img src="/static/images/aival/report-samll.png" style="float: left">
+          <div class="select-item">
+            <P class="lx-select-text" >市场机会/威胁分析+重大项目机会双驱动型立项</P>
+            <p class="select-item-p"  tip-tag="3" tip-data="产品立项既需要满足某些已经出现的、不能丢失的重大项目机会，又需要清晰地分析目标市场中存在的机会或者威胁，并基于此形成整体收益可能性判断，才能实现整体的产品投资收益目标。">
+              <img src="/static/images/aival/help.png" style="float: left" >
+            </p>
+          </div>
+          <div class="select-div"  data-value="2"   able="0">
+            <img src="/static/images/aival/radio2.png" >
+          </div>
+        </div>
+        <div class="select-container" style="border-bottom:0px">
+          <img src="/static/images/aival/report-samll.png" style="float: left">
+          <div class="select-item">
+            <P class="lx-select-text" >战略制高点/瓶颈点争夺型立项</P>
+            <p class="select-item-p"  tip-tag="4" tip-data="争夺战略制高点/瓶颈点的使命明确，为公司整体产品竞争力做好支撑，允许不太计较单项目短期投入产出的盈亏。比如，风向标客户/用户人群突破或锁定产品、行业制高点技术应用产品、行业整体解决方案的核心控制点产品等、某类被限制获得的关键瓶颈类产品，这类产品本身不一定需要赚钱，但是这一类产品在战略制高点立足后，可能会带动或者维持公司其他一系列产品的销售放量与利润增长。">
+              <img src="/static/images/aival/help.png" style="float: left">
+            </p>
+          </div>
+          <div  class="select-div"  data-value="3"  able="0">
+            <img src="/static/images/aival/radio2.png" >
+          </div>
+        </div>
+
+
+      </div>
+      <div style="width: 100%;height: 48px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 192px;height: 48px;display: flex;justify-content: center;align-items: center;">
+              <button class="btn-submit-continue" style="height: 48px"  id="pubDoc2Next">下一步</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" id="pubDoc3" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:801px;">
+    <div class="modal-content" style="border-radius:16px;height: 650px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;"> <img src="/static/images/aival/clip.png">  新增产品立项质量</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/aival/pub_state3.png" style="width: 378px;height: 46px;"></div>
+      <div style="height:50%;place-items: center;margin:36px 40px 10px 40px;  border-radius: 8px;overflow-y: auto;">
+        <div class="lx-pub-doc-title-s" >
+          <img src="/static/images/fengchi_tag.svg" style="margin-bottom: 5px">首次立项还是迭代耕耘？
+        </div>
+
+        <div class="select-container">
+          <img src="/static/images/aival/report-samll.png" style="float: left">
+          <div class="select-item">
+            <P class="lx-select-text" >首次</P>
+            <p class="select-item-p" tip-tag="5" tip-data="瞄准目标市场或客户应用场景，首次打造产品进行市场或客户切入。-----目标市场一定允许模糊，特别是项目驱动型。">
+              <img src="/static/images/aival/help.png" style="float: left" >
+            </p>
+          </div>
+          <div class="select-div"  data-value="0" able="1">
+            <img src="/static/images/aival/radio.png" >
+          </div>
+        </div>
+
+        <div class="select-container">
+          <img src="/static/images/aival/report-samll.png" style="float: left">
+          <div class="select-item">
+            <P class="lx-select-text" >迭代升级</P>
+            <p class="select-item-p" tip-tag="6" tip-data="在瞄准的目标市场或者客户应用场景中，企业曾经已经有过同类或者相似产品，当前的产品立项是在过去的基础上进行进一步的产品升级或者产品版本升级。-----目标市场分析不允许模糊，过去短板、丢单、以及关键不满足需求分析必须齐备，新老产品之间的替换或并存关系必须明确。">
+              <img src="/static/images/aival/help.png" style="float: left">
+            </p>
+          </div>
+          <div class="select-div" data-value="1" able="1">
+            <img src="/static/images/aival/radio2.png" >
+          </div>
+        </div>
+      </div>
+      <div style="width: 100%;height: 48px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 300px;height: 48px;display: flex;justify-content: center;align-items: center;">
+          <button class="btn-batch mr-3" id="pubDoc3LastStep" >上一步</button>
+          <button class="btn-submit-continue" style="height: 40px;width: 220px" id="pubDoc3Save" >提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+  layui.use(['jquery', 'layer','upload'], function(){
+    var $ = layui.$ //重点处
+            ,layer = layui.layer;
+
+      var upload = layui.upload;
+
+      // $('#pubDoc2').modal('show');
+      // $('.circle-progress-box').show()
+      // $('.circle-progress-box-shield').show()
+      // $('.button-div').show()
+    let recordId = 0
+    let title = ""
+    let select_1 = 1
+    let select_2 = 0
+    let currentTipsIndex = null;
+    $('.select-item-p').click(function (){
+      if(currentTipsIndex!=null){
+          if(currentTipsIndex== $(this).attr('tip-tag')){
+            layer.closeAll('tips');
+            currentTipsIndex = null
+            return
+          }
+      }
+      let tipTxt = $(this).attr('tip-data')
+      currentTipsIndex = $(this).attr('tip-tag')
+      layer.tips(tipTxt, this, {
+        tips: 1,
+        area:['500px','auto'],
+        time:0,
+      });
+    })
+
+    $('.select-div').click(function (){
+        if($(this).attr('able')!="1"){
+          layer.tips("定制服务，公共版本暂不支持", this, {
+            tips: 1,
+            time:3000,
+          });
+        }
+    })
+
+    var uploadInst = upload.render({
+        elem: '#wait-upload-div' //绑定元素
+        ,url: '/user/lxAiVal/upload_doc?type={{g.type}}'
+        ,accept: 'file'
+       // ,exts: 'pdf|doc|docx|ppt|pptx'
+        ,size: 1024*100,
+        choose: function(obj){
+          $('#wait-upload-div').hide()
+          $('#uploading-box-1').show();
+          $('.button-div-2').hide()
+          setCircleProgress(0);
+        },
+        progress: function (value) {
+          setCircleProgress((value/2))
+        },
+        done: function(res){
+          if (res.code != 1) {
+              if(res.code==-2){
+                  $('#NoMoney').modal('show')
+                  return
+              }
+            $('.ok-btn').attr('data_id', res.id);
+            showToast("warning",res.msg)
+            return
+          }
+          recordId = res.id;
+          getUploadState()
+        }
+        ,error: function(){
+          //请求异常回调
+        }
+      });
+
+    $('.btn-batch:contains("重新上传")').click(function(){
+        $('#wait-upload-div').show()
+        $('#uploading-box-1').hide()
+        $('#uploading-box-2').hide();
+        $('.button-div').hide()
+        $('.button-div-2').hide()
+        recordId = 0
+    });
+
+    function getUploadState(){
+        const interval = setInterval(function() {
+          $.ajax({
+            url: "/user/lxAiVal/get_upload_state?type={{g.type}}&id="+recordId,
+            type: "POST",
+            contentType: "application/json;charset=UTF-8",
+            async: false,
+            success: function (data) {
+              if(data.percent>0){
+                  setCircleProgress(data.percent);
+                  if(data.percent>=100){
+                    setTimeout(function() {
+                      $('#uploading-box-1').hide()
+                      $('#uploading-box-2').show();
+                      $('.button-div').show()
+                      clearInterval(interval);
+                    }, 2000);
+                  }
+              }else{
+                  $('#emptyFile').modal('show')
+                  clearInterval(interval);
+              }
+            }
+          })
+        }, 2000);
+    }
+    $('#confirmEmptyFile').click(function (){
+      $('#emptyFile').modal('hide')
+      $('.button-div-2').show()
+    })
+
+    $('.ok-btn').on('click', function(){
+          if($('#title').val()==""){
+              showToast("warning",'请填写立项主题');
+              return
+          }
+          title = $('#title').val()
+          $('#pubDoc1').modal('hide');
+          $('#pubDoc2').modal('show');
+          if(recordId==0){
+            recordId =  $('#record_id').val()
+          }
+    })
+
+    $('#pubDoc2Next').on('click', function(){
+      layer.closeAll('tips');
+      $('#pubDoc2').modal('hide');
+      $('#pubDoc3').modal('show');
+    })
+    // $('#pubDoc2 .select-div').on('click', function(){
+    //     $("#pubDoc2 .select-div").each(function(index, element) {
+    //          $(element).html('<img src="/static/images/aival/radio2.png" >');
+    //     });
+    //     $(this).html('<img src="/static/images/aival/radio.png" >')
+    //     select_1 = $(this).attr('data-value');
+    // })
+    $('#pubDoc3 .select-div').on('click', function(){
+      $("#pubDoc3 .select-div").each(function(index, element) {
+        $(element).html('<img src="/static/images/aival/radio2.png" >');
+      });
+      $(this).html('<img src="/static/images/aival/radio.png" >')
+      select_2 = $(this).attr('data-value');
+    })
+    {% if continue_add=='1' %}
+      $('#pubDoc1').modal('show');
+    {% endif %}
+
+
+    $('#pubDoc3LastStep').on('click', function(){
+      $('#pubDoc3').modal('hide');
+      $('#pubDoc2').modal('show');
+      select_2 = 0
+      select_1 = 0
+    })
+    $('#pubDoc3Save').on('click', function(){
+      var obj = {
+        "id":recordId,
+        "title":title,
+        "select_1":select_1,
+        "select_2":select_2
+      }
+      $.ajax({
+        url: "/user/lxAiVal/upload_finish?type={{g.type}}",
+        type: "POST",
+        contentType: "application/json;charset=UTF-8",
+        async: false,
+        data: JSON.stringify(obj),
+        success: function (data) {
+          $('#pubDoc3').modal('hide');
+          $('#valDoneModal').modal('show');
+        }
+      })
+        let timeLeft = 0; // 3分钟 = 180秒
+        let timerWait;
+        let isRunning = false;
+        // 格式化时间显示为 MM:SS
+        let mess = "大约 3～6 分钟完成评估，关闭弹窗不会中断评估进度"
+        startTimer(timeLeft,timerWait,isRunning,mess)
+        $.ajax({
+          url: "/user/lxAiVal/ai_done?type={{g.type}}&id="+recordId,
+          type: "POST",
+          contentType: "application/json;charset=UTF-8",
+          timeout: 10000,
+          async: true,
+          success: function (data) {
+            // if(data.code==1){
+            //   showToast('success', data.msg);
+            // }else{
+            //   showToast('warning', data.msg);
+            // }
+          }
+        })
+
+      let interval = setInterval(function () {
+        $.ajax({
+          url: "/user/lxAiVal/get_ai_done_state?type={{g.type}}&id="+recordId,
+          type: "POST",
+          contentType: "application/json;charset=UTF-8",
+          timeout: 10000,
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              showToast('success', data.msg);
+              setTimeout(() => location.reload(), 2000)
+            } else if(data.code==-1){
+              showToast('warning', data.msg);
+              setTimeout(() => location.reload(), 2000)
+            }
+          }
+        })
+      }, 5000)
+
+    })
+
+  })
+</script>

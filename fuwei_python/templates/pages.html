@@ -1,0 +1,47 @@
+            <div class="d-flex justify-content-end mt-4">
+                <div class="pagination" >
+                    <style>
+                        .page-item{
+                            width: 28px;
+                            height: 28px;
+                            background-color: #FFFFFF;
+                            border-radius: 4px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin-right: 8px;
+                        }
+                        .page-link{
+                            width: 28px;
+                            height: 28px;
+                            border: 1px solid #DADDE5;
+                            border-radius: 4px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color:black;
+                        }
+            
+                        .page-item .active{
+                            width: 28px;
+                            height: 28px;
+                            background-color: #FFFFFF;
+                            border-radius: 4px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin-right: 8px;
+                        }
+                        .active>.page-link, .page-link.active{
+                            color: #0d6efd;
+                            font-size: 15px;
+                            background-color:  #FFFFFF;
+                            border-color:#0d6efd;
+                        }
+                    </style>
+                    {% if pagination.links!='' %}
+                    <span class="mr-3" style="color: #929292; font-size: 12px; display: grid; place-items: center; margin-right: 5px">共{{pagination.total}}条</span>
+                    {% endif %}
+                    {{ pagination.links }}
+                </div>
+            </div>

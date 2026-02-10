@@ -1,0 +1,218 @@
+<!-- templates/project_document/full-compare.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>全文对比 - AI智能写作</title>
+    {% include "project_document/base.html" %}
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/data-service.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/marked.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/markdown-processor.js')}}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/full-compare/index.css')}}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/writing-workspace/index.css')}}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/full-compare/index.js')}}"></script>
+  </head>
+  <body>
+    <div class="flex-col page scrollbar-custom">
+      <div class="flex-row items-center relative header-bar">
+        <img class="header-icon" src="/static/project_document/images/full-compare/illustration-dual-compare.png" />
+        <span class="header-link back-link-spacing">返回写作</span>
+        <button class="compare-edit-btn" id="compare-edit-btn" type="button">编辑</button>
+      </div>
+      <!-- Toast提示容器 -->
+      <div id="toast-container"></div>
+      <div class="flex-col content-wrapper">
+        <div class="flex-row justify-center items-start self-stretch">
+          <div class="flex-col original-side">
+            <div class="flex-col original-panel original-panel-view">
+              <div class="flex-col justify-start items-center relative panel-header">
+                <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                <span class="panel-label panel-label-left">原文内容</span>
+                <img id="leftView" class="shrink-0 edit-icon highlight-icon-right" src="/static/project_document/images/ai-collab/icon-edit.svg" data-side="left" />
+              </div>
+              <div class="panel-body">
+                <div class="flex-row items-baseline section-header-row section-header-first">
+                  <span class="section-number section-number-gradient">1.1</span>
+                  <span class="ml-16 section-heading">这是一段小节标题</span>
+                </div>
+                <span class="summary-text summary-paragraph">
+                  这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。
+                </span>
+                <div class="flex-row items-baseline section-header-row">
+                  <span class="section-number section-number-gradient">1.2</span>
+                  <span class="ml-16 section-heading">这是一段小节标题</span>
+                </div>
+                <span class="summary-text summary-paragraph">
+                  这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。
+                </span>
+                <div class="flex-row items-baseline section-header-row">
+                  <span class="section-number section-number-gradient">1.3</span>
+                  <span class="ml-16 section-heading">这是一段小节标题</span>
+                </div>
+                <span class="summary-text summary-paragraph">
+                  这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。
+                </span>
+              </div>
+            </div>
+            <div class="flex-col original-edit-header relative panel-header">
+              <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+              <span class="panel-label panel-label-left">原文内容</span>
+              <img id="leftEdit" class="shrink-0 edit-icon highlight-icon-right" src="/static/project_document/images/ai-collab/icon-edit.svg" data-side="left" />
+            </div>
+            <div class="flex-col original-column">
+              <div class="flex-col comparison-card">
+                <div class="flex-col">
+                  <div class="flex-col justify-start items-center relative panel-header">
+                    <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                    <span class="panel-label card-title-position">1.1 这是一段小节标题</span>
+                  </div>
+                  <div class="flex-col justify-start diff-image-wrapper">
+                    <div class="writing-toolbar">
+                      <div id="original-toolbar-1"></div>
+                    </div>
+                    <div id="original-editor-1" class="diff-editor"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-col comparison-card comparison-card-gap">
+                <div class="flex-col">
+                  <div class="flex-col justify-start items-center relative panel-header">
+                    <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                    <span class="panel-label card-title-position">1.2 这是一段小节标题</span>
+                  </div>
+                  <div class="flex-col justify-start diff-image-wrapper">
+                    <div class="writing-toolbar">
+                      <div id="original-toolbar-2"></div>
+                    </div>
+                    <div id="original-editor-2" class="diff-editor"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-col comparison-card comparison-card-gap">
+                <div class="flex-col">
+                  <div class="flex-col justify-start items-center relative panel-header">
+                    <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                    <span class="panel-label card-title-position">1.3 这是一段小节标题</span>
+                  </div>
+                  <div class="flex-col justify-start diff-image-wrapper">
+                    <div class="writing-toolbar">
+                      <div id="original-toolbar-3"></div>
+                    </div>
+                    <div id="original-editor-3" class="diff-editor"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <img class="ml-24 divider-graphic" src="/static/project_document/images/common/illustration-bar.png" />
+          <div class="ml-24 flex-col comparison-side">
+            <div class="flex-col original-panel comparison-panel-view">
+              <div class="flex-col justify-start items-center relative panel-header">
+                <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                <span class="panel-label panel-label-left">AI生成结果</span>
+                <img id="rightView" class="shrink-0 edit-icon highlight-icon-right" src="/static/project_document/images/ai-collab/icon-edit.svg" data-side="right" />
+              </div>
+              <div class="panel-body">
+                <div class="flex-row items-baseline section-header-row section-header-first">
+                  <span class="section-number section-number-gradient">1.1</span>
+                  <span class="ml-16 section-heading">这是一段小节标题</span>
+                </div>
+                <span class="summary-text summary-paragraph">
+                  这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。
+                </span>
+                <div class="flex-row items-baseline section-header-row">
+                  <span class="section-number section-number-gradient">1.2</span>
+                  <span class="ml-16 section-heading">这是一段小节标题</span>
+                </div>
+                <span class="summary-text summary-paragraph">
+                  这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。
+                </span>
+                <div class="flex-row items-baseline section-header-row">
+                  <span class="section-number section-number-gradient">1.3</span>
+                  <span class="ml-16 section-heading">这是一段小节标题</span>
+                </div>
+                <span class="summary-text summary-paragraph">
+                  这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。这是一段文档总结描述。
+                </span>
+              </div>
+            </div>
+            <div class="flex-col comparison-edit-header relative panel-header">
+              <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+              <span class="panel-label panel-label-left">AI生成结果</span>
+              <img id="rightEdit" class="shrink-0 edit-icon highlight-icon-right" src="/static/project_document/images/ai-collab/icon-edit.svg" data-side="right" />
+            </div>
+            <div class="flex-col comparison-column">
+              <div class="flex-col comparison-card">
+              <div class="flex-col">
+                <div class="flex-col justify-start items-center relative panel-header">
+                  <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                  <span class="panel-label card-title-position">1.1 这是一段小节标题</span>
+                </div>
+                <div class="flex-col justify-start diff-image-wrapper">
+                  <div class="writing-toolbar">
+                    <div id="diff-toolbar-1"></div>
+                  </div>
+                  <div id="diff-editor-1" class="diff-editor"></div>
+                </div>
+              </div>
+            </div>
+              <div class="flex-col comparison-card comparison-card-gap">
+              <div class="flex-col">
+                <div class="flex-col justify-start items-center relative panel-header">
+                  <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                  <span class="panel-label card-title-position">1.2 这是一段小节标题</span>
+                </div>
+                <div class="flex-col justify-start diff-image-wrapper">
+                  <div class="writing-toolbar">
+                    <div id="diff-toolbar-2"></div>
+                  </div>
+                  <div id="diff-editor-2" class="diff-editor"></div>
+                </div>
+              </div>
+            </div>
+              <div class="flex-col comparison-card comparison-card-gap">
+              <div class="flex-col">
+                <div class="flex-col justify-start items-center relative panel-header">
+                  <img class="shrink-0 panel-header-bg" src="/static/project_document/images/full-compare/illustration-doc.png" />
+                  <span class="panel-label card-title-position">1.3 这是一段小节标题</span>
+                </div>
+                <div class="flex-col justify-start diff-image-wrapper">
+                  <div class="writing-toolbar">
+                    <div id="diff-toolbar-3"></div>
+                  </div>
+                  <div id="diff-editor-3" class="diff-editor"></div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-24 flex-row justify-between actions-wrapper actions-row-center">
+          <button class="flex-col justify-start items-center action-primary action-button" type="button" data-action="use-left">
+            <span class="action-label action-label-primary">按左框内容确定替换</span>
+          </button>
+          <button class="flex-col justify-start items-center action-secondary action-button" type="button" data-action="discard">
+            <span class="action-label action-label-secondary">放弃替换</span>
+          </button>
+          <button class="flex-col justify-start items-center action-primary action-button" type="button" data-action="use-right">
+            <span class="action-label action-label-primary">按右框内容确定替换</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="replace-confirm-overlay" id="replace-confirm-overlay">
+      <div class="replace-confirm-modal">
+        <img class="replace-confirm-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="replace-confirm-content">
+          <div class="replace-confirm-title" id="replace-confirm-title">确定替换吗？</div>
+          <div class="replace-confirm-buttons">
+            <div class="replace-confirm-btn cancel" id="replace-confirm-cancel">取消</div>
+            <div class="replace-confirm-btn confirm" id="replace-confirm-confirm">确定替换</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+    {% include "admin/base.html" %}
+    <link href="{{ url_for('static', filename='lib/wang-editor/style.css') }}" rel="stylesheet" type="text/css">
+    <body class="skin-blue">
+        {% include "admin/header.html" %}
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+            <aside class="right-side">
+                <section class="content-header">
+                    <h1>
+                        文档解读
+                        <small>Preview page</small>
+                    </h1>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        <li class="active">文档解读</li>
+                    </ol>
+                </section>
+                <div style="float: left;width: 100%;margin-bottom: 5px">
+                    {% if type==2  %}
+                    <div style="float: left;width: 15%;margin-left: 10px;display: none" id="div-child_type_1" >
+                        <select name="child_type_1" id="child_type_1" class="form-control">
+                            <option value="-1">全部类型</option>
+                            <option value="0"{% if child_type_1=="0"  %}selected {% endif %}>重大机会驱动型立项</option>
+                            <option value="1" {% if child_type_1=="1"  %}selected {% endif %}>市场机会/威胁分析驱动型立项</option>
+                            <option value="2" {% if child_type_1=="2"  %}selected {% endif %}>市场机会/威胁分析+重大项目机会双驱动型立项</option>
+                            <option value="3" {% if child_type_1=="3"  %}selected {% endif %}>战略制高点/瓶颈点争夺型立项</option>
+                        </select>
+                    </div>
+                    <div style="float: left;width: 7%;margin-left: 10px;display: none" id="div-child_type_2">
+                        <select name="child_type_2" id="child_type_2" class="form-control">
+                            <option value="-1">全部类型</option>
+                            <option value="0"{% if child_type_2=="0"  %}selected {% endif %}>首次</option>
+                            <option value="1" {% if child_type_2=="1"  %}selected {% endif %}>迭代升级</option>
+                        </select>
+                    </div>
+                    <div style="float: left;width: 15%;margin-left: 10px">
+                        <input name="file_name" id="file_name" class="form-control"  placeholder="文件名"value="{{file_name}}">
+                    </div>
+                    <div style="float: left;width: 20%; margin-left: 5px">
+                        <button type="button" class="btn btn-primary" id="search">搜索</button>
+                    </div>
+                    {% endif %}
+                </div>
+                <div style="float: left;width: 100%;">
+                    <div style="float: left;width: 30%;margin-top: 5px">
+                        <table class="table table-bordered" style="margin-bottom: 5px">
+                            <tbody>
+                            <tr>
+                                <th style="width: 80%;">类型</th>
+                                <th  style="width: 20%">操作</th>
+                            </tr>
+                            {% for item in items %}
+                            <tr>
+                                <td>
+                                    <a href="/admin/explDoc?child_type_1={{child_type_1}}&child_type_2={{child_type_2}}&id={{item.id}}&menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}&type={{type}}"
+                                       {% if doc_id==item.id %} style="color:red" {% endif %}
+                                    >
+                                        {{item.file_name}}
+                                    </a>
+                                </td>
+                                <td><a class="demand" style="cursor:pointer"   data-id="{{item.id}}" >上传修改</a></td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <ul class="pagination pagination-sm no-margin pull-left">
+                            {{ pagination.links }}
+                        </ul>
+                    </div>
+                    <div style="float: left;width: 70%">
+                        <div id="aq" style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                            <div class="container-editor">
+                                <b style="color: red">评估规则：</b>
+                            </div>
+                            <div class="container-editor">
+                                <div id="tb1" class="toolbar-container"><!-- 工具栏 --></div>
+                                <div id="e1" class="editor-container" style="height: 600px;"><!-- 编辑器 --></div>
+                            </div>
+                        </div>
+                        <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                            <b style="color: red">指令：</b>
+                            <textarea  id ="cammand" class="form-control" rows="20" style="width: 100%;margin-right: 0px" placeholder="请填写指令">{{cammand}}</textarea>
+                        </div>
+                        <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                            <b style="color: red">对应标题展示：</b>
+                            <textarea   id ="title_show" class="form-control" rows="5" style="width: 100%;margin-right: 0px" placeholder="请填写备注">{{title_show}}</textarea>
+                        </div>
+                        <div style="width: 100%;float: right;text-align: center">
+                            {% if doc_id>0 %}
+                            <button class="btn btn-danger" style="margin: auto;margin-top: 20px" id="editorDone">修改</button>
+                            {% endif %}
+                        </div>
+                    </div>
+            </aside>
+        </div>
+    </body>
+</html>
+
+<script src="{{ url_for('static', filename='lib/wang-editor/index.js')}}"></script>
+
+<script>
+    const { createEditor, createToolbar } = window.wangEditor
+    const editorConfig = {
+        placeholder: '请输入...',
+        MENU_CONF: {
+            uploadImage: {
+                server: '/user/aiVal/upload_pic', // 替换为你的图片上传接口地址
+                fieldName: 'file', // 上传文件的字段名（与后端一致）
+                maxFileSize: 5 * 1024 * 1024, // 5MB
+                maxNumberOfFiles: 1, // 最多上传 5 张图片
+                customInsert(res, insertFn) {
+                    if (res.code == 1) {
+                        insertFn(res.url); // 插入图片 URL
+                    } else {
+                        alert(res.msg || '上传失败');
+                    }
+                }
+            }
+        }
+    }
+    const toolbarConfig = {
+        toolbarKeys: ['uploadImage'] // 只保留上传图片按钮
+    };
+    const editor1 = createEditor({
+        selector: '#e1',
+        html: '',
+        config: { ...editorConfig },
+        mode: 'simple', // or 'simple'
+    })
+    createToolbar({
+        editor:editor1,
+        selector: '#tb1',
+        config: toolbarConfig,
+        mode: 'simple', // or 'simple'
+    })
+    editor1.setHtml('{{html|safe}}')
+
+</script>
+<script>
+    layui.use(['jquery', 'layer','upload'], function(){
+        var $ = layui.jquery;
+        var upload = layui.upload;
+
+
+
+        $('.demand').each(function() {
+            var elem = $(this); // 当前按钮
+            var id = $(this).attr('data-id');
+            upload.render({
+                elem: elem, // 直接传入 jQuery 对象或 DOM 元素
+                url: '/admin/upload?id='+id,
+                accept: 'file',
+                before: function() {
+                    layer.load();
+                },
+                done: function(res) {
+                    layer.closeAll();
+                    layer.msg(res.msg || '上传成功');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                },
+                error: function() {
+                    layer.closeAll();
+                    layer.msg('上传失败');
+                }
+            });
+        });
+
+
+        {% if type==2  %}
+            $('#div-child_type_1').show()
+            {% if child_type_1 >= 0  %}
+                $('#div-child_type_2').show()
+            {% endif  %}
+        {% endif  %}
+
+
+        $('#child_type_1').on('change', function(){
+            if(parseInt($(this).val()) >= 0){
+                $('#div-child_type_2').show()
+            }
+            else{
+                $('#child_type_2').val("-1")
+                $('#div-child_type_2').hide()
+            }
+        })
+
+        $('#search').on('click', function(){
+             location.href='/admin/explDoc?type={{type}}&child_type_1='+$('#child_type_1').val()+'&child_type_2='+$('#child_type_2').val()+'&menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}';
+        })
+
+        $('#child_type_1').val("{{child_type_1}}")
+        $('#child_type_2').val("{{child_type_2}}")
+    })
+
+$('#editorDone').click(function (){
+    let  html = editor1.getHtml()
+    let id = "{{doc_id}}"
+    let title_show = $('#title_show').val()
+    let cammand = $('#cammand').val()
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/explDoc",
+        contentType: "application/json;charset=UTF-8",
+        data: JSON.stringify({
+            html: html,
+            id:id,
+            title_show:title_show,
+            cammand:cammand,
+        }),
+        async: false,
+        success: function (data) {
+            alert("修改成功")
+            location.reload()
+        }
+    })
+})
+</script>

@@ -1,0 +1,109 @@
+<style>
+    .toast-container {
+        position: fixed;
+        top: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .toast-success, .toast-error, .toast-warning, .toast-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        min-width: 300px;
+    }
+
+    .toast-success {
+        background-color: #F6FFED;
+        border: 1px solid #B7EB8F;
+    }
+
+    .toast-error {
+        background-color: #FFF1F0;
+        border: 1px solid #FFA39E;
+    }
+
+    .toast-warning {
+        background-color: #FFFBE6;
+        border: 1px solid #FFE58F;
+    }
+
+    .toast-info {
+        background-color: #E6F4FF;
+        border: 1px solid #91CAFF;
+    }
+
+    .toast-success i {
+        color: #52C41A;
+    }
+
+    .toast-error i {
+        color: #F5222D;
+    }
+
+    .toast-warning i {
+        color: #FAAD14;
+    }
+
+    .toast-info i {
+        color: #217EFD;
+    }
+
+    .toast-message {
+        font-size: 16px;
+        color: rgba(0, 0, 0, 0.88);
+    }
+</style>
+<link href="{{ url_for('static', filename='lib/layui/css/layui.css')}}" rel="stylesheet">
+<div class="toast-container" id="toastContainer" style="display: none;">
+    <div class="toast-success" id="successToast">
+        <i class="layui-icon layui-icon-ok-circle"></i>
+        <div class="toast-message">添加成功！邮件已通知该同事，该同事访问平台后正式启用</div>
+    </div>
+    <div class="toast-error" id="errorToast" style="display: none;">
+        <i class="layui-icon layui-icon-close-fill"></i>
+        <div class="toast-message">失败的toast提示，顶部往下滑出，2秒后自动消失，文字建议不超过20字</div>
+    </div>
+    <div class="toast-warning" id="warningToast" style="display: none;">
+        <i class="layui-icon layui-icon-tips"></i>
+        <div class="toast-message">警告的toast提示，顶部往下滑出，2秒后自动消失，文字建议不超过20字</div>
+    </div>
+    <div class="toast-info" id="infoToast" style="display: none;">
+        <i class="layui-icon layui-icon-about"></i>
+        <div class="toast-message">常规的toast提示，顶部往下滑出，2秒后自动消失，文字建议不超过20字</div>
+    </div>
+</div>
+<script>
+    function showToast(type, message,t=2000) {
+        // 隐藏所有提示框
+        $('.toast-success, .toast-error, .toast-warning, .toast-info').hide();
+        // 根据类型显示对应提示框
+        $('#toastContainer').show();
+        switch(type) {
+            case 'success':
+                $('#successToast').show().find('.toast-message').text(message);
+                break;
+            case 'error':
+                $('#errorToast').show().find('.toast-message').text(message);
+                break;
+            case 'warning':
+                $('#warningToast').show().find('.toast-message').text(message);
+                break;
+            case 'info':
+                $('#infoToast').show().find('.toast-message').text(message);
+                break;
+        }
+
+        // 2秒后自动消失
+        setTimeout(function() {
+            $('#toastContainer').fadeOut(500);
+        }, t);
+    }
+</script>

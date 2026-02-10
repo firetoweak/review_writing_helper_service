@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+    {% include "admin/base.html" %}
+    <link href="{{ url_for('static', filename='lib/wang-editor/style.css') }}" rel="stylesheet" type="text/css">
+        <style>
+        .right-side {
+            position: relative; /* 关键：作为子元素sticky的参考 */
+            min-height: 100vh;  /* 确保容器高度足够 */
+            height: 100%;
+            overflow-y: auto; /* 仅内容容器滚动 */
+        }
+        </style>
+    <body class="skin-blue">
+        {% include "admin/header.html" %}
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+            <div class="right-side">
+                <section class="content-header">
+                    <h2>
+                        {% if act=="chapterReviewPrompt" %}
+                            评审prompt（章）
+                        {% elif act=="sectionReviewPrompt" %}
+                            评审prompt（小节）
+                        {% else %}
+                            启发式写作
+                        {% endif %}
+                    </h2>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        <li class="active">立项工作流prompt</li>
+                    </ol>
+                </section>
+
+                <form id ="formContent">
+                    <div style="float: left; width: 80%; margin-left: 15px;">
+                        <h3>
+                            公共
+                            <small>所有{% if act=="chapterReviewPrompt" %}大章{% else %}小节{% endif %}默认prompt使用此框</small>
+                        </h3>
+                    </div>
+                    <div style="float: left; width: 8%; margin-left: 15px;text-align: right">
+                       <button type="button" class="btn btn-primary btn-sm" id ="edit_public_prompt">提交修改</button>
+                    </div>
+                    <div style="float: left; width: 90%; margin-left: 15px;">
+                      <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                      <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                        <!-- 内容区域：调整间距，统一对齐 -->
+                        <div style="width: 100%;">
+                          <textarea id="ReviewPrompt" name="ReviewPrompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{ prompt.content }} </textarea>
+                        </div>
+                      </div>
+                    </div>
+                    {% for chapter in all_prompts %}
+                        {% if chapter.prompt!=None %}
+                        <div style="float: left;width: 100%" id="chapter-{{ chapter.title_num }}">
+                            <div style="float: left; width: 90%; margin-left: 15px;">
+                                <div style="float: left">
+                                章节：第{{ chapter.title_num }}{% if act=="chapterReviewPrompt" %}章{% else %}小节{% endif %}
+                                </div>
+                                <div style="float: right">
+                                     <span><button type="button" class="btn btn-primary btn-sm save_exits_prompt" title_num="{{ chapter.title_num }}">提交修改</button></span>
+                                     <span><button type="button" class="btn btn-danger btn-sm delete_exits_prompt" title_num="{{ chapter.title_num }}">删除</button></span>
+                                </div>
+                            </div>
+                            <div style="float: left; width: 90%; margin-left: 15px;">
+                              <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                              <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                                <!-- 内容区域：调整间距，统一对齐 -->
+                                <div style="width: 100%;">
+                                  <textarea id="prompt_{{ chapter.title_num }}" name="prompt_{{ chapter.title_num }}" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{ chapter.prompt }} </textarea>
+                                </div>
+                              </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </form>
+                 <div  style="float: left; width: 90%; margin-left: 15px;text-align: center;">
+                      <button class="btn btn-success" id="add_prompt">新增章节prompt</button>
+                 </div>
+
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+ layui.use(['jquery', 'layer','upload'], function(){
+
+     let charpterOptions  = "<select id='add_chapter_title_num'>"
+     {% for  chapter  in all_prompts %}
+         {% if chapter.prompt==None  %}
+         charpterOptions = charpterOptions + "<option value='{{ chapter.title_num }}'>{{ chapter.title_num }}</option>"
+         {% endif %}
+     {% endfor %}
+    charpterOptions = charpterOptions+ "</select>"
+    var $ = layui.jquery;
+    let newCharpterHtml = `
+                        <div style="float: left;width: 100%" id="chapter-x">
+                            <div style="float: left; width: 90%; margin-left: 15px;">
+                                <div style="float: left">
+                                章节：${charpterOptions}
+                                </div>
+                                <div style="float: right">
+                                     <span><button type="button" class="btn btn-primary btn-sm" id="confirm_x">确认新增</button></span>
+                                     <span><button type="button" class="btn btn-danger btn-sm" id="cancle_x">取消</button></span>
+                                </div>
+                            </div>
+                            <div style="float: left; width: 90%; margin-left: 15px;">
+                              <!-- 卡片容器：增加阴影、圆角，优化边框 -->
+                              <div style="width: 100%; margin-bottom: 15px; border: 1px solid #4e73df; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; background: #fff;">
+                                <!-- 内容区域：调整间距，统一对齐 -->
+                                <div style="width: 100%;">
+                                  <textarea id="add_chapter_prompt" name="add_chapter_prompt" class="form-control" rows="15" style="width: 100%;margin-right: 0px" placeholder="">{{ prompt.content.replace('`', '\\`') }} </textarea>
+                                </div>
+                              </div>
+                            </div>
+                        </div>
+                    `
+    let adding = false
+        $('#add_prompt').click(function (){
+            if(adding) {
+                alert("同一时间只能添加一个prompt")
+                return false
+            }
+            adding = true
+            $('#formContent').append(newCharpterHtml)
+            $('#confirm_x').click(function (){
+                done_ajax_prompt($('#add_chapter_title_num').val(),$('#add_chapter_prompt').val())
+                adding = false
+            })
+            $('#cancle_x').click(function (){
+                    $('#chapter-x').remove()
+                    adding = false
+            })
+        })
+
+        $('#edit_public_prompt').click(function (){
+                $.ajax({
+                type: "POST",
+                url: "/admin/edit_public_prompt",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                    prompt:  $('#ReviewPrompt').val(),
+                    act:"{{ act }}"
+                }),
+                async: false,
+                success: function (data) {
+                    if(data.code===1) {
+                        alert("修改成功")
+                    }else{
+                        alert("修改失败")
+                    }
+                }
+             })
+        })
+        $('.delete_exits_prompt').click(function (){
+            if(confirm("你确认要删除这条prompt嘛？")){
+                var title_num = $(this).attr('title_num')
+                var prompt = null
+                done_ajax_prompt(title_num,prompt)
+            }
+        })
+
+        $('.save_exits_prompt').click(function (){
+              var title_num = $(this).attr('title_num')
+              var prompt = $('#prompt_'+title_num).val()
+              done_ajax_prompt(title_num,prompt)
+        })
+
+        function done_ajax_prompt(title_num,prompt){
+              $.ajax({
+                type: "POST",
+                url: "/admin/edit_special_prompt",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({
+                    title_num:  title_num,
+                    prompt:prompt,
+                    act:"{{ act }}"
+                }),
+                async: false,
+                success: function (data) {
+                    if(data.code===1) {
+                        if(adding===true){
+                            alert("新增成功")
+                            location.reload()
+                        }
+                        else if(prompt==null){
+                            alert("删除成功")
+                            location.reload()
+                        }else{
+                            alert("修改成功")
+                        }
+                    }else{
+                        alert("修改失败")
+                    }
+                }
+             })
+        }
+
+ })
+</script>

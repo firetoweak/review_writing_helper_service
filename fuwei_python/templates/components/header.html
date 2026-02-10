@@ -1,0 +1,258 @@
+<!-- 顶部导航栏 -->
+<header class="header">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/user/index">
+                <img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon">
+                <img src="/static/images/logo-text.svg" alt="锋矢科技" class="logo-text ms-2">
+            </a>
+
+            <div class="d-flex align-items-center ms-auto" style="position: relative;">
+                <ul class="navbar-nav me-4">
+                    <li class="nav-item ms-3">
+                        <a class="nav-link" id="profileLink" style="font-size: 16px;color:#000205;">{{g.company_name}}<img src="/static/images/index/down.svg"></a>
+                    </li>
+                </ul>
+
+                <button class="contact-btn" id="contactUsLink" >联系我们</button>
+                <div class="free-trial-btn"><img src="/static/images/sugest.svg"></div>
+            </div>
+
+        </div>
+    </nav>
+</header>
+<div class="modal-overlay" id="modalOverlay"></div>
+<!-- 个人资料修改 -->
+<div class="add-colleague-drawer" id="addColleagueDrawer-profile" style="display: none;">
+    <div class="drawer-overlay"></div>
+    <div class="drawer-container">
+        <div class="drawer-header">
+            <div class="drawer-title-container">
+                <div class="drawer-title" style="background-image: url(/static/images/index/edit_profile_title.svg);"></div>
+            </div>
+        </div>
+        <div class="drawer-content">
+            <div class="drawer-form">
+            {% if g.user_type=='mobile' %}
+                <div class="form-group">
+                    <label class="form-label">真实姓名</label>
+                    <div class="form-input-container">
+                        <input type="text" class="form-input"  id="real_name"  placeholder="请输入" value="{{g.real_name}}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">公司名称</label>
+                    <div class="form-input-container">
+                        <input type="text" class="form-input"   id="company_name"   placeholder="请输入" value="{{g.company_name}}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">行业</label>
+                    <div class="form-input-container dropdown-container">
+                        <select class="form-input select-input" id="sense" >
+                            <option value="">选择行业场景</option>
+                            {% for s in g.allSense %}
+                            <option value="{{s}}" {% if g.sense==s %}selected {% endif %}>{{s}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">职位</label>
+                    <div class="form-input-container dropdown-container">
+                        <select class="form-input select-input" id="position">
+                            <option value="">请选择您的职位</option>
+                            {% for p in g.allPosition %}
+                            <option value="{{p}}"  {% if g.position==p %}selected {% endif %}>{{p}} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">使用人数</label>
+                    <div class="form-input-container dropdown-container">
+                        <select class="form-input select-input"  id="employees_num">
+                            <option value="0">请选择使用人数</option>
+                            {% for e in g.allEmployeesNum %}
+                            <option value="{{e}}"  {% if g.employees_num==e %}selected {% endif %}>{{e}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <div class="form-input-container">
+                        <input type="password" id ="password" class="form-input" placeholder="至少6位,置空则不修改" value="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <div class="form-input-container">
+                        <input type="password" id ="password2" class="form-input" placeholder="至少6位,置空则不修改" value="">
+                    </div>
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <label class="form-label">部门</label>
+                    <div class="form-input-container">
+                        <input type="text" class="form-input"  id="dept"  placeholder="请输入" value="{{g.dept}}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">职位</label>
+                    <div class="form-input-container">
+                        <input type="text" class="form-input"   id="position"   placeholder="请输入" value="{{g.position}}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <div class="form-input-container">
+                        <input type="password" id ="password" class="form-input" placeholder="至少6位,置空则不修改" value="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <div class="form-input-container">
+                        <input type="password" id="password2" class="form-input" placeholder="至少6位,置空则不修改" value="">
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div style="width: 100%;display: flex;justify-content: center;align-items: center;">
+                <button class="ok-btn" id="sub-profile" style="width: 100px;" user_type="{{g.user_type}}">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 个人资料模态框 -->
+<div class="profile-modal" id="profileModal">
+    <div style="position: absolute; top: 54px;left: 38%; z-index: 2;"><img src="/static/images/index/user_head.png"></div>
+    <div class="profile-header" style="background-image: url(/static/images/login/login-top-bg.png); background-position: top center;"></div>
+    <div style="position: absolute; top: 170px;width: 100%; z-index: 2;text-align: center;font-family: PingFang SC;font-weight: 600;font-size: 16px;line-height: 24px;letter-spacing: 1px;text-align: center;color: #222222;">
+        <span style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 20px;" title="{{g.company_name}}">{{g.company_name}}</span>
+        <span style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;letter-spacing: 1px;text-align: center;color:  #557496; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 20px;" title="{{g.real_name}}/{{g.user_name}}">{{g.real_name}}/{{g.user_name}}</span>
+        {% if g.user_type == 'mobile' %}
+        <span style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;letter-spacing: 1px;text-align: center; ">
+            <a style="color: red;cursor: pointer" id="showChangeModel">切换</a>
+        </span>
+        {% endif %}
+    </div>
+    <div class="profile-bottom" style="background-image: url(/static/images/index/profile_bottom.png); background-position: bottom center;"></div>
+    <div class="profile-button">
+        <button class="btn-batch mr-3" onclick="location.href='/user/logout'">退出登录</button>
+        <button class="btn-batch mr-3" id="editProfileBtn">个人中心</button>
+    </div>
+</div>
+
+
+<!-- 切换手机-->
+<div class="modal fade" id="changeMobileModel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+        <div class="modal-content" style="border-radius:16px;height: 400px;">
+            <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                    <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                        <img src="/static/images/fengchi_tag.svg" alt="">
+                        切换手机号码
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+            </div>
+            <div style="padding: 0 40px;margin-top: 24px;">
+                <div class="form-group">
+                    <label for="header-mobile">新的手机号码</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="form-control" id="header-mobile" placeholder="请输入11位手机号码">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="header-mobileCode">短信验证码</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="form-control" id="header-mobileCode" placeholder="请输入4位验证码">
+                        <span class="get-code" id="header-sendCodeP"> <a id="header-sendCode">获取验证码</a></span>
+                    </div>
+                </div>
+                <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                        <button class="btn-submit-continue" id="changeMobileDone" >切换</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- 联系我们模态框 -->
+<div class="contact-modal" id="contactModal" >
+    <div class="contact-container" style="background-image: url(/static/images/link_us.png); background-repeat: no-repeat; background-position: center top; background-size: 100% 100%;">
+        <div class="contact-header">
+            <button type="button" class="btn-close" id="closeContactModal" style="top: 22px;right: 22px;">
+                <img src="/static/images/register/register-close-icon.svg" alt="关闭">
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+window.addEventListener('load',function() {
+    $('#editProfileBtn').click(function () {
+        $('#addColleagueDrawer-profile').fadeIn(300);
+        $('.drawer-container').animate({right: 0}, 300);
+        $('#profileModal, #modalOverlay').fadeOut(300);
+
+
+        $('#closeDrawer, .drawer-overlay').click(function() {
+        $('.drawer-container').animate({right: '-500px'}, 300, function() {
+                $('#addColleagueDrawer-profile').fadeOut(300);
+            });
+        });
+    })
+
+    $('#sub-profile').click(function () {
+    var obj
+    if ($(this).attr('user_type') == 'mobile'){
+        obj = {
+            company_name:  $('#company_name').val(),
+            real_name:  $('#real_name').val(),
+            sense:  $('#sense').val(),
+            position: $('#position').val(),
+            employees_num:$('#employees_num').val(),
+            password:$('#password').val(),
+            confirm_password:$('#password2').val(),
+        }
+    }else{
+        obj = {
+            email: $('#email').val(),
+            dept:  $('#dept').val(),
+            position:  $('#position').val(),
+            password:$('#password').val(),
+            confirm_password:$('#password2').val(),
+        }
+    }
+    $.ajax({
+        type: "POST",
+        url: "/user/profile",
+        contentType: "application/json;charset=UTF-8",
+        data: JSON.stringify(obj),
+        async:false,
+        success: function (data) {
+            if (data.code == 1) {
+                showToast('success', data.msg);
+                $('#password').val('')
+                $('#password2').val('')
+            }else{
+                showToast('warning', data.msg);
+            }
+        }
+    })
+})
+$('#showChangeModel').click(function() {
+    $('#changeMobileModel').modal('show');
+    $('#profileModal, #modalOverlay').fadeOut(300);
+})
+});
+</script>
+

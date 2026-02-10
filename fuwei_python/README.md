@@ -1,0 +1,2 @@
+# nuitka 打包命令,在linux容器下
+python -m nuitka  --onefile --follow-imports --include-plugin-directory=/usr/local/lib/python3.11/site-packages --disable-plugin=anti-bloat --noinclude-default-mode=error --include-data-dir=/usr/local/lib/python3.11/site-packages/aliyunsdkcore/data/=aliyunsdkcore/data/ --include-data-dir=./templates/=templates  --include-data-dir=./static/=static/   --include-data-dir=./tmp/=tmp/  app.py

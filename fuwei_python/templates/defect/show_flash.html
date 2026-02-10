@@ -1,0 +1,11 @@
+<!-- 显示Flash消息，建议在页面头部的面包屑区域引入 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert" id="alert_win">
+                {{ message }}
+                <button type="button" class="btn-close btn-close-custom-lg" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}

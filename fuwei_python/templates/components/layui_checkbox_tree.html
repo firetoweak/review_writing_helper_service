@@ -1,0 +1,284 @@
+<div class="layui-form" style="width: 296px;">
+    <!-- 将原来的select替换为支持树形结构的筛选器 -->
+    <div class="level-filter-container">
+        <div class="level-filter-trigger" id="levelFilterTrigger">
+            <input type="text" readonly placeholder="产品线/技术族（已选）" id="levelFilterTriggerInput" class="layui-input level-filter-input" value="">
+            <img src="/static/images/defect/imga1/Vector1.png" alt="" class="layui-icon layui-icon-down level-filter-icon">
+        </div>
+    </div>
+</div>
+
+<style>
+/* 统一树形节点的对齐 */
+.layui-tree-entry {
+    display: flex;
+    align-items: center;
+}
+
+.layui-tree-main {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.layui-tree-txt {
+    flex: 1;
+}
+
+/* 修复图标宽度不一致的问题 */
+.layui-tree-iconClick {
+    width: 16px !important; /* 统一图标宽度 */
+    height: 16px !important;
+    margin-right: 8px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.layui-tree-iconClick .layui-icon {
+    font-size: 16px; /* 统一图标大小 */
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+}
+
+/* 为所有节点添加统一的图标占位 */
+.tree-node-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.tree-icon-placeholder {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    display: inline-block;
+    visibility: hidden;
+}
+
+/* 确保复选框对齐 */
+.layui-tree-checkbox {
+    margin-right: 8px;
+}
+
+/* 连接线样式调整 */
+.layui-tree-showLine .layui-tree-line {
+    left: 8px; /* 调整连接线位置 */
+}
+
+.layui-tree-showLine .layui-tree-entry {
+    position: relative;
+}
+</style>
+
+<script>
+let checkedChildIds = []
+window.onload = function() {
+     let levelFilterData = JSON.parse('{{ get_all_version_project()|safe}}')
+     // 从模板变量中获取 filters_version_projects
+    /*
+     let filtersVersionProjects = '{{ request.args.get('version_projects', '')|safe }}';
+     // 如果 filtersVersionProjects 不为空且不是 "None"，则解析为数组
+     if (filtersVersionProjects && filtersVersionProjects !== 'None' && filtersVersionProjects !== '') {
+         try {
+             // 如果后端传递的是 JSON 字符串，需要解析
+             if (filtersVersionProjects.startsWith('[') || filtersVersionProjects.startsWith('{')) {
+                 checkedChildIds = JSON.parse(filtersVersionProjects);
+             } else {
+                 // 如果是逗号分隔的字符串，转换为数组
+                 checkedChildIds = filtersVersionProjects.split(',').map(item => item.trim()).filter(item => item !== '');
+             }
+         } catch (e) {
+             console.error('解析 filters_version_projects 出错:', e);
+             checkedChildIds = [];
+         }
+     } else {
+         checkedChildIds = [];
+     }
+     */
+
+     // 预处理数据，确保所有节点都有统一的样式
+     function preprocessTreeData(data) {
+         data.forEach(item => {
+             // 为所有节点添加统一的样式类
+             if (item.children && item.children.length > 0) {
+                 // 有子节点的节点
+                 preprocessTreeData(item.children);
+             } else {
+                 if(item.checked===true){
+                    checkedChildIds.push(item.id)
+                     console.log(checkedChildIds)
+                 }
+                 // 没有子节点的节点，确保有统一的占位
+                 if (!item.children) {
+                     item.children = [];
+                 }
+             }
+         });
+         return data;
+     }
+
+     // 预处理树形数据
+     levelFilterData = preprocessTreeData(levelFilterData);
+
+     // 设置树节点的选中状态
+     function setTreeCheckedState(data, checkedIds) {
+         data.forEach(item => {
+             if (item.children && item.children.length > 0) {
+                 setTreeCheckedState(item.children, checkedIds);
+             } else {
+                 // 如果是叶子节点，检查是否在选中列表中
+                 if (checkedIds.includes(item.id.toString())) {
+                     item.checked = true;
+                 } else {
+                     item.checked = false;
+                 }
+             }
+         });
+     }
+
+     // 应用初始选中状态
+    /*
+     if (checkedChildIds.length > 0) {
+         setTreeCheckedState(levelFilterData, checkedChildIds);
+     }
+    */
+    layui.use(['dropdown'], function () {
+        var dropdown = layui.dropdown;
+        var form = layui.form;
+        var treeFilterDropdown = dropdown.render({
+            elem: '#levelFilterTrigger',
+            content: [
+                '<div class="tree-filter-container" style="display: flex; flex-direction: column; height:auto;">',
+                '<div class="tree-filter-buttons" style="flex-shrink: 0; padding: 10px; border-bottom: 1px solid #e6e6e6; text-align: right; background-color: #fafafa;height: 50px">',
+                '<button type="button" class="layui-btn layui-btn-sm layui-btn-primary" id="treeFilterCancel">取消</button>',
+                '<button type="button" class="layui-btn layui-btn-sm" id="treeFilterConfirm" style="margin-left: 10px;">确认</button>',
+                '</div>',
+                '<div class="tree-filter-content" style="flex: 1; overflow-y: auto; padding: 10px;max-height: 250px;">',
+                '<div id="ID-tree-demo-showLine"></div>',
+                '</div>',
+                '</div>'
+            ].join(''),
+            className: 'demo-dropdown-tree',
+            style: 'width: 370px; ',
+            ready: function () {
+                var tree = ""
+                layui.use('tree', function () {
+                    tree = layui.tree;
+                    tree.render({
+                        elem: '#ID-tree-demo-showLine',
+                        data: levelFilterData,
+                        showLine: true, // 开启连接线，有助于对齐
+                        showCheckbox: true, // 启用复选框
+                        onlyIconControl: true,
+                        id: 'demoId',
+                    });
+
+                    // 添加对整个树条目点击的处理，触发文本点击事件
+                    $(document).on('click', '.layui-tree-entry', function (e) {
+                        // 阻止事件冒泡
+                        e.stopPropagation();
+
+                        // 检查点击的元素是否是条目本身而不是子元素
+                        if (e.target.classList.contains('layui-tree-entry') ||
+                            e.target.classList.contains('layui-tree-main')) {
+                            // 触发文本点击事件
+                            $(this).find('.layui-tree-txt').click();
+                        }
+                    });
+
+                    // 确保所有节点对齐的额外处理
+                    setTimeout(function() {
+                        $('.layui-tree-entry').each(function() {
+                            var $entry = $(this);
+                            var $icon = $entry.find('.layui-tree-iconClick');
+                            var $text = $entry.find('.layui-tree-txt');
+
+                            // 如果没有图标，添加占位
+                            if ($icon.length === 0) {
+                                $text.before('<span class="tree-icon-placeholder"></span>');
+                            } else {
+                                // 确保有图标的节点也统一宽度
+                                $icon.css({
+                                    'width': '16px',
+                                    'height': '16px',
+                                    'display': 'flex',
+                                    'align-items': 'center',
+                                    'justify-content': 'center'
+                                });
+                            }
+                        });
+                    }, 100);
+
+
+                });
+
+                $('#treeFilterConfirm').on('click', function () {
+                    var treeCheckdata = tree.getChecked('demoId');
+                    checkedChildIds = getCheckedIdChildId(treeCheckdata);
+                    setLevelFilterData(checkedChildIds);
+                    tree.render({
+                        elem: '#ID-tree-demo-showLine',
+                        data: levelFilterData,
+                        showLine: true, // 是否开启连接线
+                        showCheckbox: true, // 启用复选框
+                        onlyIconControl: true,
+                        id: 'demoId',
+                    });
+                    if (checkedChildIds.length > 0) {
+                        $('#levelFilterTriggerInput').attr('placeholder', '产品线/技术族(已选)');
+                    } else {
+                        $('#levelFilterTriggerInput').attr('placeholder', '请选择产品线/技术族');
+                    }
+                    if (typeof dropdownStates !== "undefined" && Object.keys(dropdownStates).length > 0) {
+                        $.each(dropdownStates['version_projects'].items, function (index, item) {
+                            if (checkedChildIds.includes(index)) {
+                                dropdownStates['version_projects'].items[index] = true
+                            } else {
+                                dropdownStates['version_projects'].items[index] = false
+                                dropdownStates['version_projects'].all = false
+                            }
+                        })
+                    }
+                    treeFilterDropdown.close()
+                });
+                $('#treeFilterCancel').on('click', function () {
+                    treeFilterDropdown.close()
+                })
+
+                function getCheckedIdChildId(jsonObj) {
+                    var ids = [];
+                    $.each(jsonObj, function (index, item) {
+                        $.each(item.children, function (index1, item1) {
+                            $.each(item1.children, function (index2, item2) {
+                                $.each(item2.children, function (index3, item3) {
+                                    ids.push(item3.id);
+                                })
+                            })
+                        })
+                    });
+                    return ids;
+                }
+
+                function setLevelFilterData(checkedChildIds) {
+                    $.each(levelFilterData, function (index, item) {
+                        $.each(item.children, function (index1, item1) {
+                            $.each(item1.children, function (index2, item2) {
+                                $.each(item2.children, function (index3, item3) {
+                                    if (checkedChildIds.includes(item3.id)) {
+                                        item3.checked = true;
+                                    } else {
+                                        item3.checked = false;
+                                    }
+                                })
+                            })
+                        })
+                    });
+                }
+            },
+        });
+
+    })
+}
+</script>

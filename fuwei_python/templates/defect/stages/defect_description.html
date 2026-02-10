@@ -1,0 +1,100 @@
+<!-- templates/defect/stages/defect_description.html -->
+{% extends "defect/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">问题描述</h5>
+                </div>
+                <div class="card-body">
+                    {% if stage.status == StageStatus.IN_PROGRESS %}
+                    <form method="post" action="{{ url_for('defect.submit_stage_data', defect_id=defect.id, stage_id=stage.id) }}">
+                        <input type="hidden" name="data_type" value="{{ DataType.DEFECT_DESCRIPTION.value }}">
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">标题</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ defect.title }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">描述</label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required>{{ defect.description }}</textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="severity" class="form-label">严重程度</label>
+                                <select class="form-select" id="severity" name="severity" required>
+                                    <option value="Critical" {% if defect.severity == 'Critical' %}selected{% endif %}>严重</option>
+                                    <option value="High" {% if defect.severity == 'High' %}selected{% endif %}>高</option>
+                                    <option value="Medium" {% if defect.severity == 'Medium' %}selected{% endif %}>中</option>
+                                    <option value="Low" {% if defect.severity == 'Low' %}selected{% endif %}>低</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="defect_reproducibility" class="form-label">复现概率</label>
+                                <select class="form-select" id="defect_reproducibility" name="defect_reproducibility" required>
+                                    <option value="Always" {% if defect.defect_reproducibility == 'Always' %}selected{% endif %}>总是</option>
+                                    <option value="Often" {% if defect.defect_reproducibility == 'Often' %}selected{% endif %}>经常</option>
+                                    <option value="Sometimes" {% if defect.defect_reproducibility == 'Sometimes' %}selected{% endif %}>有时</option>
+                                    <option value="Rarely" {% if defect.defect_reproducibility == 'Rarely' %}selected{% endif %}>很少</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">提交描述</button>
+                    </form>
+                    {% else %}
+                    <div class="mb-3">
+                        <strong>标题:</strong> {{ defect.title }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>描述:</strong>
+                        <p>{{ defect.description }}</p>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>严重程度:</strong> {{ defect.severity }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>复现概率:</strong> {{ defect.defect_reproducibility }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">阶段信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>阶段类型:</strong> {{ stage.stage_type }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>负责人:</strong> {{ stage.assignee.username }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>状态:</strong>
+                        <span class="badge bg-{{ stage.status.color }}">{{ stage.status.name }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>创建时间:</strong> {{ stage.created_time.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                    {% if stage.completed_time %}
+                    <div class="mb-3">
+                        <strong>完成时间:</strong> {{ stage.completed_time.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

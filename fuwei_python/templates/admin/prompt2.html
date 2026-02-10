@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+    {% include "admin/base.html" %}
+    <link href="{{ url_for('static', filename='lib/wang-editor/style.css') }}" rel="stylesheet" type="text/css">
+    <body class="skin-blue">
+        {% include "admin/header.html" %}
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+            <aside class="right-side">
+                <section class="content-header">
+                    <h1>
+                        立项prompt管理
+                        <small>Preview page</small>
+                    </h1>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        <li class="active">立项prompt</li>
+                    </ol>
+                </section>
+                <div style="float: left;width: 30%;">
+                    <div style="float: left;width: 100%;margin-bottom: 15px;border: 1px solid cornflowerblue;">
+                        <div style="float: left;width: 100%;margin-bottom: 5px;">
+                            <b style="color: #6f42c1;font-size: 17px">一、全文理解与思维导图prompt</b>
+                        </div>
+                        <div>
+                             <a style="cursor: pointer;  {% if doc_id==85 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=100&child_type_2=1&id=85&menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}&type={{type}}" >1、全文理解</a><br><br>
+                             <a style="cursor: pointer; {% if doc_id==86 %} color:red {% endif %}"    href="/admin/lx_prompt?child_type_1=100&child_type_2=2&id=86&menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}&type={{type}}" >2、思维导图</a>
+                        </div>
+                    </div>
+                    <div style="float: left;width: 100%;border: 1px solid cornflowerblue;margin-bottom: 15px;">
+                        <div style="float: left;width: 100%;">
+                            <div style="float: left;width: 100%;margin-bottom: 5px">
+                                <b style="color: #6f42c1;font-size: 17px">二、①立项文档内容与评分规则prompt</b>
+                            </div>
+
+                            <div style="float: left;width: 35%;margin-left: 10px;" id="div-child_type_1" >
+                                <select name="child_type_1" id="child_type_1" class="form-control">
+                                    <option value="-1">全部类型</option>
+                                    <option value="0"{% if child_type_1=="0"  %}selected {% endif %}>重大机会</option>
+                                    <option value="1" {% if child_type_1=="1"  %}selected {% endif %}>市场机会/威胁分析</option>
+                                    <option value="2" {% if child_type_1=="2"  %}selected {% endif %}>市场/威胁+重大项目</option>
+                                    <option value="3" {% if child_type_1=="3"  %}selected {% endif %}>战略制高点/瓶颈点争夺</option>
+                                </select>
+                            </div>
+                            <div style="float: left;width: 20%;margin-left: 10px;display: none" id="div-child_type_2">
+                                <select name="child_type_2" id="child_type_2" class="form-control">
+                                    <option value="-1">全部类型</option>
+                                    <option value="0"{% if child_type_2=="0"  %}selected {% endif %}>首次</option>
+                                    <option value="1" {% if child_type_2=="1"  %}selected {% endif %}>迭代升级</option>
+                                </select>
+                            </div>
+                            <div style="float: left;width: 25%;margin-left: 10px">
+                                <input name="sfile_name" id="sfile_name" class="form-control"  placeholder="文件名"value="{{sfile_name}}">
+                            </div>
+                            <div style="float: left;width: 5%; margin-left: 5px">
+                                <button type="button" class="btn btn-primary" id="search">搜索</button>
+                            </div>
+                        </div>
+                        <div style="float: left;width: 100%;">
+                            <table class="table table-bordered" style="margin-bottom: 5px">
+                                <tbody>
+                                <tr>
+                                    <th style="width: 70%;">内容评估规则文档</th>
+                                    <th  style="width: 30%">操作</th>
+                                </tr>
+                                {% for item in items %}
+                                <tr>
+                                    <td>
+                                        <a href="/admin/lx_prompt?child_type_1={{item.child_type_1}}&child_type_2={{item.child_type_2}}&id={{item.id}}&menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}&type={{type}}"
+                                           {% if doc_id==item.id %} style="color:red" {% endif %}
+                                        >
+                                            {{item.file_name}}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a class="demand" style="cursor:pointer"   data-id="{{item.id}}" upload_type="content" >上传内容模板</a><br>
+                                        <a class="demand" style="cursor:pointer"   data-id="{{item.id}}" upload_type="val" >上传评分规则</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <ul class="pagination pagination-sm no-margin pull-left">
+                                {{ pagination.links }}
+                            </ul>
+                        </div>
+                        <div style="float: left;width: 100%;margin-bottom: 5px">
+                            <b style="color: #6f42c1;font-size: 17px">②二次修正评分规则prompt</b>
+                            <div style="float: left;width: 100%;margin-bottom: 5px;margin-top: 5px">
+                                <a style="cursor: pointer;{% if doc_id==123 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=103&child_type_2=0&step=2&id=123&menu_id={{g.menu_id}}&type={{type}}" >1、产品价值二次修正评分</a><br><br>
+                                <a style="cursor: pointer;{% if doc_id==124 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=103&child_type_2=0&step=3&id=124&menu_id={{g.menu_id}}&type={{type}}">2、产品包二次修正评分</a><br><br>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="float: left;width: 100%;border: 1px solid cornflowerblue;margin-bottom: 15px">
+                        <div style="float: left;width: 100%;margin-bottom: 5px">
+                            <b style="color: #6f42c1;font-size: 17px">三、立项工作实际上处在的阶段</b>
+                        </div>
+                        <div style="float: left;width: 100%;margin-bottom: 5px">
+                            <a style="cursor: pointer;{% if doc_id==87 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=101&child_type_2=1&id=87&menu_id={{g.menu_id}}&type={{type}}" >1、CASE-1</a><br><br>
+                            <a style="cursor: pointer;{% if doc_id==88 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=101&child_type_2=2&id=88&menu_id={{g.menu_id}}&type={{type}}">2、CASE-2</a><br><br>
+                            <a style="cursor: pointer;{% if doc_id==89 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=101&child_type_2=3&id=89&menu_id={{g.menu_id}}&type={{type}}">3、CASE-3</a><br><br>
+                            <a style="cursor: pointer;{% if doc_id==90 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=101&child_type_2=4&id=90&menu_id={{g.menu_id}}&type={{type}}">4、CASE-4</a>
+                        </div>
+                    </div>
+
+                    <div style="float: left;width: 100%;border: 1px solid cornflowerblue;margin-bottom: 15px">
+                        <div style="float: left;width: 100%;margin-bottom: 5px">
+                            <b style="color: #6f42c1;font-size: 17px">四、下一步工作重点/分三种情况</b>（不同分数对应不同的下一步）
+                        </div>
+                        <div style="float: left;width: 100%;margin-bottom: 5px">
+                            <a style="cursor: pointer;{% if doc_id==91 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=102&child_type_2=1&id=91&menu_id={{g.menu_id}}&type={{type}}" >1、CASE-1</a><br><br>
+                            <a style="cursor: pointer;{% if doc_id==92 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=102&child_type_2=2&id=92&menu_id={{g.menu_id}}&type={{type}}">2、CASE-2</a><br><br>
+                            <a style="cursor: pointer;{% if doc_id==93 %} color:red {% endif %} " href="/admin/lx_prompt?child_type_1=102&child_type_2=3&id=93&menu_id={{g.menu_id}}&type={{type}}">3、CASE-3&4</a><br><br>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div style="float: left;width: 69%;border: 1px solid cornflowerblue;margin-left: 5px;margin-bottom: 10px">
+                    {% if child_type_1<100 and doc_id>0   %}
+                    <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                        <b style="color: red">内容评估规则文档名称：</b>
+                        <input type="text"   id ="ifile_name" class="form-control" style="width: 50%;margin-right: 0px" placeholder="与左边列表文件名对应" value="{{ifile_name}}">
+                    </div>
+
+                    <div id="aq" style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                        <div class="container-editor">
+                            <b style="color: red">内容模板：</b>
+                        </div>
+                        <div class="container-editor">
+                            <div id="tb2" class="toolbar-container"><!-- 工具栏 --></div>
+                            <div id="e2" class="editor-container" style="height: 600px;"><!-- 编辑器 --></div>
+                        </div>
+                    </div>
+
+                    <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                        <div class="container-editor">
+                            <b style="color: red">评分规则：</b>
+                        </div>
+                        <div class="container-editor">
+                            <div id="tb1" class="toolbar-container"><!-- 工具栏 --></div>
+                            <div id="e1" class="editor-container" style="height: 600px;"><!-- 编辑器 --></div>
+                        </div>
+                    </div>
+
+
+                    <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                        <b style="color: red">指令：</b>
+                        <textarea  id ="cammand" class="form-control" rows="20" style="width: 100%;margin-right: 0px" placeholder="请填写指令">{{cammand}}</textarea>
+                    </div>
+                    <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                        <b style="color: red">前端大标题展示：</b>
+                        <input type="text"   id ="big_title_show" class="form-control" style="width: 50%;margin-right: 0px" placeholder="前端大标题"  value="{{big_title_show}}">
+                    </div>
+                    <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                        <b style="color: red">前端标题展示：</b>
+                        <input type="text"   id ="title_show" class="form-control" style="width: 50%;margin-right: 0px" placeholder="前端标题" value="{{title_show}}">
+                    </div>
+
+                    <div style="width: 100%;float: right;text-align: center">
+                        <button class="btn btn-danger" style="margin: auto;margin-top: 20px" id="editorDone">修改</button>
+                    </div>
+                    {% endif %}
+                    {% if child_type_1>=100 and doc_id>0   %}
+                    <div  style="float: left;width: 97%;margin-left: 15px;border: 1px solid grey;height: auto;margin-top: 5px;overflow: auto;">
+                        <b style="color: red">指令：</b>
+                        <textarea  id ="cammand" class="form-control" rows="20" style="width: 100%;margin-right: 0px" placeholder="请填写指令">{{cammand}}</textarea>
+                    </div>
+                    <div style="width: 97%;float: right;text-align: center;margin-left: 15px;">
+                        <button class="btn btn-danger" style="margin: auto;margin-top: 20px" id="editorDone2">修改</button>
+                    </div>
+                    {% endif %}
+
+                    {% if doc_id<=0   %}
+                    请点选左边列表文档
+                    {% endif %}
+                </div>
+            </aside>
+        </div>
+    </body>
+</html>
+
+<script src="{{ url_for('static', filename='lib/wang-editor/index.js')}}"></script>
+
+{% if child_type_1<100  %}
+<script>
+    const { createEditor, createToolbar } = window.wangEditor
+    const editorConfig = {
+        placeholder: '请输入...',
+        MENU_CONF: {
+            uploadImage: {
+                server: '/user/aiVal/upload_pic', // 替换为你的图片上传接口地址
+                fieldName: 'file', // 上传文件的字段名（与后端一致）
+                maxFileSize: 5 * 1024 * 1024, // 5MB
+                maxNumberOfFiles: 1, // 最多上传 5 张图片
+                customInsert(res, insertFn) {
+                    if (res.code == 1) {
+                        insertFn(res.url); // 插入图片 URL
+                    } else {
+                        alert(res.msg || '上传失败');
+                    }
+                }
+            }
+        }
+    }
+    const toolbarConfig = {
+        toolbarKeys: ['uploadImage'] // 只保留上传图片按钮
+    };
+    const editor1 = createEditor({
+        selector: '#e1',
+        html: '',
+        config: { ...editorConfig },
+        mode: 'simple', // or 'simple'
+    })
+    createToolbar({
+        editor:editor1,
+        selector: '#tb1',
+        config: toolbarConfig,
+        mode: 'simple', // or 'simple'
+    })
+    editor1.setHtml('{{html|safe}}')
+
+
+    const editor2 = createEditor({
+        selector: '#e2',
+        html: '',
+        config: { ...editorConfig },
+        mode: 'simple', // or 'simple'
+    })
+    createToolbar({
+        editor:editor2,
+        selector: '#tb2',
+        config: toolbarConfig,
+        mode: 'simple', // or 'simple'
+    })
+    editor2.setHtml('{{html_content|safe}}')
+
+
+</script>
+{% endif %}
+<script>
+    layui.use(['jquery', 'layer','upload'], function(){
+        var $ = layui.jquery;
+        var upload = layui.upload;
+        $('.demand').each(function() {
+            var elem = $(this); // 当前按钮
+            var id = $(this).attr('data-id');
+            var upload_type = $(this).attr('upload_type');
+            upload.render({
+                elem: elem, // 直接传入 jQuery 对象或 DOM 元素
+                url: '/admin/upload?id='+id+'&upload_type='+upload_type,
+                accept: 'file',
+                exts: 'doc|docx',
+                before: function() {
+                    layer.load();
+                },
+                done: function(res) {
+                    layer.closeAll();
+                    layer.msg(res.msg || '上传成功');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                },
+                error: function() {
+                    layer.closeAll();
+                    layer.msg('上传失败');
+                }
+            });
+        });
+        $('#child_type_1').on('change', function(){
+            if(parseInt($(this).val()) >= 0){
+                $('#div-child_type_2').show()
+            }
+            else{
+                $('#child_type_2').val("-1")
+                $('#div-child_type_2').hide()
+            }
+        })
+
+        $('#search').on('click', function(){
+             location.href='/admin/lx_prompt?type={{type}}&child_type_1='+$('#child_type_1').val()+'&child_type_2='+$('#child_type_2').val()+'&menu_id={{g.menu_id}}&menu_pid={{g.menu_pid}}';
+        })
+
+        {% if child_type_1<100 %}
+            $('#child_type_1').val("{{child_type_1}}")
+            $('#child_type_2').val("{{child_type_2}}")
+            {% if child_type_1>=0 %}
+                    $('#div-child_type_2').show()
+            {% endif %}
+        {% endif %}
+    })
+
+$('#editorDone').click(function (){
+    let  html = editor1.getHtml()
+    let  html_content = editor2.getHtml()
+    let id = "{{doc_id}}"
+    let title_show = $('#title_show').val()
+    let big_title_show = $('#big_title_show').val()
+    let cammand = $('#cammand').val()
+    let file_name = $('#ifile_name').val()
+    let child_type_1 = {{child_type_1}}
+    $.ajax({
+        type: "POST",
+        url: "/admin/lx_prompt?",
+        contentType: "application/json;charset=UTF-8",
+        data: JSON.stringify({
+            big_title_show:big_title_show,
+            html: html,
+            id:id,
+            title_show:title_show,
+            cammand:cammand,
+            html_content:html_content,
+            file_name:file_name,
+            child_type_1:child_type_1
+        }),
+        async: false,
+        success: function (data) {
+            alert("修改成功")
+            location.reload()
+        }
+    })
+})
+
+
+$('#editorDone2').click(function (){
+    let id = "{{doc_id}}"
+    let cammand = $('#cammand').val()
+    let child_type_1 = {{child_type_1}}
+    $.ajax({
+        type: "POST",
+        url: "/admin/lx_prompt",
+        contentType: "application/json;charset=UTF-8",
+        data: JSON.stringify({
+            id:id,
+            cammand:cammand,
+            child_type_1:child_type_1
+        }),
+        async: false,
+        success: function (data) {
+            alert("修改成功")
+            location.reload()
+        }
+    })
+
+
+})
+</script>

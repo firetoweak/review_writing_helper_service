@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品缺陷管理 - 锋矢AI蓝军</title>
+    <!-- JavaScript 引入 -->
+    {% include "defect/base_js.html" %}
+    {% include "defect/bases.html" %}
+
+</head>
+<body>
+{% include "components/header.html" %}
+    <!-- 顶部横幅 -->
+    {% include "components/defect_banner.html" %}
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item active">
+                    {% if request.values.get('defect_type')=='simplified2' %}<a href="/defect/role_proxy?defect_type=simplified2">产品缺陷跟踪系统(DTS)-简化版</a> {% else %}<a href="/defect/role_proxy">产品缺陷跟踪系统(DTS)-标准版</a>{% endif %}
+                </li>
+                <li class="breadcrumb-item active">
+                    全板块查阅人
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <!-- 显示Flash消息 -->
+    {% include "defect/show_flash.html" %}
+    <div class="container-main">
+        <div class="role-selector">
+            {% include "components/roles_menu.html" %}
+            {% include "components/defect_message.html" %}
+        </div>
+
+        <!-- 操作栏 - 包含切换按钮和搜索区域 -->
+        <div class="operation-bar" style="justify-content: space-between;">
+            {{ get_right_style(0)|safe }}
+            <!-- 切换按钮 -->
+            {% include "components/user_menus.html" %}
+            {% if is_company_admin or is_global_admin %}
+                <div class="button" style="background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);color: #fff;margin-left:auto" id="add">新增</div>
+            {%endif%}
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="tab-content">
+            <!-- 表格 内容 -->
+            <div class="tab-pane layui-show" id="processedContent">
+                <!-- 全板块查阅人 表格 -->
+                <div class="table-container">
+                    <table class="layui-table" lay-size="sm" lay-filter="defectTable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    姓名
+                                </th>
+                                <th>邮件</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="defectTableBody">
+                        {% for user in company_global_viewer_users %}
+                            <tr>
+                                <td>{{user.name}}</td>
+                                <td>{{user.email}}</td>
+                                <td style="display:none">{{user.user_id}} </td>
+                                <td>
+                                    {% if is_company_admin or is_global_admin %}
+                                    <span class='option-button' style="margin-right:20px" data-action="del" data-id="{{user.user_id}}">删除</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+
+                        </tbody>
+                    </table>
+                    {% if not company_global_viewer_users %}
+                    <div style="display:flex;align-items: center;justify-content: center;width: 100%;margin-top: 40px;" id="noData">
+                        <img src="/static/images/aival/no_record.png">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+
+    <!-- 配置全板块查阅人弹窗 -->
+    <div class="modal fade" id="batchInviteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:961px;">
+            <div class="modal-content" style="border-radius:16px;">
+                <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                    <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                        <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                            <div class="flex items-center justify-center">
+                                <img src="/static/images/defect/p2_03.png" alt="图标" class="invite-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;">
+                                <span style="margin-top: 2px;">新增全板块查阅人</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="this.blur()" aria-label="Close" style="font-size:20px;"></button>
+                </div>
+                <div>
+                    <div class="invitee-item" data-item-index="1">
+                        <!-- 人员搜索区域和姓名显示区域（同一行） -->
+                        <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                            <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                    <span style="color: red;">*</span> Email 账号
+                                </label>
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control invitee-search layui-input" placeholder="搜索成员" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                                    <img src="/static/images/defect/imga1/aaa3.png" alt="搜索" style="position: absolute;right: 12px;top: 50%;transform: translateY(-50%);width: 16px;height: 16px;">
+                                    <!-- 下拉框 -->
+                                    <div class="invitee-dropdown" style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 200px;overflow-y: auto;">
+                                        <!-- 动态生成搜索结果 -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="width: 50%;">
+                                <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">姓名</label>
+                                <div class="selected-invitee-name" style="width: 100%;height: 40px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #E6F0FD;color: #999;display: flex;align-items: center;">
+                                    通过Email账号搜索成员，此处将会自动填充姓名
+                                </div>
+                            </div>
+                            <input type="hidden" class="invitee-id">
+                        </div>
+
+                        <!-- 任务备注区域 -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-family: PingFang SC;font-weight: 400;font-size: 16px;line-height: 24px;color:#557496;margin-bottom: 10px;">任务备注</label>
+                            <textarea class="form-control invitee-reason layui-input" placeholder="请输入" style="width: 100%;height: 100px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 12px;font-size: 14px;resize: none;background-color: #F6FAFF;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 100%;display: flex;justify-content: center;align-items: center;margin: 0 0 24px;">
+                    <div class="drawer-buttons" style="width: 60%;height: 40px;display: flex;justify-content: center;align-items: center;gap: 20px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" onclick="this.blur()" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button class="ok-btn" id="confirmBatchInvite" onclick="this.blur()" style="width: 140px;background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);border: none;">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除弹窗模块 -->
+    <div class="modal fade" id="delModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+            <div class="modal-content" style="border-radius:16px;width: 80%;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px 24px;">
+                <div style="position: absolute;right: 42%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+                <div class="text-center">
+                    <div style="font-size:20px;font-weight:600;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">确定删除记录？</div>
+                    <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" onclick="this.blur()" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button type="button" class="btn btn-danger" onclick="this.blur()" id="confirmDeleteBtn" style="min-width:123px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                            确定删除
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- 底部区域 -->
+{% include "user/footer.html" %}
+<!-- JavaScript 引入 -->
+{% include "defect/base_js.html" %}
+
+ <script>
+       // 检查是否有错误信息
+        {% if error_message %}
+            // 显示错误信息
+            showToast("error", "{{ error_message }}", 5000);
+        {% endif %}
+
+        // 初始化Layui模块
+        layui.use(['element', 'form', 'layer','laypage','dropdown'], function() {
+            var element = layui.element;
+            var form = layui.form;
+            var layer = layui.layer;
+            var laypage = layui.laypage;
+            var dropdown = layui.dropdown;
+
+            // 全局变量
+            var allDefects = []; // 存储所有缺陷数据
+            var filteredDefects = []; // 存储筛选后的数据
+            var activeTab = 'processed';
+            var pageSize = 10;
+            var currentPage = 1; // 添加当前页码变量
+            var currentSort = {
+                field: null,
+                order: null
+            };
+
+
+            // 邀共同定位按钮点击事件
+            $(document).on('click', '#add', function() {
+                // 清空填充数据
+                clearAllInviteeData();
+                // 显示批量邀请共同定位弹窗
+                var batchInviteModal = new bootstrap.Modal(document.getElementById('batchInviteModal'));
+                batchInviteModal.show();
+            });
+
+            // 清空弹窗所有数据的函数
+            function clearAllInviteeData() {
+                // 清空输入框
+                $('#batchInviteModal .invitee-search').val('');
+                $('#batchInviteModal .invitee-id').val('');
+                // 重置姓名显示
+                $('#batchInviteModal .selected-invitee-name').html('通过Email账号搜索成员，此处将会自动填充姓名').css('color', '#999');
+                // 清空任务备注
+                $('#batchInviteModal .invitee-reason').val('');
+                // 隐藏下拉框
+                $('#batchInviteModal .invitee-dropdown').hide();
+                // 清空已选择成员数组
+                selectedInviteeMembers = [];
+            }
+
+            // 关闭提醒信息
+            $('#closeNote').on('click', function() {
+                $('#roleNote').slideUp('fast');
+            });
+
+            // 分页完整显示
+            function renderPagination() {
+                laypage.render({
+                    elem: 'paginationPlaceholder',
+                    count: filteredDefects.length,
+                    limit: pageSize,
+                    curr: currentPage,
+                    limits: [10, 20, 30, 40, 50],
+                    prev: '<',
+                    next: '>',
+                    layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+                    skipText: ['前往', '页', '确定'],
+                    jump: function(obj, first) {
+                        // 首次不执行
+                        if (!first) {
+                            currentPage = obj.curr;
+                            // 如果每页显示数量发生变化，更新pageSize并重置到第一页
+                            if (pageSize !== obj.limit) {
+                                pageSize = obj.limit;
+                                currentPage = 1;
+                            }
+                            renderTable();
+                        }
+                    }
+                });
+            }
+
+            // 角色选择事件
+            form.on('select(roleSelect)', function(data) {
+                showToast('已选择角色：' + data.value, 'info');
+            });
+
+            // 通用Toast提示函数
+            function showToast(message, type, duration) {
+                // 隐藏所有Toast
+                $('#successToast, #errorToast, #warningToast, #infoToast').hide();
+
+                // 根据类型显示对应的Toast
+                var $toast;
+                switch(type) {
+                    case 'success':
+                        $toast = $('#successToast');
+                        break;
+                    case 'error':
+                        $toast = $('#errorToast');
+                        break;
+                    case 'warning':
+                        $toast = $('#warningToast');
+                        break;
+                    case 'info':
+                        $toast = $('#infoToast');
+                        break;
+                    default:
+                        $toast = $('#infoToast');
+                }
+
+                // 设置消息内容
+                $toast.find('.toast-message').text(message);
+
+                // 显示Toast容器和对应的Toast
+                $('#toastContainer').show();
+                $toast.show();
+
+                // 设置自动隐藏
+                if (duration !== false) {
+                    setTimeout(function() {
+                        $toast.fadeOut();
+                        $('#toastContainer').fadeOut();
+                    }, duration || 1500);
+                }
+            }
+
+            // 关闭Toast的函数
+            function hideToast() {
+                $('#toastContainer').fadeOut();
+            }
+
+            // 初始化页面
+            form.render();
+
+            // 初始化树形结构筛选器
+            // initLevelFilter();
+
+            // 添加表格行点击事件处理
+            $('#defectTableBody').on('click', 'tr', function() {
+                // 移除所有行的选中样式
+                $('#defectTableBody tr').removeClass('selected');
+                // 为当前点击的行添加选中样式
+                $(this).addClass('selected');
+            });
+
+            // 关闭删除弹窗时重置当前删除ID
+            $('#delModal').on('hidden.bs.modal', function () {
+                currentDeleteId = null;
+            });
+
+            // 当前要删除的行
+            var currentDeleteRow = null;
+            var currentDeleteId = null;
+
+            // 删除按钮点击事件
+            $(document).on('click', '.option-button[data-action="del"]', function() {
+                // 保存要删除的ID
+                currentDeleteId = $(this).data('id');
+                // 显示确认删除弹窗
+                var delModal = new bootstrap.Modal(document.getElementById('delModal'));
+                delModal.show();
+            });
+
+            // 确认删除按钮点击事件
+            $(document).on('click', '#confirmDeleteBtn', function() {
+                if (!currentDeleteId) return;
+
+                // 发送删除请求
+                $.ajax({
+                    url: '/global_settings/global_viewer/delete',
+                    type: 'POST',
+                    data: {
+                        user_id: currentDeleteId,
+                        csrf_token: "{{ csrf_token() if csrf_token else '' }}"
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('删除成功', 'success');
+                            // 刷新页面
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(response.message || '删除失败', 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showToast('网络错误，请重试', 'error');
+                        console.error('删除失败:', error);
+                    }
+                });
+
+                // 关闭弹窗
+                var delModal = bootstrap.Modal.getInstance(document.getElementById('delModal'));
+                delModal.hide();
+            });
+
+            // 模拟成员数据 - 使用后端传递的实际数据
+            var mockMembers =  {{ company_user_list | tojson if company_user_list else '[]' }};
+
+            var selectedInviteeMembers = []; // 存储已选择的邀请成员
+
+            // 下拉框选项点击事件
+            $(document).on('click', '.invitee-dropdown-item', function() {
+                var $item = $(this);
+                var email = $item.data('email');
+                var name = $item.data('name');
+                var userID = $item.data('userid');
+
+                // 检查是否有效数据
+                if (!email || !name || !userID) {
+                    return; // 如果是错误提示消息，不处理
+                }
+
+                var $inviteeItem = $item.closest('.invitee-item');
+                var itemIndex = $inviteeItem.data('item-index');
+                var $input = $inviteeItem.find('.invitee-search');
+                var $nameDisplay = $inviteeItem.find('.selected-invitee-name');
+                var $hiddenId = $inviteeItem.find('.invitee-id');
+                var $dropdown = $inviteeItem.find('.invitee-dropdown');
+
+                // 设置选中的成员
+                var selectedMember = {
+                    userID: userID,
+                    email: email,
+                    name: name,
+                    itemIndex: itemIndex
+                };
+
+                // 移除旧的选择（如果存在）
+                selectedInviteeMembers = selectedInviteeMembers.filter(function(member) {
+                    return member.itemIndex !== itemIndex;
+                });
+
+                // 添加新的选择
+                selectedInviteeMembers.push(selectedMember);
+
+                // 填充输入框和姓名显示
+                $input.val(email);
+                $nameDisplay.html(name).css('color', '#222');
+                $hiddenId.val(userID);
+
+                // 隐藏下拉框
+                $dropdown.hide();
+            });
+
+            // 清空选中成员
+            function clearSelectedInviteeMember(itemIndex) {
+                selectedInviteeMembers = selectedInviteeMembers.filter(function(member) {
+                    return member.itemIndex !== itemIndex;
+                });
+
+                var $inviteeItem = $('.invitee-item[data-item-index="' + itemIndex + '"]');
+                var $nameDisplay = $inviteeItem.find('.selected-invitee-name');
+                var $hiddenId = $inviteeItem.find('.invitee-id');
+
+                $nameDisplay.html('通过Email账号搜索成员，此处将会自动填充姓名').css('color', '#999');
+                $hiddenId.val('');
+            }
+
+            // 点击其他地方隐藏下拉框
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.invitee-search, .invitee-dropdown').length) {
+                    $('.invitee-dropdown').hide();
+                }
+            });
+
+            // 邀请成员搜索功能
+            $(document).on('input', '.invitee-search', function() {
+                var $input = $(this);
+                var searchTerm = $input.val().toLowerCase().trim();
+                var $dropdown = $input.siblings('.invitee-dropdown');
+                var $inviteeItem = $input.closest('.invitee-item');
+                var itemIndex = $inviteeItem.data('item-index');
+
+                if (searchTerm.length === 0) {
+                    // 清空选中成员
+                    clearSelectedInviteeMember(itemIndex);
+                    $dropdown.hide();
+                    return;
+                }
+
+                // 搜索匹配的成员（排除已选择的）
+                var matchedMembers = mockMembers.filter(function(member) {
+                    // 排除已经被选择的成员
+                    var isAlreadySelected = selectedInviteeMembers.some(function(selected) {
+                        return selected.userID === member.user_id;
+                    });
+
+                    if (isAlreadySelected) return false;
+
+                    return member.email.toLowerCase().includes(searchTerm) ||
+                           member.name.toLowerCase().includes(searchTerm);
+                });
+
+                if (matchedMembers.length > 0) {
+                    // 生成下拉框内容
+                    var dropdownHtml = '';
+                    matchedMembers.forEach(function(member) {
+                        dropdownHtml += '<div class="invitee-dropdown-item" data-email="' + member.email + '" data-name="' + member.name + '" data-userid="' + member.user_id + '" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;">' +
+                                       member.name + ' (' + member.email + ')</div>';
+                    });
+
+                    $dropdown.html(dropdownHtml).show();
+                } else {
+                    // 清空选中成员
+                    clearSelectedInviteeMember(itemIndex);
+                    $dropdown.html('<div style="padding: 8px 12px; color: #ff6b6b;">未找到匹配的成员</div>').show();
+                }
+            });
+
+            // 保存按钮点击事件 - 新增全板块查阅人
+            $(document).on('click', '#confirmBatchInvite', function() {
+                // 获取输入的数据
+                var email = $('#batchInviteModal .invitee-search').val();
+                var nameElem = $('#batchInviteModal .selected-invitee-name');
+                var name = nameElem.text();
+                var userID = $('#batchInviteModal .invitee-id').val();
+                var notes = $('#batchInviteModal .invitee-reason').val();
+
+                // 验证数据
+                if (!email || !name || name.includes('通过Email账号搜索成员') || !userID) {
+                    showToast('请正确填写Email账号并选择成员', 'warning');
+                    return;
+                }
+
+                // 发送AJAX请求
+                $.ajax({
+                    url: '/global_settings/global_viewer/add',
+                    type: 'POST',
+                    data: {
+                        email: email,
+                        name: name,
+                        userID: userID,
+                        notes: notes,
+                        csrf_token: "{{ csrf_token() if csrf_token else '' }}"
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('添加成功', 'success');
+                            // 关闭弹窗
+                            var batchInviteModal = bootstrap.Modal.getInstance(document.getElementById('batchInviteModal'));
+                            batchInviteModal.hide();
+                            // 刷新页面
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(response.message || '添加失败', 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showToast('网络错误，请重试', 'error');
+                        console.error('添加失败:', error);
+                    }
+                });
+            });
+        });
+    </script>
+
+
+</body>
+</html>

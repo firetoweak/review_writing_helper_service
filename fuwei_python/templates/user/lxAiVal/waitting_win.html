@@ -1,0 +1,74 @@
+<style>
+  .gradient-border-rounded {
+    position: relative;
+    width: 280px;
+    height: 24px;
+    margin-bottom: 8px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    border-radius: 8px;
+    background: white;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .gradient-border-rounded::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid transparent; /* 保留边框空间 */
+    border-radius: 8px;
+    background: linear-gradient(45deg, #217EFD, #9767FF) border-box;
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude; /* 仅显示边框部分的渐变 */
+    pointer-events: none; /* 避免伪元素阻挡交互 */
+    opacity: 0.5;
+  }
+
+</style>
+<div class="modal fade" id="valDoneModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+    <div class="modal-content" style="border-radius:16px;width: 80%;height: 220px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+      <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+      <div class="text-center">
+        <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;">AI评估中...</div>
+        <div style="font-size:15px;color: #557496;margin-bottom:8px;margin-top: 5px">关闭弹窗不会中断评估进度</div>
+        <div class="gradient-border-rounded">
+          <img src="/static/images/aival/progress-line.png" style="width:280px;left: -5px; position: absolute" id="progress-line">
+        </div>
+        <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="min-width:100px;border-radius:8px;" onclick="location.href='/user/aiVal/list?type={{type}}'">知道了</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;" onclick="location.href='/user/aiVal/add?type={{type}}'">
+            继续新增
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+  $(document).ready(function() {
+    var interval = ""
+    $('#valDoneModal').on('show.bs.modal', function (e) {
+      interval = setInterval(function () {
+        $('#progress-line').animate({left: '5px'}, 400, function () {
+          $('#progress-line').css("left", "-5px")
+        });
+      }, 400)
+    });
+
+    $('#valDoneModal').on('hide.bs.modal', function (e) {
+      clearInterval(interval);
+    });
+  })
+
+</script>

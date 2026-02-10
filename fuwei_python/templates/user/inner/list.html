@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - 锋矢AI蓝军</title>
+    {% include "user/base.html" %}
+</head>
+<style>
+    .inner-state-joined-container {
+        background: linear-gradient(90deg, #E8F6F1 0%, #F3FEFA 100%);
+        border-radius: 100px;
+        padding: 4px 8px;
+        display: inline-block;
+        color: #1FAC78;
+        font-size: 12px;
+    }
+    .inner-state-joined-text {
+        width: 4px;
+        height: 4px;
+        background-color: #1FAC78;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+
+
+    .inner-state-not-joined-container {
+        background: linear-gradient(90deg, #EBEDF1 0%, #EBEDF1 70%);
+        border-radius: 100px;
+        padding: 4px 8px;
+        display: inline-block;
+        width: 60px;
+        color: #9CA7BB;
+        font-size: 12px;
+    }
+
+    .inner-state-not-joined-text {
+        width: 4px;
+        height: 4px;
+        background-color:#9CA7BB;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+
+
+    .table-header th{
+        background: linear-gradient(180deg, #FFFFFF 0%, #E4F0FF 100%);
+        height: 48px;
+        color: #557496;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .drawer-overlay-list {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    .drawer-buttons {
+        display: flex;
+        gap: 16px;
+        margin-top: 10px;
+    }
+    .circle-progress-box {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    .circle-progress {
+        position: relative;
+        z-index: 1;
+        display: block;
+    }
+    .circle-bg {
+        stroke: #EAF2FF;
+    }
+    .circle-bar {
+        stroke: url(#circle-gradient);
+        stroke-linecap: round;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+        transition: stroke-dasharray 0.5s;
+    }
+    .circle-center-icon {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 48px;
+        height: 48px;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+    }
+    .uploading-box{
+        height:auto;
+        display: grid;
+        place-items: center;
+        background: #F6FAFF;
+        margin:16px 24px 10px 24px;
+        border: 1.5px dashed #D5E8FF;
+        border-radius: 8px;
+    }
+    .uploading-box-inner{
+        height:250px;
+        display: grid;
+        place-items: center;
+        background:white;
+        margin:16px 24px;width: 90%;
+        border: 1.5px dashed #D5E8FF;
+        border-radius: 8px;
+    }
+
+</style>
+<body>
+    {% include "components/header.html" %}
+
+    <!-- 顶部横幅 -->
+    <section class="banner">
+        <div class="banner-content">
+            <div class="d-flex align-items-center mb-3">
+                <h1 class="banner-title mb-0" >用户管理</h1>
+                <img src="/static/images/aival/3star.png" alt="" style="margin-bottom: 35px;margin-left: 10px">
+            </div>
+            <p class="banner-subtitle">你可以在这里管理企业成员</p>
+            <div style="width: 300px;height: 300px;position: absolute;right: 10%;top: 28%;">
+                <img src="/static/images/user-management/banner2.png" alt="">
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要内容区域 -->
+    <div class="container-fluid" style="max-width: 1280px;">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom">
+                <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                <li class="breadcrumb-item"><a href="{{g.type_list_url}}?type={{g.type}}">{{g.type_content}}AI评估</a></li>
+                <li class="breadcrumb-item active">用户管理</li>
+            </ol>
+        </nav>
+
+        <!-- 搜索和操作区域 -->
+        <div class="row search-area">
+            <div class="col-6 d-flex align-items-center">
+                <input type="text" class="search-input mr-3" placeholder="搜索真实姓名" id="s-real_name" value="{{real_name}}">
+                <select class="dropdown-select mr-3" id="s-status">
+                    <option value="">全部状态</option>
+                    <option value="0" {% if status=='0' %} selected {% endif %} >未加入</option>
+                    <option value="1" {% if status=='1' %} selected {% endif %} >已加入</option>
+                </select>
+
+                <button class="btn-search d-flex align-items-center" id="search">
+                    <img src="/static/images/search-icon.svg" alt="搜索" width="14" height="14" class="mr-1">
+                    <span>搜索</span>
+                </button>
+
+
+            </div>
+            <div class="col-6 d-flex align-items-center justify-content-end">
+                <button class="btn-batch mr-3" id="delete_all" >批量删除</button>
+                <button class="btn-batch mr-3">批量导入</button>
+                <button class="btn-add">新增</button>
+            </div>
+        </div>
+
+        <!-- 表格头部 -->
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table" id="t  b">
+                        <thead>
+                            <tr class="table-header">
+                                <th width="40" class="text-center">
+                                    <input type="checkbox" class="layui-form-checkbox" lay-skin="primary"  id="allCheckbox">
+                                </th>
+                                <th width="80">ID</th>
+                                <th width="200">真实姓名</th>
+                                <th width="200">电子邮件</th>
+                                <th width="200">部门</th>
+                                <th width="200">职位</th>
+                                <th width="120">状态</th>
+                                <th width="250" style="text-align: center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb">
+                        {% for item in items %}
+                            <tr>
+                                <td class="text-center">
+                                    <input type="checkbox" class="layui-form-checkbox" lay-skin="primary" name="item" value="{{item.user_id}}">
+                                </td>
+                                <td>{{item.user_id}}</td>
+                                <td>{{item.real_name}}</td>
+                                <td>{{item.email}}</td>
+                                <td>{{item.dept}}</td>
+                                <td>{{item.position}}</td>
+                                <td>
+                                    {% if item.status==1 %}
+                                    <div class="inner-state-joined-container">
+                                        <div class="d-flex align-items-center">
+                                            <div class="inner-state-joined-text"></div>
+                                            <span style="font-size: 12px;">已加入</span>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="inner-state-not-joined-container">
+                                        <div class="d-flex align-items-center">
+                                            <div class="inner-state-not-joined-text"></div>
+                                            <span>未加入</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="align-items-center"  style="text-align: center">
+                                        <a style="color: #217EFD; margin-right: 16px; cursor: pointer"  class="tb-btn-edit" user_id="{{item.user_id}}" real_name="{{item.real_name}}" email="{{item.email}}" dept="{{item.dept}}" position = "{{item.position}}" status="{{ item.status }}">
+                                            编辑
+                                        </a>
+                                        <a style="color: #217EFD;margin-right: 16px;cursor: pointer" user_id="{{item.user_id}}">删除</a>
+                                        {% if item.status!=1 %}
+                                        <a style="color: #217EFD;cursor: pointer" user_id="{{item.user_id}}" >邮件邀请</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="d-flex justify-content-end mt-4">
+            <div class="pagination" >
+                <style>
+                    .page-item{
+                        width: 28px;
+                        height: 28px;
+                        background-color: #FFFFFF;
+                        border: 1px solid #DADDE5;
+                        border-radius: 4px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-right: 8px;
+                    }
+                    .page-link{
+                        width: 28px;
+                        height: 28px;
+                        border: 1px solid #DADDE5;
+                        border-radius: 4px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color:black;
+                    }
+
+                    .page-item .active{
+                        width: 28px;
+                        height: 28px;
+                        background-color: #FFFFFF;
+                        border-radius: 4px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-right: 8px;
+                    }
+                    .active>.page-link, .page-link.active{
+                        color: #0d6efd;
+                        font-size: 15px;
+                        background-color:  #FFFFFF;
+                        border-color:#0d6efd;
+                    }
+                </style>
+                {% if pagination.links!='' %}
+               <span class="mr-3" style="color: #929292; font-size: 12px; display: grid; place-items: center; margin-right: 5px">共{{pagination.total}}条</span>
+                {% endif %}
+                {{ pagination.links }}
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+   
+
+    <!-- 底部区域 -->
+    {% include "user/footer.html" %}
+
+    {% include "user/base_js.html" %}
+    {% include "user/base_toast.html" %}
+    {% include "user/inner/add.html" %}
+    {% include "user/inner/edit.html" %}
+    {% include "user/inner/del_confirm.html" %}
+    {% include "user/inner/batch_import.html" %}
+
+    <script>
+        $(document).ready(function() {
+            $(document).on('click', 'a:contains("删除")', function(e){
+                e.preventDefault();
+                $('#confirmDeleteBtn').attr('user_id', $(this).attr('user_id'))
+                $('#deleteConfirmModal').modal('show');
+            });
+            $('#confirmDeleteBtn').click(function(){
+                $('#deleteConfirmModal').modal('hide');
+                location.href='/user/inner/delete?user_id='+$('#confirmDeleteBtn').attr('user_id')+'&type={{g.type}}'
+            });
+        });
+         $(document).on('click', 'a:contains("邮件邀请")', function(e){
+                 let a_tag =  $(this)
+                 $.ajax({
+                    url: "/user/inner/send_invite_email/"+$(this).attr('user_id'),
+                    type: "POST",
+                    contentType: "application/json;charset=UTF-8",
+                    success: function (data) {
+                        if (data.code === 200) {
+                            showToast('success', "发送email成功");
+                            a_tag.remove()
+                        }else{
+                            showToast('warning', data.message);
+                        }
+                    }
+                 })
+         });
+        $('#delete_all').on('click', function(){
+            //var url = $(this).attr('url');
+            var arr = []
+            $('#tb input[type=checkbox]').each(function(){
+                if(true == $(this).is(':checked')){
+                    arr.push($(this).val())
+                }
+            });
+            if (arr.length == 0) {
+                showToast('warning', "至少选中一个");
+                return
+            }
+            $('#deleteAllConfirmModal').modal('show');
+        })
+
+        $('#confirmAllDeleteBtn').click(function(){
+            var arr = []
+            $('#tb input[type=checkbox]').each(function(){
+                if(true == $(this).is(':checked')){
+                    arr.push($(this).val())
+                }
+            });
+            var url = $(this).attr('url');
+            $.ajax({
+                url: url,
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({"ids":arr}),
+                success: function (data) {
+                    $('#deleteAllConfirmModal').modal('hide');
+                    if (data.code == 1) {
+                        showToast('success', data.msg);
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000);
+                    }else{
+                        showToast('warning', data.msg);
+                    }
+                }
+            })
+        })
+        $('#search').click(function () {
+            location.href = "/user/inner/list?type={{type}}&real_name="+$('#s-real_name').val()+"&status="+$('#s-status').val();
+        })
+        $('.btn-batch:contains("批量导入")').click(function(){
+            $('#wait-upload-div').show()
+            $('.uploading-box').hide()
+            $('#batchImportModal').modal('show');
+        });
+        // 控制进度条函数
+
+
+        // 第二个确认导入按钮事件
+        $('#confirmImport2Btn').click(function(){
+            $('#batchImport2Modal').modal('hide');
+            showToast('success', '批量导入成功');
+        });
+
+
+    </script>
+</body>
+</html> 

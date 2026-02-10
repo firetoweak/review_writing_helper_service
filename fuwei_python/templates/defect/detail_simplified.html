@@ -1,0 +1,2240 @@
+     <!-- 1、缺陷信息 -->
+    {% include "components/create_simplified.html" %}
+
+    <!-- 2、原因分析 -->
+    {% if cause_analysis_invitations %}  <!-- 多个邀请人 -->
+    <div id="causeAnalysis" class="container-main division-card mb-4">
+        <div class="section-title">
+            <img src="/static/images/fengchi_tag.svg" alt="">
+            <h5 class="card-title">原因分析</h5>
+        </div>
+        <div class="card-body">
+            <!-- 多个被邀请人的原因分析表单 -->
+            <form id="multiAnalysisForm" method="post" action="{{ url_for('defect.submit_analysis', defect_id=defect.id) }}">
+                <!-- 添加隐藏字段用于暂存标识 -->
+                <input type="hidden" name="is_draft" id="isOnlySaveMulti" value="false">
+
+                {% for invitation in cause_analysis_invitations %}
+                    {% set user = user_list | selectattr("user_id", "equalto", invitation.invitee_id) | first %}
+                    {# 查找与当前邀请相关的已提交数据 #}
+                    {% set analysis_data = cause_analysis_data | selectattr('invitee_id', 'equalto', invitation.invitee_id) | first %}
+
+                <div class="invitation-item-container">
+                    {% if is_assignee and current_stage.stage_type == 'dev_lead_review_analysis' %}
+                    <div class="invitation-checkbox">
+                        <input type="checkbox" class="form-check-input check-box-border" id="{{ invitation.id }}">
+                    </div>
+                    {% endif %}
+                    <div class="invitation-analysis-item mb-4 p-3 border rounded"
+                         data-invitation-id="{{ invitation.id }}"
+                         data-invitee-id="{{ invitation.invitee_id }}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">
+                                {{ user.name if user else '未知用户' }} ({{ user.email if user else '无邮箱' }})
+                            </h6>
+                            {% if invitation.invitee_id == current_user.user_id %}
+                                <span class="badge bg-info">自己</span>
+                            {% endif %}
+                            {% if analysis_data and invitation.status=='InvitationStatus.COMPLETED'%}
+                                <span class="badge bg-success">已提交</span>
+                            {% elif analysis_data and invitation.status=='InvitationStatus.REJECTED'%}
+                                <span class="badge bg-warning">被驳回</span>
+                            {% endif %}
+                            {% if analysis_data and invitation.status == 'InvitationStatus.CANCELLED'%}
+                                <span class="badge bg-warning">已弃用</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="analysis-content mb-3">
+                            <label class="form-label">原因分析</label>
+
+                            <!--无原因分析数据 或者 被驳回，都需要显示此按钮，无需对自己跟催-->
+                            {% if is_assignee and (not analysis_data or analysis_data.status == 'InvitationStatus.REJECTED') and current_user.user_id!=invitation.invitee_id%}
+                            <button type="button" class="small-button btn-outline-secondary mr-3" data-bs-toggle="modal" data-bs-target="#remindSingleAnalysisModal" data-invitation-id="{{ invitation.id }}">
+                                跟催
+                            </button>
+
+                            {% endif %}
+
+                            {% if is_assignee and invitation.invitee_id != current_user.user_id  and (analysis_data and invitation.status=='InvitationStatus.COMPLETED') and (current_stage.stage_type != 'dev_lead_review_analysis')%}
+                            <!--驳回单个的原因分析-->
+                            <button type="button" class="btn btn-batch small-button" data-bs-toggle="modal" data-bs-target="#rejectSingleAnalysisModal" data-invitation-id="{{ invitation.id }}">
+                                驳回
+                            </button>
+                            <button type="button" class="btn btn-batch small-button" data-bs-toggle="modal" data-bs-target="#cancelSingleAnalysisModal" data-invitation-id="{{ invitation.id }}">
+                                弃用
+                            </button>
+                            {% endif %}
+
+                            {# 简化条件逻辑并提高可读性 #}
+                            {% set is_readonly = false %}
+                            {# 当前用户不是被邀请人 #}
+                            {% if invitation.invitee_id != current_user.user_id %}
+                                {% set is_readonly = true %}
+                            {% endif %}
+                            {# 有分析数据，但是分析已经完成 #}
+                            {% if analysis_data and invitation.status == 'InvitationStatus.COMPLETED'%}
+                                {% set is_readonly = true %}
+                            {% endif %}
+
+                            <div class="editor-field">
+                                {% if is_readonly %}
+                                    <!-- 只读模式 -->
+                                    <div class="view-mode-content">
+                                        {% if analysis_data and analysis_data.content and analysis_data.content.analyses%}
+                                            {% for analysis in analysis_data.content.analyses %}
+                                                {% if analysis and not analysis.strip() == '<p>&nbsp;</p>' and not analysis.strip() == '<p><br></p>' %}
+                                                    {{ analysis | safe }} <br>
+                                                {% else %}
+                                                    暂无内容
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            暂无内容
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <!-- 编辑模式 -->
+                                    <div class="editor-container">
+                                        <div id="toolbar-{{ invitation.id }}" class="editor-toolbar"></div>
+                                        <div id="editor-{{ invitation.id }}" class="editor-content">
+
+                                        </div>
+                                    </div>
+                                    <textarea class="d-none analysis-text"
+                                              name="analysis-{{ invitation.id }}"
+                                              placeholder="请输入原因分析">
+                                        {% if analysis_data and analysis_data.content and analysis_data.content.analyses %}
+                                            {% for analysis in analysis_data.content.analyses %}
+                                                {% if analysis and not analysis.strip() == '<p>&nbsp;</p>' and not analysis.strip() == '<p><br></p>' %}
+                                                    {{ analysis | safe }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </textarea>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="analysis-actions">
+                            {% if not is_assignee and current_user.user_id != cause_analysis_invitations[0].invitee_id and not analysis_data and invitation.invitee_id == current_user.user_id%}  <!-- 非主处理人且分析未提交（无分析数据）才能驳回邀请 -->
+                            <button type="button" class="btn btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#rejectInviteModal" data-invitation-id="{{ invitation.id }}">
+                                驳回邀请
+                            </button>
+                            {% endif %}
+                            {% if invitation.invitee_id == current_user.user_id %}
+                                {% if not analysis_data or invitation.status=='InvitationStatus.REJECTED' or invitation.status=='InvitationStatus.PENDING'%}
+                                <div class="button-group-out">
+                                    <div class="drawer-buttons button-group-line" >
+                                        {% if not cause_analysis_ai or cause_analysis_ai.ai_score == None %}
+                                        <button type="button" class="btn-batch mr-3 save-draft-multi" data-invitation-id="{{ invitation.id }}">暂存</button>
+                                        {% endif %}
+                                        <button type="button" class="ok-btn btn-outline-dark me-2 ai-review-multi" data-invitation-id="{{ invitation.id }}" style="width: 180px;" >AI自评 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+                                        <button type="button" class="ok-btn submit-analysis" style="width: 180px;" data-invitation-id="{{ invitation.id }}" data-bs-toggle="modal">提交分析结果</button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- 隐藏字段用于存储当前提交的邀请ID -->
+                <input type="hidden" name="invitation_id" id="currentInvitationId">
+            </form>
+
+            <!-- 操作按钮区域 -->
+            <div class="d-flex justify-content-between mb-4">
+                <div>
+
+                </div>
+                <div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="causeAnalysisAIResult" class="ai-val-detail-tb-content p-2">
+            {% if cause_analysis_ai and cause_analysis_ai.ai_suggestion != None %}
+            <h6 id="causeAnalysisAIResultTitle">AI评估结果：</h6>
+            {% endif %}
+            <span id="causeAnalysis_score" class="score {% if cause_analysis_ai and cause_analysis_ai.ai_score is not none %}{% if cause_analysis_ai.ai_score >= 8 %}score-green{% elif cause_analysis_ai.ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+            {% if cause_analysis_ai and cause_analysis_ai.ai_score != None %}
+                {{ cause_analysis_ai.ai_score }} 分 (满分10分) &nbsp;
+            {% endif %}
+            </span>
+            <div class="p-2">
+            {% if cause_analysis_ai and cause_analysis_ai.ai_suggestion != None %}
+                {{ cause_analysis_ai.ai_suggestion|default('未评估', true)|safe }}
+            {% endif %}
+            </div>
+        </div>
+            {% if not developer_solution_user and cause_analysis_user and cause_analysis_user.user_id == current_user.user_id %}
+            <div class="button-group-out">
+                <div class="drawer-buttons button-group-line" >
+                    <button id="inviteDevelopersButton" type="button" class="ok-btn" style="width: 180px;">指定开发解决</button>
+                </div>
+            </div>
+            {% endif %}
+    </div>
+    {% endif %}
+
+     <!-- 3、解决措施 developer_solution 开发人员解决措施阶段的表单 Start-->
+    {% if solution_divisions %}
+    <div id="solutionMeasures" class="container-main division-card mb-4">
+
+        <div id="allSolutionDivisions" class="card-body">
+            <!-- 显示所有分工信息 -->
+            {% if solution_divisions %}
+            <div class="section-title">
+                <img src="/static/images/fengchi_tag.svg" alt="">
+                <h5 class="card-title">
+                {% if current_stage.stage_type == 'dev_lead_review_solution' %} 审核 {% endif %}解决措施 {% if current_stage.stage_type == 'developer_solution' %} 分工 {% endif %}
+                </h5>
+            </div>
+                <div class="mb-4">
+                    <div class="solutions-count">
+                        共有 {{ solution_divisions|length }} 个分工及对应解决措施
+                    </div>
+                    {% for division in solution_divisions %}
+                    <div class="division-card mb-3 ">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="section-title color1">分工 {{ loop.index }}</h6>
+                            {% if division.assignee_id == current_user.user_id %}
+                                <span class="badge bg-primary">您的分工</span>
+                            {% endif %}
+                        </div>
+                        <div class="division-item-show">
+                            <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                                <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                    <label class="label-style">修改模块:</label>
+                                    <div class="col-md-3">{{ division.module }}</div>
+                                </div>
+                                <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                    <label class="label-style">完成时间:</label>
+                                    <div class="col-md-3">{{ division.due_date.strftime('%Y-%m-%d') if division.due_date else '未设置' }}</div>
+                                </div>
+                                <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                    <label class="label-style">执行人员:</label>
+                                    <div class="col-md-12">
+                                        {{ division.assignee.real_name if division.assignee else '未分配' }}/{{ division.assignee.email if division.assignee else '未分配' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                <label class="label-style">执行措施:</label>
+                                <p class="p-2 bg-light rounded">{{ division.action_plan }}</p>
+                            </div>
+
+                           <!-- 显示该分工对应的解决措施 -->
+                            <!-- solution_data(列表) 中每一条数据包含了 solution_division_id 字段，对应于分工的ID-->
+                            <!-- 从 solution_data 列表中筛选出属性 solution_division_id 等于当前division.id的所有元素，并转换为列表。 赋值给 division_solutions 变量-->
+                            {% set division_solutions = solution_data | selectattr('solution_division_id', 'equalto', division.id) | list %}
+                            {% if division_solutions %}
+                                <div class="mt-3">
+
+                                    <h6 class="mb-2">已提交的解决措施:</h6>
+                                    {% for solution_data in division_solutions %}
+
+                                    <div class="solution-item-container">
+                                        {% if is_assignee and current_stage.stage_type == 'dev_lead_review_solution' and solution_divisions|length > 1 %}
+                                        <div class="solution-checkbox">
+                                            <input type="checkbox" class="form-check-input check-box-border" id="{{ division.id }}">
+                                        </div>
+                                        {% endif %}
+                                        <div class="card mb-2 solution-checkbox-item">
+                                            <div class="card-header py-1 d-flex justify-content-between align-items-center">
+                                                <span class="small">提交于 {{ solution_data.created_time if solution_data.created_time else '未知时间' }}</span>
+                                                {% if division.assignee_id == current_user.user_id %}
+                                                    <span class="badge bg-success">您提交的</span>
+                                                {% endif %}
+
+                                                {% if division.status == 'InvitationStatus.REJECTED' %}
+                                                <span class="badge bg-warning">被驳回</span>
+                                                {% endif %}
+
+                                                {% if division.status == 'InvitationStatus.PENDING' %}
+                                                <span class="badge bg-warning">暂存</span>
+                                                {% endif %}
+
+                                                {% if is_dev_manager and division.assignee_id != current_user.user_id and division.status == 'InvitationStatus.COMPLETED' %}
+                                                <button style="display:none" type="button" class="btn btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#rejectSingleSolutionModal" data-division-id="{{ division.id }}">
+                                                驳回
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                            <div class="card-body py-2">
+                                                {% for solution in solution_data.content.solutions %}
+                                                <div class="mb-2">
+                                                    <div class="d-flex">
+                                                        <span class="badge bg-secondary ms-2 me-2">{{ loop.index }}</span>
+                                                        <div class="flex-grow-1">{{ solution }}</div>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <!--尚未提交解决措施-->
+                                <div class="mt-3">
+                                    <p class="text-muted">尚未提交解决措施</p>
+                                    {% if is_dev_manager and  division.assignee_id != current_user.user_id%}
+                                        <button type="button" class="small-button btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#remindSingleSolutionModal" data-division-id="{{ division.id }}">
+                                        跟催
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            <!-- 如果是当前用户的分工且(未提交解决措施或被驳回)，显示表单 -->
+                            {% if division.assignee_id == current_user.user_id and (not division_solutions or division.status == 'InvitationStatus.REJECTED' or division.status == 'InvitationStatus.PENDING') %}
+                                <div class="mt-3 p-3 border rounded bg-light">
+                                    <h6 class="h6-bottom">{% if division.status == 'InvitationStatus.REJECTED' %}修改并重新提交解决措施{% else %}提交解决措施{% endif %}</h6>
+                                    <form class="solution-form" method="post" action="{{ url_for('defect.submit_solution', defect_id=defect.id) }}">
+                                        <input type="hidden" name="division_id" value="{{ division.id }}">
+                                        <input type="hidden" name="is_draft" id="isOnlySaveSolution-{{ division.id }}" value="false">
+
+                                        <div class="solution-items">
+                                            {% if division_solutions and (division.status == 'InvitationStatus.REJECTED' or division.status == 'InvitationStatus.PENDING') %}
+                                                <!-- 被驳回时或暂存时，显示已提交的内容在可编辑的文本框中 -->
+                                                {% for solution in division_solutions[0].content.solutions %}
+                                                <div class="solution-item mb-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <label class="form-label">解决措施 {{ loop.index }}</label>
+                                                        <button type="button" class="remove-tag remove-solution">
+                                                            移除
+                                                        </button>
+                                                    </div>
+                                                    <textarea class="solution-text solution-measure" name="solution-{{ loop.index }}" rows="3" placeholder="请输入解决措施..." required>{{ solution }}</textarea>
+                                                </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <!-- 默认显示一个空的解决措施项 -->
+                                                <div class="solution-item mb-3">
+                                                    <label class="form-label">解决措施 1</label>
+                                                    <textarea class="solution-text solution-measure" name="solution-1" rows="3" placeholder="请输入解决措施..." required></textarea>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <div class="add-solution flex items-center justify-center">
+                                                <!-- <div class="add-icon layui-icon layui-icon-add-circle"></div> -->
+                                                <div class="addicon">
+                                                    <img src="/static/images/defect/news_add.png">
+                                                </div>
+                                                <div class="add-text">添加解决措施</div>
+                                            </div>
+
+
+                                            <span class="text-muted solution-counter">
+                                                {% if division_solutions and division.status == 'InvitationStatus.REJECTED' %}
+                                                    {{ division_solutions[0].content.solutions|length }}/10
+                                                {% else %}
+                                                    1/10
+                                                {% endif %}
+                                            </span>
+                                        </div>
+
+                                        <div class="button-group-out">
+                                            <div class="drawer-buttons button-group-line" >
+                                                {% if not solution_ai or solution_ai.ai_score == None  %}
+                                                <button type="button" class="btn-batch mr-3 save-draft-btn" data-division-id="{{ division.id }}" id="saveSolutionDraft">暂存</button>
+                                                 {% endif %}
+                                                <button type="button" class="ok-btn btn-batch mr-3" style="width: 180px;" id="aiSolution" >AI自评 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+                                                <button type="button" class="ok-btn"  style="width: 180px;" id="saveSolution">{% if division.status == 'InvitationStatus.REJECTED' %}重新提交审核{% else %}提交解决措施{% endif %}</button>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                    </div>
+                </div>
+                    {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 暂无分工信息
+        </div>
+        {% endif %}
+        <div id="solutionMeasuresAIResult" class="ai-val-detail-tb-content p-2">
+            {% if solution_ai and solution_ai != None  %}
+            <h6 id="solutionMeasuresAIResultTitle">AI评估结果：</h6>
+            {% endif %}
+            <span id="solutionMeasures_score" class="score  {% if solution_ai and solution_ai.ai_score is not none %}{% if solution_ai.ai_score >= 8 %}score-green{% elif solution_ai.ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+            {% if solution_ai and solution_ai != None  %}
+                {{ solution_ai.ai_score }} 分 (满分10分) &nbsp;
+            {% endif %}
+            </span>
+            <div class="p-2">
+             {% if solution_ai and solution_ai != None  %}
+                 {{ solution_ai.ai_suggestion|default('未评估', true)|safe }}
+             {% endif %}
+            </div>
+        </div>
+        <!-- 操作按钮 -->
+        {% if not tester_regression_user and developer_solution_user and developer_solution_user.user_id == current_user.user_id %}
+        <div class="button-group-out">
+             <div class="drawer-buttons button-group-line" >
+                <button type="button" class="ok-btn" style="width: 220px;" data-bs-toggle="modal" data-bs-target="#approveSolutionModal">提交至回归测试</button>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endif %}
+    <!-- developer_solution 开发人员解决措施阶段的表单 End-->
+
+    <!--4、回归测试  tester_regression -->
+    {% set tester_regression_mode = "update" %}
+    {% if tester_regression_user %}
+    <div id="regressionTest" class="container-main division-card mb-4">
+        <div class="section-title mb-4">
+            <img src="/static/images/fengchi_tag.svg" alt="">
+            <h5 class="card-title">回归测试</h5>
+            <span class="form-label">测试人：{{ tester_regression_user.real_name if tester_regression_user else '未分配' }}/{{ tester_regression_user.email if tester_regression_user.email else '无Email' }} </span>
+            <span id="testedAt" class="form-label"></span>
+            {% if tester_regression_stage_status == 'StageStatus.COMPLETED' %}<span class="card-title text-success">&nbsp;✓ 通过</span>{% elif tester_regression_stage_status == 'StageStatus.NotPASS'%}
+                <span class="card-title text-danger">&nbsp;✗ 未通过</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form id="regressionTestForm" method="post" action="{{ url_for('defect.submit_regression_test_api', defect_id=defect.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                <input type="hidden" name="is_draft" id="isOnlySaveRegressionTest" value="false">
+                <!-- 隐藏的description字段，用于存储组合后的内容 -->
+                <textarea class="form-control d-none" id="regressionDescription" name="description" rows="6"></textarea>
+                <!-- 缺陷描述容器 -->
+                <div id="descriptionItems">
+                    <!-- 加载提示 -->
+                    <div class="description-item mb-3">
+                        <div class="card editor-field">
+                            <div class="card-body text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                                <p class="mt-2">正在加载模板数据...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if tester_regression_user and tester_regression_user.user_id == current_user.user_id %}
+                <!-- 添加缺陷描述按钮 -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div id="addDescription" class="add-solution flex items-center justify-center" data-bs-toggle="modal" data-bs-target="#regressionAddDescriptionModal">
+                        <div class="addicon">
+                            <img src="/static/images/defect/news_add.png">
+                        </div>
+                        <div class="add-text">添加缺陷描述</div>
+                    </div>
+                    <span class="text-muted solution-counter" id="descriptionCounter">0/10</span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="verificationStatus" class="form-label">是否通过验证</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="verificationStatus" id="verification-pass" value="pass"
+                                   {% if tester_regression_stage_status == 'StageStatus.COMPLETED' %}checked{% endif %}>
+                            <label class="form-check-label" for="verification-pass">通过</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="verificationStatus" id="verification-fail" value="fail"
+                                   {% if tester_regression_stage_status != 'StageStatus.COMPLETED' %}checked{% endif %}>
+                            <label class="form-check-label" for="verification-fail">未通过</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="button-group-out">
+                    <div class="drawer-buttons button-group-line">
+                        <button type="button" class="ok-btn btn-batch mr-3" style="width: 180px;"  id="aiRegressionTest">AI自评 <img src="/static/images/start-pic.svg" alt="刷新"> </button>
+                        <button type="button" class="ok-btn" style="width: 100px;" id="saveDraftRegressionTestBtn">提交</button>
+                    </div>
+                </div>
+                {% endif %}
+                <div id="regressionTestAIResult" class="ai-val-detail-tb-content p-2">
+                    {% if test_result_data|length > 0 and test_result_data[0] %}
+                    <h6 id="regressionTestAIResultTitle">AI评估结果：</h6>
+                    {% endif %}
+                    <span id="regressionTest_score" class="score  {% if test_result_data and test_result_data[0] and test_result_data[0].ai_score is not none %}{% if test_result_data[0].ai_score >= 8 %}score-green{% elif test_result_data[0].ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+                    {% if test_result_data and test_result_data[0] and test_result_data[0].ai_score is not none %}
+                    {{ test_result_data[0].ai_score }} 分 (满分10分) &nbsp;
+                    {% endif %}
+                    </span>
+                    <div class="p-2">
+                    {% if test_result_data|length > 0 and test_result_data[0] %}
+                        {{ test_result_data[0].ai_suggestion|default('未评估', true)|safe }}
+                    {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+      <!--5、右侧导航 -->
+      <div class="right-menu" style="position: fixed; top: 50px;">
+        <div class="right-menu-active"></div>
+        <div onclick="rightMenuLocation('defectDescription',this)">
+            <img class="right-menu-active-img" src="/static/images/aival/left-tag.svg" alt="" >
+            缺陷信息
+        </div>
+        {% if cause_analysis_invitations %}
+        <div onclick="rightMenuLocation('causeAnalysis',this)">
+            原因分析
+        </div>
+        {% endif %}
+        {% if solution_divisions %}
+        <div onclick="rightMenuLocation('solutionMeasures',this)">
+            解决措施
+        </div>
+        {% endif %}
+        {% if tester_regression_user %}
+        <div onclick="rightMenuLocation('regressionTest',this)">
+            回归测试
+        </div>
+        {% endif %}
+    </div>
+
+<!-- 邀请开发人员解决模态框 -->
+<div class="modal fade" id="inviteDevelopersSolutionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:16px;">
+            <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+                <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                    <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                        <div class="flex items-center justify-center">
+                            <img src="/static/images/defect/p2_03.png" alt="邀请图标" class="invite-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;">
+                            <span style="margin-top: 2px;">分配开发人员进行解决</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-custom-md" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+            </div>
+
+            <form id="inviteDevelopersSolutionForm">
+                <div class="modal-body" style="padding: 0 40px;margin-top: 24px;">
+                    <!-- 分工列表容器 -->
+                    <div id="divisionSolutionContainer">
+                        <div class="division-item" data-item-index="1">
+                            <!-- 分工基本信息区域 -->
+                            <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                                <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                    <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                        <span style="color: red;">*</span> 修改模块
+                                    </label>
+                                    <input type="text" class="form-control division-module" placeholder="请输入修改模块" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F6FAFF;">
+                                </div>
+
+                                <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                    <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                        <span style="color: red;">*</span> 完成时间
+                                    </label>
+                                    <input type="date" class="form-control division-due-date" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F6FAFF;">
+                                </div>
+
+                                <div class="form-group" style="flex: 1;">
+                                    <button type="button" class="remove-division-btn" style="float: right;color: #FE6380;border: 1px solid #FE6380;background: #fff;border-radius: 4px;padding: 2px 8px;font-size: 12px;cursor: pointer;margin-top: 24px;display: none;">移除</button>
+                                </div>
+                            </div>
+
+                            <!-- 人员选择区域 -->
+                            <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                                <div class="form-group" style="flex: 1; margin-right: 20px;">
+                                    <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                                        <span style="color: red;">*</span> 执行人员
+                                    </label>
+                                    <div style="position: relative;">
+                                        <input type="text" class="form-control assignee-search" placeholder="搜索成员" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                                        <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 12px;top: 50%;transform: translateY(-50%);width: 16px;height: 16px;">
+                                        <!-- 下拉框 -->
+                                        <div class="assignee-dropdown" style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 200px;overflow-y: auto;">
+                                            <!-- 动态生成搜索结果 -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="width: 50%;">
+                                    <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">姓名</label>
+                                    <div class="selected-assignee-name" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F6FAFF;color: #999;display: flex;align-items: center;">
+                                        通过Email账号搜索成员，此处将会自动填充姓名
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 解决措施输入区域 -->
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label class="label-style"><span style="color: red;">*</span> 解决措施</label>
+                                <textarea class="division-action-plan text-area-border" placeholder="请输入解决措施" rows="3"></textarea>
+                            </div>
+                            <input type="hidden" class="assignee-id">
+                            <input type="hidden" class="assignee-email">
+                            <input type="hidden" class="assignee-name">
+                        </div>
+                    </div>
+
+                    <!-- 添加分工按钮 -->
+                    <div id="addDivisionSolution" class="add-division-section flex items-center justify-center" style="border: 1px dashed #217efd;border-radius: 8px;padding:6px 15px;text-align: center;margin: 20px 0;cursor: pointer;transition: all 0.3s;">
+                        <div class="addicon">
+                            <img src="/static/images/defect/news_add.png">
+                        </div>
+                        <div class="add-text">添加分工</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+                    <div class="drawer-buttons" style="width: 60%;height: 40px;display: flex;justify-content: center;align-items: center;gap: 20px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button type="button" class="ok-btn" id="sendInviteSolutionBtn" style="width: 140px;background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);border: none;">发送分配 (<span id="divisionSolutionCount">1</span>)</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- 提交至回归测试模态框 -->
+<div class="modal fade" id="approveSolutionModal" tabindex="-1" aria-labelledby="approveSolutionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 80px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+                <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">
+                    <div class="flex items-center justify-center">
+                        <img src="/static/images/defect/p2_03.png" alt="测试图标" class="test-icon" style="width: 24px;height: 24px;margin-right: 8px;vertical-align: middle;">
+                        <span style="margin-top: 2px;">指定回归测试人员</span>
+                    </div>
+                </div>
+            </div>
+            <form id="reviewSolutionForm" method="POST" action="{{ url_for('defect.dev_lead_review_solution', defect_id=defect.id) }}">
+            <div style="padding: 0 40px;margin-top: 24px;">
+                    <!-- 人员搜索区域 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#666;margin-bottom: 12px;">
+                            请选择测试人员的 Email 账号，平台将会通知他
+                        </label>
+                        <div style="position: relative;">
+                            <input type="text" id="regressionMemberSearch" class="form-control" placeholder="搜索测试人员" style="width: 100%;height: 40px;border: 1px solid #D5E8FF;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                            <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 12px;top: 50%;transform: translateY(-50%);width: 16px;height: 16px;">
+                            <!-- 下拉框 -->
+                            <div id="regressionMemberDropdown" class="member-dropdown" style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 200px;overflow-y: auto;margin-top: 10px;">
+                                <!-- 动态生成搜索结果 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" class="form-control" id="regressionMember_id" name="tester_id" required>
+
+                    <!-- 隐藏字段用于存储审核结果 -->
+                    <input type="hidden" id="approved_in_review_solution_dialog" name="approved" value="false">
+
+                    <!-- 姓名显示区域 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="label-style">姓名</label>
+                        <div id="selectedRegressionMemberName" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F8F9FA;color: #999;display: flex;align-items: center;">通过Email账号搜索测试人员，此处将会自动填充姓名</div>
+                    </div>
+
+                    <!-- 审核意见 -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="label-style">审核意见</label>
+                        <textarea class="text-area-border" id="review_notes_in_review_solution_dialog" name="review_notes" rows="4"
+                        placeholder="请输入审核意见..." style ="display:block" required></textarea>
+                    </div>
+
+                </div>
+
+                <div class="button-group-out">
+                    <div class="drawer-buttons" style="width: 60%;height: 100px;display: flex;justify-content: center;align-items: center;gap: 20px;">
+                        <button type="button" class="btn-batch mr-3" data-bs-dismiss="modal" style="min-width:123px;border-radius:8px;">取消</button>
+                        <button type="button" class="ok-btn" style="width: 120px;background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);border: none;" onclick="submitSolutionReview(true)">提交</button>
+                    </div>
+                </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+<!-- 添加描述模态框 回归测试使用-->
+<div class="modal fade" id="regressionAddDescriptionModal" tabindex="-1" aria-labelledby="regressionAddDescriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="regressionAddDescriptionModalLabel">添加描述字段</h5>
+                <button type="button" class="btn-close btn-close-custom-md" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="regressionNewFieldTitle" class="form-label">字段标题</label>
+                    <input type="text" class="input-border" id="regressionNewFieldTitle" placeholder="请输入字段标题">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-batch" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="ok-btn"  style="width: 120px;" id="regressionConfirmAddField">确认添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 底部区域 -->
+{% include "user/footer.html" %}
+
+<!-- 2、cause_analysis 开发人员定位问题 阶段 js-->
+<script>
+// 存储编辑器实例的对象
+const analysisEditorInstances = {};
+
+// 判断富文本内容是否为空（包括默认的<p><br></p>情况）
+function isEditorContentEmpty(htmlContent) {
+    if (!htmlContent) return true;
+
+    // 替换所有&nbsp;为空格，移除所有HTML标签
+    const plainText = htmlContent
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/<[^>]*>/g, '');
+
+    // 检查是否只包含空白字符
+    return /^\s*$/.test(plainText);
+}
+
+// 清理编辑器内容 - 移除空段落和冗余空格
+function cleanEditorContent(content) {
+    if (!content) return '';
+
+    // 移除空段落和只有&nbsp;的段落
+    let cleanedContent = content
+        .replace(/<p>\s*(&nbsp;|\s)*\s*<\/p>/gi, '')  // 移除空段落
+        .replace(/<p>(\s|&nbsp;)*<\/p>/gi, '')        // 移除只包含空格或&nbsp;的段落
+        .replace(/(<p><br><\/p>)+/gi, '')             // 移除多个连续的<p><br></p>
+        .replace(/<p>\s*<br>\s*<\/p>/gi, '')          // 移除<p><br></p>
+        .trim();
+
+    // 如果清理后内容为空，返回空字符串
+    if (isEditorContentEmpty(cleanedContent)) {
+        return '';
+    }
+
+    return cleanedContent;
+}
+
+// 初始化wangEditor
+function initAnalysisEditor(editorElementId, toolbarElementId, textareaName, initialContent = '') {
+    // 检查是否已经存在相同实例，避免重复初始化
+    if (analysisEditorInstances[textareaName]) {
+        console.warn(`编辑器 ${textareaName} 已经初始化`);
+        return analysisEditorInstances[textareaName];
+    }
+
+    const { createEditor, createToolbar } = window.wangEditor;
+
+    const editorConfig = {
+        placeholder: '请输入原因分析内容...',
+        onChange: (editor) => {
+            // 内容变化时更新对应的隐藏textarea
+            const textarea = $(`textarea[name="${textareaName}"]`);
+            if (textarea.length) {
+                textarea.val(editor.getHtml());
+            }
+        },
+        MENU_CONF: {}
+    };
+
+    // 配置上传图片
+    editorConfig.MENU_CONF['uploadImage'] = {
+        server: '/user/aiVal/upload_pic', // 替换为你的图片上传接口地址
+        fieldName: 'file', // 上传文件的字段名（与后端一致）
+        maxFileSize: 5 * 1024 * 1024, // 5MB
+        maxNumberOfFiles: 1, // 最多上传 5 张图片
+        async customInsert(res, insertFn) { // 添加 async 关键字
+            if (res.code == 1) {
+                // 先插入图片到编辑器
+                const imgNode = insertFn(res.url);
+
+                try {
+                    // 调用评估接口将图片URL存入数据库
+                    const response = await fetch('/user/aiVal/create_evaluate_image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            url: res.url
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success && result.id) {
+                        // 将返回的ID存储到图片元素的data-id属性中
+                        console.log('保存图片信息成功:', result.id);
+
+                        // 如果需要设置图片元素的data-id属性，可以这样操作：
+                        // imgNode.setAttribute('data-id', result.id);
+                    } else {
+                        console.error('保存图片信息失败:', result.message);
+                    }
+                } catch (error) {
+                    console.error('调用评估接口失败:', error);
+                }
+            } else {
+                showToast('error', '上传失败');
+            }
+        }
+    };
+    // 清理初始内容
+    const cleanedInitialContent = cleanEditorContent(initialContent);
+
+    const editor = createEditor({
+        selector: `#${editorElementId}`,
+        config: editorConfig,
+        html: cleanedInitialContent || ''
+    });
+
+    // 创建工具栏
+    createToolbar({
+        editor,
+        selector: `#${toolbarElementId}`,
+        config: {
+            toolbarKeys: ['uploadImage'], // 只保留上传图片按钮
+            excludeKeys: [
+                'insertVideo', // 排除视频
+                'group-video'   // 排除视频组
+            ]
+        }
+    });
+
+    // 存储实例
+    analysisEditorInstances[textareaName] = editor;
+    return editor;
+}
+
+// 同步所有编辑器内容到对应的textarea
+function syncAllEditorContents() {
+    for (const key in analysisEditorInstances) {
+        if (analysisEditorInstances.hasOwnProperty(key)) {
+            const editor = analysisEditorInstances[key];
+            const content = editor.getHtml();
+            $(`textarea[name="${key}"]`).val(content);
+        }
+    }
+}
+
+// 销毁指定编辑器实例
+function destroyEditorInstance(textareaName) {
+    if (analysisEditorInstances[textareaName]) {
+        analysisEditorInstances[textareaName].destroy();
+        delete analysisEditorInstances[textareaName];
+    }
+}
+
+// 初始化多人分析编辑器
+function initMultiAnalysisEditors() {
+    $('.invitation-analysis-item').each(function() {
+        const $item = $(this);
+        const invitationId = $item.data('invitation-id');
+        const inviteeId = $item.data('invitee-id');
+
+        // 检查是否处于编辑模式
+        const isReadonly = $item.find('.view-mode-content').length > 0;
+        if (isReadonly) {
+            return; // 跳过只读模式的项目
+        }
+
+        // 获取对应的textarea
+        const $textarea = $item.find(`textarea[name="analysis-${invitationId}"]`);
+        if (!$textarea.length) {
+            console.warn(`未找到邀请ID ${invitationId} 对应的textarea`);
+            return;
+        }
+
+        const initialContent = $textarea.val() || '';
+        const editorId = `editor-${invitationId}`;
+        const toolbarId = `toolbar-${invitationId}`;
+        const textareaName = `analysis-${invitationId}`;
+
+        // 初始化编辑器
+        analysisEditorInstances[textareaName] = initAnalysisEditor(
+            editorId,
+            toolbarId,
+            textareaName,
+            initialContent
+        );
+    });
+}
+
+// 分配开发人员解决功能相关的JavaScript
+$(document).ready(function() {
+    // 初始化所有分析项的编辑器
+    function initSingleAnalysisEditors() {
+        $('.analysis-item').each(function(index) {
+            const itemIndex = index + 1;
+            const editorId = `editor-analysis-${itemIndex}`;
+            const toolbarId = `toolbar-analysis-${itemIndex}`;
+            const textareaName = `analysis-${itemIndex}`;
+            const textarea = $(this).find(`textarea[name="${textareaName}"]`);
+
+            if (textarea.length) {
+                const initialContent = textarea.val() || '';
+                analysisEditorInstances[textareaName] = initAnalysisEditor(
+                    editorId,
+                    toolbarId,
+                    textareaName,
+                    initialContent
+                );
+            }
+        });
+    }
+
+    // 初始化所有编辑器
+    initSingleAnalysisEditors();
+    initMultiAnalysisEditors(); // 新增：初始化多人分析编辑器
+
+    // 初始化计数器为当前分析项的数量
+    let analysisCount = $('#analysisItems .analysis-item').length;
+
+    // 添加原因分析项
+    $('#addAnalysis').click(function() {
+        analysisCount++;
+        const newItem = `
+            <div class="analysis-item mb-4 p-3 border rounded">
+                <div class="editor-header d-flex justify-content-between align-items-center mb-2">
+                    <span class="editor-title">原因分析${analysisCount}</span>
+                    <button type="button" class="remove-tag remove-analysis">移除</button>
+                </div>
+                <div class="editor-field">
+                    <div class="editor-container">
+                        <div id="toolbar-analysis-${analysisCount}" class="editor-toolbar"></div>
+                        <div id="editor-analysis-${analysisCount}" class="editor-content"></div>
+                    </div>
+                    <textarea class="d-none analysis-content" name="analysis-${analysisCount}"></textarea>
+                </div>
+            </div>
+        `;
+        $('#analysisItems').append(newItem);
+
+        // 初始化新添加的编辑器
+        const editorId = `editor-analysis-${analysisCount}`;
+        const toolbarId = `toolbar-analysis-${analysisCount}`;
+        const textareaName = `analysis-${analysisCount}`;
+
+        analysisEditorInstances[textareaName] = initAnalysisEditor(
+            editorId,
+            toolbarId,
+            textareaName
+        );
+
+        updateRemoveButtons();
+    });
+
+    // 移除原因分析项
+    $(document).on('click', '.remove-analysis', function() {
+        if ($('.analysis-item').length > 1) {
+            const item = $(this).closest('.analysis-item');
+            const textareaName = item.find('textarea').attr('name');
+
+            // 销毁编辑器实例
+            destroyEditorInstance(textareaName);
+
+            item.remove();
+            // 重新编号
+            renumberAnalysisItems();
+            analysisCount = $('.analysis-item').length;
+            updateRemoveButtons();
+        }
+    });
+
+    // 重新编号所有分析项
+    function renumberAnalysisItems() {
+        $('.analysis-item').each(function(index) {
+            const newIndex = index + 1;
+            $(this).find('.editor-title').text(`原因分析${newIndex}`);
+
+            // 更新文本域名称
+            const textarea = $(this).find('textarea');
+            const oldName = textarea.attr('name');
+            const newName = `analysis-${newIndex}`;
+            textarea.attr('name', newName);
+
+            // 更新编辑器ID和实例
+            if (analysisEditorInstances[oldName]) {
+                analysisEditorInstances[newName] = analysisEditorInstances[oldName];
+                delete analysisEditorInstances[oldName];
+
+                // 更新编辑器DOM ID
+                const editor = analysisEditorInstances[newName];
+                $(`#editor-${oldName.replace('analysis-', 'editor-analysis-')}`)
+                    .attr('id', `editor-${newName.replace('analysis-', 'editor-analysis-')}`);
+                $(`#toolbar-${oldName.replace('analysis-', 'toolbar-analysis-')}`)
+                    .attr('id', `toolbar-${newName.replace('analysis-', 'toolbar-analysis-')}`);
+            }
+        });
+    }
+
+    // 更新移除按钮状态
+    function updateRemoveButtons() {
+        if ($('.analysis-item').length === 1) {
+            $('.remove-analysis').prop('disabled', true).css('opacity', '0.5');
+        } else {
+            $('.remove-analysis').prop('disabled', false).css('opacity', '1');
+        }
+    }
+
+    // 保存草稿（单人分析）
+    $('#saveDraftBtn_in_cause_analysis').click(function() {
+        syncAllEditorContents();
+        // 设置暂存标识
+        $('#isOnlySave').val('true');
+        // 提交表单
+        $('#analysisForm').submit();
+    });
+
+    // 保存草稿（多人分析）
+    $(document).on('click', '.save-draft-multi', function() {
+        const invitationId = $(this).data('invitation-id');
+        // 同步特定编辑器内容
+        const textareaName = `analysis-${invitationId}`;
+        if (analysisEditorInstances[textareaName]) {
+            const content = analysisEditorInstances[textareaName].getHtml();
+            $(`textarea[name="${textareaName}"]`).val(content);
+        }
+
+        // 设置当前邀请ID
+        $('#currentInvitationId').val(invitationId);
+        // 设置暂存标识
+        $('#isOnlySaveMulti').val('true');
+        // 提交表单
+        $('#multiAnalysisForm').submit();
+    });
+
+    // AI自评（单人分析）
+    $('#aiReviewBtn_in_cause_analysis').click(function() {
+        syncAllEditorContents();
+        // 这里可以实现AI自评的逻辑
+        //analysisForm
+        $('#analysisForm').append(`<input type="hidden" value="self" name="ai_done_act" />`);
+        $('#saveDraftBtn_in_cause_analysis').click()
+        //$('#multiAnalysisForm').submit();
+    });
+
+    // AI自评（多人分析）
+    $(document).on('click', '.ai-review-multi', function() {
+        $('#multiAnalysisForm').append(`<input type="hidden" value="self" name="ai_done_act" />`);
+        $('.save-draft-multi').click()
+        // 这里可以实现AI自评的逻辑
+    });
+
+    // 表单提交验证（单人分析）
+    function validateAnalysisForm() {
+        syncAllEditorContents();
+
+        let emptyItems = [];
+        $('textarea.analysis-content').each(function(index) {
+            if (isEditorContentEmpty($(this).val())) {
+                emptyItems.push(index + 1); // 记录第几个为空
+            }
+        });
+
+        if (emptyItems.length > 0) {
+            showToast('warning', '请填写第 ' + emptyItems.join(', ') + ' 个原因分析');
+            return false;
+        }
+        return true;
+    }
+
+    // 单人分析提交按钮点击事件
+    $('#submitAnalysisBtn').click(function() {
+        // 设置非暂存标识
+        $('#isOnlySave').val('false');
+
+        if (validateAnalysisForm()) {
+            // 验证通过，显示确认对话框
+            $('#submitConfirmModal').modal('show');
+        }
+    });
+
+    // 提交单个分析结果（多人分析）
+    $(document).on('click', '.submit-analysis', function() {
+        const invitationId = $(this).data('invitation-id');
+        const textareaName = `analysis-${invitationId}`;
+
+        // 同步特定编辑器内容
+        if (analysisEditorInstances[textareaName]) {
+            const content = analysisEditorInstances[textareaName].getHtml();
+            $(`textarea[name="${textareaName}"]`).val(content);
+        }
+
+        // 验证内容是否为空
+        const content = $(`textarea[name="${textareaName}"]`).val();
+        if (isEditorContentEmpty(content)) {
+            showToast('warning', '请填写原因分析内容');
+            return false;
+        }
+
+        // 设置当前邀请ID
+        $('#currentInvitationId').val(invitationId);
+        // 设置非暂存标识
+        $('#isOnlySaveMulti').val('false');
+
+        // 验证通过，显示确认对话框
+        $('#submitConfirmModal').data('invitation-id', invitationId);
+        $('#submitConfirmModal').modal('show');
+    });
+
+    // 确认提交按钮点击事件
+    $('#confirmSubmitBtn').click(function() {
+        // 提交单人分析表单
+        if ($('#analysisForm').length) {
+            $('#multiAnalysisForm').append(`<input type="hidden" value="self" name="ai_done_act" />`);
+            $('#analysisForm').submit();
+        }
+
+        // 提交多人分析表单
+        if ($('#multiAnalysisForm').length) {
+            const invitationId = $('#submitConfirmModal').data('invitation-id');
+            $('#multiAnalysisForm').append(`<input type="hidden" value="audit" name="ai_done_act" />`);
+            if (invitationId) {
+                $('#currentInvitationId').val(invitationId);
+                $('#multiAnalysisForm').submit();
+            }
+        }
+
+        // 隐藏模态框
+        $('#submitConfirmModal').modal('hide');
+    });
+});
+</script>
+
+<!-- ==================== 分配开发人员解决功能 ====================-->
+<script>
+// ==================== 分配开发人员解决功能 ====================
+
+// 获取所有已选择的执行人员ID
+function getSelectedAssigneeIds() {
+    const selectedIds = [];
+    document.querySelectorAll('.division-item').forEach(item => {
+        const idInput = item.querySelector('.assignee-id');
+        if (idInput && idInput.value) {
+            selectedIds.push(idInput.value);
+        }
+    });
+    return selectedIds;
+}
+
+// 搜索用户功能
+function searchUsers(searchTerm, excludeIds = []) {
+    if (!searchTerm || searchTerm.length < 1) {
+        return [];
+    }
+
+    const term = searchTerm.toLowerCase();
+    return userList.filter(user => {
+        // 检查是否在排除列表中
+        if (excludeIds.includes(user.user_id.toString())) {
+            return false;
+        }
+
+        // 检查是否匹配
+        const emailMatch = user.email && user.email.toLowerCase().includes(term);
+        const nameMatch = user.name && user.name.toLowerCase().includes(term);
+        const realNameMatch = user.real_name && user.real_name.toLowerCase().includes(term);
+
+        return emailMatch || nameMatch || realNameMatch;
+    });
+}
+
+// 为分工项设置执行人员搜索功能
+function setupAssigneeSearchForDivisionItem(divisionItem) {
+    const searchInput = divisionItem.querySelector('.assignee-search');
+    const dropdown = divisionItem.querySelector('.assignee-dropdown');
+    const nameDisplay = divisionItem.querySelector('.selected-assignee-name');
+    const assigneeId = divisionItem.querySelector('.assignee-id');
+    const assigneeEmail = divisionItem.querySelector('.assignee-email');
+    const assigneeName = divisionItem.querySelector('.assignee-name');
+
+    // 获取当前已选择的ID（排除自己）
+    const currentSelectedId = assigneeId ? assigneeId.value : '';
+    const otherSelectedIds = getSelectedAssigneeIds().filter(id => id !== currentSelectedId);
+
+    // 为搜索框添加自动完成功能
+    if (!searchInput) {
+        console.log('未找到 searchInput 的元素');
+        return;
+    }
+    searchInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        dropdown.innerHTML = '';
+
+        if (value.length < 1) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        // 搜索匹配的用户
+        const matches = searchUsers(value, otherSelectedIds);
+
+        if (matches.length === 0) {
+            dropdown.innerHTML = '<div style="padding: 8px 12px; color: #999;">未找到匹配的用户</div>';
+            dropdown.style.display = 'block';
+            return;
+        }
+
+        // 显示匹配结果
+        matches.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.style.padding = '8px 12px';
+            item.style.cursor = 'pointer';
+            item.style.borderBottom = '1px solid #f0f0f0';
+            item.style.transition = 'background-color 0.2s';
+
+            item.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+
+            const displayName = user.real_name || user.name || '未知用户';
+            const displayEmail = user.email || '无邮箱';
+
+            item.innerHTML = `
+                <div style="font-weight: 500; color: #222;">${displayName}</div>
+                <small style="color: #666;">${displayEmail}</small>
+            `;
+
+            item.addEventListener('click', function() {
+                searchInput.value = displayEmail;
+                nameDisplay.textContent = displayName;
+                nameDisplay.style.color = '#222';
+                assigneeId.value = user.user_id;
+                assigneeEmail.value = displayEmail;
+                assigneeName.value = displayName;
+                dropdown.style.display = 'none';
+
+                // 更新所有下拉列表，排除已选择的用户
+                updateAllAssigneeDropdowns();
+            });
+
+            dropdown.appendChild(item);
+        });
+
+        dropdown.style.display = 'block';
+    });
+
+    // 点击外部时隐藏下拉框
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // 搜索框聚焦时显示下拉框（如果有内容）
+    searchInput.addEventListener('focus', function() {
+        if (this.value.trim().length > 0) {
+            const event = new Event('input');
+            this.dispatchEvent(event);
+        }
+    });
+}
+
+// 更新所有执行人员下拉列表，排除已选择的用户
+function updateAllAssigneeDropdowns() {
+    document.querySelectorAll('.division-item').forEach(item => {
+        const searchInput = item.querySelector('.assignee-search');
+        if (searchInput) {
+            // 触发输入事件以刷新下拉列表
+            const event = new Event('input', { bubbles: true });
+            searchInput.dispatchEvent(event);
+        }
+    });
+}
+
+// 验证分工表单
+function validateDivisionForm() {
+    const divisions = [];
+    let isValid = true;
+    const selectedIds = new Set();
+    const errors = [];
+
+    $('.division-item').each(function(index) {
+        const module = $(this).find('.division-module').val().trim();
+        const dueDate = $(this).find('.division-due-date').val();
+        const assigneeId = $(this).find('.assignee-id').val();
+        const assigneeName = $(this).find('.assignee-name').val();
+        const assigneeEmail = $(this).find('.assignee-email').val();
+        const actionPlan = $(this).find('.division-action-plan').val().trim();
+
+        // 验证必填字段
+        if (!module) {
+            errors.push(`第${index + 1}个分工的修改模块不能为空`);
+            isValid = false;
+        }
+        if (!dueDate) {
+            errors.push(`第${index + 1}个分工的完成时间不能为空`);
+            isValid = false;
+        }
+        if (!assigneeId) {
+            errors.push(`第${index + 1}个分工的执行人员不能为空`);
+            isValid = false;
+        }
+        if (!actionPlan) {
+            errors.push(`第${index + 1}个分工的解决措施不能为空`);
+            isValid = false;
+        }
+
+        // 检查重复分配
+        if (assigneeId && selectedIds.has(assigneeId)) {
+            errors.push(`用户 ${assigneeName} (${assigneeEmail}) 已被重复分配，请检查`);
+            isValid = false;
+        }
+        if (assigneeId) {
+            selectedIds.add(assigneeId);
+        }
+
+        divisions.push({
+            module: module,
+            due_date: dueDate,
+            assignee_id: assigneeId,
+            review_notes: actionPlan
+        });
+    });
+
+    if (!isValid) {
+        showToast('warning', errors.join(' | '));
+        return null;
+    }
+
+    if (divisions.length === 0) {
+        showToast('warning', '请至少添加一个分工');
+        return null;
+    }
+
+    return divisions;
+}
+
+// DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化已有的分工项的执行人员搜索
+    document.querySelectorAll('.division-item').forEach(setupAssigneeSearchForDivisionItem);
+
+    let divisionCount = 1;
+
+    // 添加分工项
+    $('#addDivisionSolution').click(function() {
+        divisionCount++;
+        const newItem = $(`
+            <div class="division-item" data-item-index="${divisionCount}">
+                <!-- 分工基本信息区域 -->
+                <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                    <div class="form-group" style="flex: 1; margin-right: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                            <span style="color: red;">*</span> 修改模块
+                        </label>
+                        <input type="text" class="form-control division-module" placeholder="请输入修改模块" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F6FAFF;">
+                    </div>
+
+                    <div class="form-group" style="flex: 1; margin-right: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                            <span style="color: red;">*</span> 完成时间
+                        </label>
+                        <input type="date" class="form-control division-due-date" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F6FAFF;">
+                    </div>
+
+                    <div class="form-group" style="flex: 1;">
+                        <button type="button" class="remove-division-btn" style="float: right;color: #FE6380;border: 1px solid #FE6380;background: #fff;border-radius: 4px;padding: 2px 8px;font-size: 12px;cursor: pointer;margin-top: 24px;">移除</button>
+                    </div>
+                </div>
+
+                <!-- 人员选择区域 -->
+                <div class="d-flex justify-content-between" style="margin-bottom: 20px;">
+                    <div class="form-group" style="flex: 1; margin-right: 20px;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">
+                            <span style="color: red;">*</span> 执行人员
+                        </label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control assignee-search" placeholder="搜索成员" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px 40px 12px 12px;font-size: 14px;background-color: #F6FAFF;">
+                            <img src="/static/images/search-icon.svg" alt="搜索" style="position: absolute;right: 12px;top: 50%;transform: translateY(-50%);width: 16px;height: 16px;">
+                            <!-- 下拉框 -->
+                            <div class="assignee-dropdown" style="display: none;position: absolute;top: 100%;left: 0;right: 0;background: #fff;border: 1px solid #E9EFF8;border-top: none;border-radius: 0 0 6px 6px;box-shadow: 0 4px 8px rgba(0,0,0,0.1);z-index: 1000;max-height: 200px;overflow-y: auto;">
+                                <!-- 动态生成搜索结果 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="width: 50%;">
+                        <label style="font-family: PingFang SC;font-weight: 400;font-size: 14px;line-height: 20px;color:#557496;margin-bottom: 12px;">姓名</label>
+                        <div class="selected-assignee-name" style="width: 100%;height: 40px;border: 1px solid #E9EFF8;border-radius: 6px;padding: 12px;font-size: 14px;background-color: #F6FAFF;color: #999;display: flex;align-items: center;">
+                            通过Email账号搜索成员，此处将会自动填充姓名
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 解决措施输入区域 -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="label-style"><span style="color: red;">*</span> 解决措施</label>
+                    <textarea class="division-action-plan text-area-border" placeholder="请输入解决措施" rows="3"></textarea>
+                </div>
+                <input type="hidden" class="assignee-id">
+                <input type="hidden" class="assignee-email">
+                <input type="hidden" class="assignee-name">
+            </div>
+        `);
+
+        $('#divisionSolutionContainer').append(newItem);
+
+        // 为新添加的分工项设置执行人员搜索
+        setupAssigneeSearchForDivisionItem(newItem[0]);
+
+        // 更新计数
+        $('#divisionSolutionCount').text(divisionCount);
+        updateRemoveDivisionButtons();
+    });
+
+    // 移除分工项
+    $(document).on('click', '.remove-division-btn', function() {
+        if ($('.division-item').length > 1) {
+            $(this).closest('.division-item').remove();
+            divisionCount--;
+            $('#divisionSolutionCount').text(divisionCount);
+            updateRemoveDivisionButtons();
+
+            // 更新所有下拉列表，因为已选择的用户减少了
+            updateAllAssigneeDropdowns();
+        }
+    });
+
+    // 更新移除按钮状态
+    function updateRemoveDivisionButtons() {
+        if ($('.division-item').length === 1) {
+            $('.remove-division-btn').hide();
+        } else {
+            $('.remove-division-btn').show();
+        }
+    }
+
+    // 初始化移除按钮状态
+    updateRemoveDivisionButtons();
+
+    // 显示邀请开发人员解决模态框
+    $('#inviteDevelopersButton').click(function() {
+        // 重置表单状态
+        $('#divisionSolutionContainer .division-item').each(function(index) {
+            if (index > 0) {
+                $(this).remove();
+            } else {
+                // 重置第一个分工项
+                $(this).find('.division-module').val('');
+                $(this).find('.division-due-date').val('');
+                $(this).find('.assignee-search').val('');
+                $(this).find('.selected-assignee-name').text('通过Email账号搜索成员，此处将会自动填充姓名').css('color', '#999');
+                $(this).find('.assignee-id').val('');
+                $(this).find('.assignee-email').val('');
+                $(this).find('.assignee-name').val('');
+                $(this).find('.division-action-plan').val('');
+            }
+        });
+
+        // 重置计数
+        divisionCount = 1;
+        $('#divisionSolutionCount').text(divisionCount);
+        updateRemoveDivisionButtons();
+
+        // 初始化搜索功能
+        document.querySelectorAll('.division-item').forEach(setupAssigneeSearchForDivisionItem);
+
+        $('#inviteDevelopersSolutionModal').modal('show');
+    });
+
+    // 发送分配请求
+    $('#sendInviteSolutionBtn').click(async function() {
+        try {
+            // 1. 验证并收集分工数据
+            const divisions = validateDivisionForm();
+            if (!divisions) return;
+
+            // 2. 发送分配请求
+            const defectId = {{ defect.id }};
+            const url = `/defect/${defectId}/assign-for-solution-api`;
+
+            // 显示加载状态
+            const $btn = $('#sendInviteSolutionBtn');
+            const originalText = $btn.html();
+            $btn.prop('disabled', true).html('发送中...');
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                },
+                body: JSON.stringify({
+                    divisions: divisions
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.code === 0) {
+                showToast('success', result.message || '分配成功');
+                $('#inviteDevelopersSolutionModal').modal('hide');
+
+                // 刷新页面或更新界面
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                throw new Error(result.message || '分配失败');
+            }
+        } catch (error) {
+            console.error('分配请求失败:', error);
+            showToast('error', '分配失败: ' + error.message);
+        } finally {
+            // 恢复按钮状态
+            const $btn = $('#sendInviteSolutionBtn');
+            $btn.prop('disabled', false).html(`发送分配 (<span id="divisionSolutionCount">${divisionCount}</span>)`);
+        }
+    });
+});
+</script>
+
+
+<!-- 3、developer_solution 开发人员解决措施 阶段 js-->
+<script>// 初始化解决措施表单
+    $(document).ready(function() {
+        $('.solution-form').each(function() {
+            let solutionCount = $(this).find('.solution-item').length;
+            const maxSolutions = 10;
+            const $form = $(this);
+            const $itemsContainer = $form.find('.solution-items');
+            const $counter = $form.find('.solution-counter');
+            const divisionId = $form.find('input[name="division_id"]').val();
+            const $isDraftInput = $form.find('#isOnlySaveSolution-' + divisionId);
+
+            // 更新计数器
+            function updateSolutionCounter() {
+                $counter.text(`${solutionCount}/${maxSolutions}`);
+                if (solutionCount === 1) {
+                    $('.remove-solution').css('opacity', '0.5');
+                } else {
+                    $('.remove-solution').css('opacity', '1');
+                }
+            }
+
+            // 添加解决措施项
+            $form.find('.add-solution').click(function() {
+                if (solutionCount < maxSolutions) {
+                    solutionCount++;
+                    const newItem = `
+                        <div class="solution-item mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label">解决措施 ${solutionCount}</label>
+                                <button type="button" class="remove-tag remove-solution">
+                                    移除
+                                </button>
+                            </div>
+                            <textarea class="solution-text solution-measure" name="solution-${solutionCount}" rows="3" placeholder="请输入解决措施..." required></textarea>
+                        </div>
+                    `;
+                    $itemsContainer.append(newItem);
+                    updateSolutionCounter();
+                } else {
+                    showToast('warning', `最多只能添加${maxSolutions}个解决措施`);
+                }
+            });
+
+            // 移除解决措施项
+            $itemsContainer.on('click', '.remove-solution', function() {
+                if (solutionCount === 1) {
+                    showToast('warning', '最少需要保留1个解决措施，不能移除。');
+                    return;
+                }
+                if (solutionCount > 1) {
+                    $(this).closest('.solution-item').remove();
+                    solutionCount--;
+                    // 重新编号
+                    $itemsContainer.find('.solution-item').each(function(index) {
+                        $(this).find('.form-label').text(`解决措施 ${index + 1}`);
+                        $(this).find('.solution-text').attr('name', `solution-${index + 1}`);
+                    });
+                    updateSolutionCounter();
+                }
+            });
+
+            // 保存草稿（暂存）
+            $form.find("#saveSolutionDraft").click(function() {
+                // 设置隐藏字段为true
+                $isDraftInput.val('true');
+                // 提交表单
+                $form.submit();
+            });
+            $form.find("#aiSolution").click(function() {
+                // 设置隐藏字段为true
+                $form.append(`<input type="hidden" value="self" name="ai_done_act" />`)
+                // 提交表单
+                $form.find("#saveSolutionDraft").click()
+            });
+
+
+
+            // AI自评
+            $form.find('.ai-review-btn').click(function() {
+                alert('AI自评功能待实现');
+            });
+
+            // 表单提交验证
+            $form.find("#saveSolution").click(function() {
+                $isDraftInput.val('false');
+                let hasContent = false;
+                $form.find('.solution-text').each(function() {
+                    if ($(this).val().trim() !== '') {
+                        hasContent = true;
+                        return false;
+                    }
+                });
+
+                if (!hasContent) {
+                    showToast('warning', '至少需要提供一个解决措施');
+                    return false;
+                }
+                $form.append(`<input type="hidden" value="audit" name="ai_done_act" />`)
+                // 提交表单
+                $form.submit();
+                return true;
+            });
+
+            updateSolutionCounter();
+        });
+    });
+</script>
+
+
+<!-- 4、dev_lead_review_solution 阶段的JavaScript代码 -->
+<script>
+        let selectedRegressionMember = null;
+        // 提交审核函数
+        function submitSolutionReview(isApproved) {
+            // 验证审核意见是否填写
+            const reviewNotes = document.getElementById('review_notes_in_review_solution_dialog').value.trim();
+            if (!reviewNotes) {
+                showToast('warning', '请填写审核意见');
+                return;
+            }
+
+            if (isApproved) {
+                // 如果是同意，需要验证是否选择了测试人员
+                if (!selectedRegressionMember) {
+                    showToast('warning', '请先搜索并选择一个测试人员');
+                    document.getElementById('regressionMemberSearch').focus();
+                    return;
+                }
+
+                // 设置审核结果和审核意见
+                document.getElementById('approved_in_review_solution_dialog').value = "true";
+                //document.getElementById('review_notes_in_review_solution_dialog').value = reviewNotes;
+
+                // 提交表单
+                document.getElementById('reviewSolutionForm').submit();
+                showToast('info', '正在提交审核...', 2000);
+            } else {
+                // 设置审核结果
+                $('#approved_in_review_solution_dialog').val("false");
+                // 验证审核意见是否填写
+                const reviewNotes = document.getElementById('review_notes_in_review_solution').value.trim();
+                if (!reviewNotes) {
+                    showToast('warning', '请填写审核意见');
+                    return;
+                }
+                $('#review_notes_in_review_solution_dialog').val(reviewNotes);
+
+                // 提交表单
+                document.getElementById('reviewSolutionForm').submit();
+            }
+        }
+
+        // 成员搜索功能
+        document.getElementById('regressionMemberSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const dropdown = document.getElementById('regressionMemberDropdown');
+
+            if (searchTerm.length === 0) {
+                selectedRegressionMember = null;
+                document.getElementById('selectedRegressionMemberName').innerHTML = '通过Email账号搜索测试人员，此处将会自动填充姓名';
+                document.getElementById('selectedRegressionMemberName').classList.remove('has-selection');
+                document.getElementById('selectedRegressionMemberName').style.color = '#999';
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // 搜索匹配的成员
+            const matchedMembers = userList.filter(function(member) {
+                return member.email.toLowerCase().includes(searchTerm) ||
+                       member.name.toLowerCase().includes(searchTerm);
+            });
+
+            if (matchedMembers.length > 0) {
+                // 生成下拉框内容
+                let dropdownHtml = '';
+                matchedMembers.forEach(function(member) {
+                    dropdownHtml += `
+                        <div class="member-dropdown-item"
+                             data-userid="${member.user_id}"
+                             data-email="${member.email}"
+                             data-name="${member.name}"
+                             data-department="${member.department}">
+                            <div><strong>${member.name}</strong> / ${member.email}</div>
+                            <small class="text-muted">${member.department}</small>
+                        </div>`;
+                });
+
+                dropdown.innerHTML = dropdownHtml;
+                dropdown.style.display = 'block';
+            } else {
+                selectedRegressionMember = null;
+                document.getElementById('selectedRegressionMemberName').innerHTML = '未找到匹配的测试人员';
+                document.getElementById('selectedRegressionMemberName').classList.remove('has-selection');
+                document.getElementById('selectedRegressionMemberName').style.color = '#ff6b6b';
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // 下拉框选项点击事件
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.member-dropdown-item')) {
+                const item = e.target.closest('.member-dropdown-item');
+                const email = item.getAttribute('data-email');
+                const name = item.getAttribute('data-name');
+                const userID = item.getAttribute('data-userid');
+                const department = item.getAttribute('data-department');
+
+                // 设置选中的成员
+                selectedRegressionMember = {
+                    userID: userID,
+                    email: email,
+                    name: name,
+                    department: department
+                };
+
+                // 填充输入框和姓名显示
+                document.getElementById('regressionMemberSearch').value = email;
+                document.getElementById('regressionMember_id').value = userID;
+                const nameElement = document.getElementById('selectedRegressionMemberName');
+                nameElement.innerHTML = `${name} (${department})`;
+                nameElement.classList.add('has-selection');
+                nameElement.style.color = '#222';
+
+                // 隐藏下拉框
+                document.getElementById('regressionMemberDropdown').style.display = 'none';
+
+                // 显示成功消息
+                showToast('success', `已选择人员: ${name}`);
+            }
+
+            // 点击其他地方隐藏下拉框
+            if (!e.target.closest('#regressionMemberSearch') && !e.target.closest('#regressionMemberDropdown')) {
+                document.getElementById('regressionMemberDropdown').style.display = 'none';
+            }
+        });
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加一些示例交互
+            document.getElementById('regressionMemberSearch').addEventListener('focus', function() {
+                if (this.value.length > 0) {
+                    document.getElementById('regressionMemberDropdown').style.display = 'block';
+                }
+            });
+        });
+    </script>
+
+
+<!-- 5、tester_regression 测试人员回归测试 阶段（提交回归结果）的JavaScript代码 -->
+<script>
+    $(document).ready(function() {
+        const TESTER_REGRESSION_MODE = "{{ tester_regression_mode }}";
+        let descriptionCount = 0; // 初始描述项数量
+        const maxDescriptions = 10;
+        // 存储编辑器实例的对象
+        const editorInstances = {};
+        let nextIndex = 0; // 用于生成唯一索引
+
+        // 修复模态框关闭不彻底的问题
+        function cleanupModalBackdrop() {
+            // 移除所有模态框背景遮罩层
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                backdrop.parentNode.removeChild(backdrop);
+            });
+
+            // 恢复页面滚动功能
+            document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '0';
+
+            // 移除modal-open类
+            document.body.classList.remove('modal-open');
+        }
+
+        // 初始化wangEditor
+        function initEditor(editorId, initialContent = '') {
+             if (!document.getElementById( `editor-${editorId}`)) {
+                 return  false
+             }
+            const { createEditor, createToolbar } = window.wangEditor;
+
+            const editorConfig = {
+                placeholder: '请输入内容...',
+                onChange: (editor) => {
+                    // 内容变化时更新隐藏字段
+                    combineDescriptionFields();
+                },
+                MENU_CONF: {}
+            };
+
+            // 配置上传图片
+            editorConfig.MENU_CONF['uploadImage'] = {
+                server: '/user/aiVal/upload_pic', // 替换为你的图片上传接口地址
+                fieldName: 'file', // 上传文件的字段名（与后端一致）
+                maxFileSize: 5 * 1024 * 1024, // 5MB
+                maxNumberOfFiles: 1, // 最多上传 5 张图片
+                async customInsert(res, insertFn) { // 添加 async 关键字
+                    if (res.code == 1) {
+                        // 先插入图片到编辑器
+                        const imgNode = insertFn(res.url);
+
+                        try {
+                            // 调用评估接口将图片URL存入数据库
+                            const response = await fetch('/user/aiVal/create_evaluate_image', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    url: res.url
+                                })
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success && result.id) {
+                                // 将返回的ID存储到图片元素的data-id属性中
+                                console.log('保存图片信息成功:', result.id);
+
+                                // 如果需要设置图片元素的data-id属性，可以这样操作：
+                                // imgNode.setAttribute('data-id', result.id);
+                            } else {
+                                console.error('保存图片信息失败:', result.message);
+                            }
+                        } catch (error) {
+                            console.error('调用评估接口失败:', error);
+                        }
+                    } else {
+                        showToast('error', '上传失败');
+                    }
+                }
+            };
+
+            const editor = createEditor({
+                selector: `#editor-${editorId}`,
+                config: editorConfig,
+                html: initialContent || ''
+            });
+
+            // 创建工具栏
+            createToolbar({
+                editor,
+                selector: `#toolbar-${editorId}`,
+                config: {
+                    toolbarKeys: ['uploadImage'],
+                    excludeKeys: [
+                        'insertVideo',
+                        'codeBlock',
+                    ]
+                }
+            });
+
+            return editor;
+        }
+
+        // 显示无描述警告
+        function showNoDescriptionWarning() {
+            document.getElementById('descriptionItems').innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>没有可编辑的描述内容
+                </div>
+            `;
+        }
+
+        function generateDescriptionFields(items) {
+            $('#descriptionItems').empty();
+            descriptionCount = 0;
+            nextIndex = 0; // 重置索引计数器
+
+            if (items && items.length > 0) {
+                items.forEach((item) => {
+                    addDescriptionField(item.title, item.description);
+                });
+                updateDescriptionCounter();
+            } else {
+                showNoDescriptionWarning();
+            }
+        }
+
+        // 从API获取模板数据并初始化描述字段
+        function initDescriptionFromTemplate() {
+            const TEST_RESULT_DATA = {{ test_result_data | tojson | safe if test_result_data else 'null' }};
+            if (TEST_RESULT_DATA) {
+                let descriptionItems = [];
+                try {
+                    // 设置测试时间
+                    if (TEST_RESULT_DATA && TEST_RESULT_DATA[0] && TEST_RESULT_DATA[0].created_time) {
+                        const testedAtElement = document.getElementById('testedAt');
+                        if (testedAtElement) {
+                            testedAtElement.textContent = "-测试时间：" + TEST_RESULT_DATA[0].created_time;
+                        }
+                    }
+                    if (TEST_RESULT_DATA && TEST_RESULT_DATA[0].content && TEST_RESULT_DATA[0].content.description) {
+                        descriptionItems = JSON.parse(TEST_RESULT_DATA[0].content.description);
+                        generateDescriptionFields(descriptionItems);
+                    } else {
+                        showNoDescriptionWarning();
+                    }
+                } catch (e) {
+                    console.error('解析描述数据失败:', e);
+                    showNoDescriptionWarning();
+                }
+            } else {
+                fetch('/template/回归测试')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('获取模板失败: ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(templateData => {
+                        $('#descriptionItems').empty();
+                        descriptionCount = 0;
+                        nextIndex = 0;
+
+                        if (templateData.items && templateData.items.length > 0) {
+                            templateData.items.forEach((item) => {
+                                addDescriptionField(item.content.title, "");
+                            });
+                        } else {
+                            addDefaultDescriptionFields();
+                        }
+
+                        updateDescriptionCounter();
+
+
+                    })
+                    .catch(error => {
+                        console.error('获取模板失败:', error);
+                        $('#descriptionItems').empty();
+                        descriptionCount = 0;
+                        nextIndex = 0;
+                        addDefaultDescriptionFields();
+                        updateDescriptionCounter();
+                        showToast('warning', '模板加载失败，已使用默认字段');
+                    });
+            }
+        }
+
+        // 添加默认的描述字段
+        function addDefaultDescriptionFields() {
+            const defaultFields = [
+                { title: "测试环境", placeholder: "请描述发现缺陷的具体环境，和软硬件等具体的测试版本" },
+                { title: "操作步骤和预期结果", placeholder: "触发缺陷产生的操作步骤和预期结果" },
+                { title: "实际测试结果与结论", placeholder: "实际测试结果与结论" }
+            ];
+
+            defaultFields.forEach((field) => {
+                addDescriptionField(field.title, field.placeholder);
+            });
+        }
+
+        // 添加描述字段
+        function addDescriptionField(title, description) {
+            const index = nextIndex++;
+            const newItem = `
+                <div class="description-item mb-3" data-index="${index}">
+                    <div class="card editor-field">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">${title}</h6>
+                            <button type="button" class="remove-tag remove-description" data-index="${index}">
+                                移除
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="editor-container">
+                                <div id="toolbar-${index}" class="editor-toolbar"></div>
+                                <div id="editor-${index}" class="editor-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('#descriptionItems').append(newItem);
+
+            // 初始化编辑器
+            setTimeout(() => {
+                editorInstances[index] = initEditor(index, description);
+            }, 100);
+
+            descriptionCount++;
+            updateRemoveDescriptionButtons();
+            updateDescriptionCounter();
+        }
+
+        // 组合描述字段
+        function combineDescriptionFields() {
+            const descriptionData = [];
+
+            $('.description-item').each(function() {
+                const index = $(this).data('index');
+                const $titleEl = $(this).find('.card-header h6');
+
+                if ($titleEl.length && editorInstances[index]) {
+                    const title = $titleEl.text().trim();
+                    const description = editorInstances[index].getHtml();
+
+                    descriptionData.push({
+                        title: title,
+                        description: description
+                    });
+                }
+            });
+
+            // 将数据转换为JSON字符串并设置到隐藏的description字段
+            document.getElementById('regressionDescription').value = JSON.stringify(descriptionData);
+            return descriptionData;
+        }
+
+        // 更新删除按钮状态 - 重命名为避免冲突
+        function updateRemoveDescriptionButtons() {
+            if (descriptionCount === 1) {
+                $('.remove-description').css('opacity', '0.5');
+            } else {
+                $('.remove-description').css('opacity', '1');
+            }
+        }
+
+        // 更新描述计数器
+        function updateDescriptionCounter() {
+            $('#descriptionCounter').text(`${descriptionCount}/${maxDescriptions}`);
+
+            if (descriptionCount >= maxDescriptions) {
+                $('#addDescription').prop('disabled', true);
+            } else {
+                $('#addDescription').prop('disabled', false);
+            }
+        }
+
+        // 移除缺陷描述项
+        $(document).on('click', '.remove-description', function() {
+            if (descriptionCount === 1) {
+                    showToast('warning', '最少需要保留1个回归测试描述项，不能移除。');
+                    return;
+                }
+            if (descriptionCount > 1) {
+                const index = $(this).data('index');
+
+                // 销毁编辑器实例
+                if (editorInstances[index]) {
+                    editorInstances[index].destroy();
+                    delete editorInstances[index];
+                }
+
+                $(this).closest('.description-item').remove();
+                descriptionCount--;
+
+                updateRemoveDescriptionButtons();
+                updateDescriptionCounter();
+                combineDescriptionFields();
+            }
+        });
+
+        // 模态框确认按钮点击事件
+        $('#regressionConfirmAddField').click(function() {
+            const title = $('#regressionNewFieldTitle').val().trim();
+
+            if (!title) {
+                showToast('warning', '请输入字段标题');
+                return;
+            }
+
+            if (descriptionCount >= maxDescriptions) {
+                showToast('warning', `最多只能添加${maxDescriptions}个缺陷描述`);
+                $('#regressionAddDescriptionModal').modal('hide');
+                return;
+            }
+
+            // 添加新字段
+            addDescriptionField(title, '');
+            combineDescriptionFields();
+
+            // 清空模态框输入并关闭
+            $('#regressionNewFieldTitle').val('');
+            $('#regressionAddDescriptionModal').modal('hide');
+            cleanupModalBackdrop();
+        });
+
+
+
+        // 在表单提交前组合所有模板字段内容
+        const form = document.getElementById('regressionTestForm');
+        if (form){
+                // 提交回归测试结果并处理后续流程
+                $('#saveDraftRegressionTestBtn').click(async function() {
+                    if(document.getElementById('ai_done_act')==null){
+                        $('#regressionTestForm').append('<input type="hidden" value="audit" name="ai_done_act" id="ai_done_act" />')
+                    }
+                    // 检查是否选择了验证状态
+                    const verificationStatus = $('input[name="verificationStatus"]:checked').val();
+                    if (!verificationStatus) {
+                        showToast('warning', '请选择是否通过验证');
+                        return;
+                    }
+
+                    // 组合描述字段内容
+                    combineDescriptionFields();
+
+                    // 获取表单数据
+                    const formData = {
+                        description: $('#regressionDescription').val(),
+                        is_draft: false
+                    };
+                    const defectId = {{ defect.id }};
+                    try {
+                        // 第一步：提交回归测试结果
+                        const regressionResponse = await fetch(`/defect/${defectId}/submit-regression-test-api`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const regressionResult = await regressionResponse.json();
+
+                        if (regressionResult.code === 0) {
+                            showToast('success', regressionResult.message);
+
+                            // 无论验证是否通过，都调用提出人确认接口
+                            const confirmed = verificationStatus === 'pass';
+                            let confirm_notes = '';
+
+                            if (confirmed) {
+                                confirm_notes = '回归测试验证通过，自动确认';
+                            } else {
+                                confirm_notes = '回归测试验证未通过，自动驳回';
+                            }
+
+                            // 调用提出人确认接口
+                            const confirmResponse = await fetch(`/defect/${defectId}/requester-confirm-api`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                body: JSON.stringify({
+                                    confirmed: confirmed,
+                                    confirm_notes: confirm_notes
+                                })
+                            });
+
+                            const confirmResult = await confirmResponse.json();
+
+                            if (confirmResult.code === 0) {
+                                if (confirmed) {
+                                    showToast('success', '缺陷已确认解决，问题关闭');
+                                } else {
+                                    showToast('success', '缺陷未解决，待进一步处理');
+                                }
+
+                                // 刷新页面
+                                setTimeout(() => {
+                                    //window.location.reload();
+                                    location.href="/defect/simplified/{{ defect.id }}?ai_done_act="+$('#ai_done_act').val()+"&stage_type=tester_regression&is_change="+regressionResult.data.is_change;
+                                }, 1500);
+                            } else {
+                                showToast('error', confirmResult.message || '确认失败');
+                            }
+                        } else {
+                            showToast('error', regressionResult.message || '提交失败');
+                        }
+                    } catch (error) {
+                        console.error('提交过程中发生错误:', error);
+                        showToast('error', '网络错误，请稍后重试');
+                    }
+                });
+
+
+
+                $('#aiRegressionTest').click(function() {
+                    $('#regressionTestForm').append('<input type="hidden" value="self" name="ai_done_act" id="ai_done_act" />')
+                    $('#saveDraftRegressionTestBtn').click()
+                })
+
+        }
+
+        // 初始化描述字段
+        initDescriptionFromTemplate();
+
+        // 模态框关闭时清空输入
+        $('#regressionAddDescriptionModal').on('hidden.bs.modal', function () {
+            $('#regressionNewFieldTitle').val('');
+            cleanupModalBackdrop();
+        });
+    });
+</script>
+<script>
+        function rightMenuLocation(id,obj){
+            var element = document.getElementById(id);
+            element.scrollIntoView({ behavior: 'smooth' }); // 平滑滚动
+            setTimeout(function() {
+                    window.scrollBy({
+                        top: -50, // 向上偏移80px，可以根据需要调整这个值
+                        behavior: 'smooth'
+                    });
+                }, 500); // 等待滚动完成再执行偏移
+                $('.right-menu-active-img').remove()
+                $(obj).prepend('<img class="right-menu-active-img" src="/static/images/aival/left-tag.svg" alt="" >')
+        }
+
+        $(document).ready(function() {
+            // Header滚动效果
+            $(window).scroll(function() {
+                const header = $('.header');
+                const scrollPosition = $(this).scrollTop();
+                const scrollThreshold = 50; // 滚动阈值
+                const scrollRightMenu =  400
+                if (header.length) { // 确保header元素存在
+                    if (scrollPosition > scrollThreshold) {
+                        header.addClass('header-scrolled');
+                    } else {
+                        header.removeClass('header-scrolled');
+                    }
+                    if (scrollPosition > scrollRightMenu) {
+                       $('.right-menu').css('position','fixed')
+                       $('.right-menu').css('top',"50px")
+
+                    }else{
+                        $('.right-menu').css('position','absolute')
+                        $('.right-menu').css('top',"400px")
+                    }
+                }
+            });
+        });
+    </script>

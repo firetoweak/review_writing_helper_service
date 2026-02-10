@@ -1,0 +1,138 @@
+<!-- preview-review.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>全文预览 - AI智能写作</title>
+  {% include "project_document/base.html" %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='project_document/full-text-review/index.css')}}" />
+  <script type="text/javascript" src="{{ url_for('static', filename='project_document/full-text-review/index.js')}}"></script>
+  <script src="{{ url_for('static', filename='lib/echarts.min.js')}}"></script>
+  <style>
+      .title_score{
+            display: flex;
+            align-items: flex-end;
+            width: 70%;
+            margin-left: 10%;
+            margin-bottom: 10px;
+      }
+      .title_score .title{
+            float: left;
+            width: auto;
+            font-size: 30px;
+
+      }
+      .title_score .score{
+            float: left;
+            width: 75%;
+            font-size: 40px;
+            color: #0d6efd;
+      }
+      .evaluate{
+            margin-left: 10%;
+            font-size: 20px;
+            font-weight: lighter;
+            margin-bottom: 10px;
+            width: 80%;
+      }
+      .suggestion{
+            margin-left: 10%;
+            font-size: 20px;
+            font-weight: lighter;
+            margin-bottom: 10px;
+            width: 80%;
+      }
+      .total{
+            float: none;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+      }
+  </style>
+
+</head>
+
+<body>
+  <!-- 主容器，控制整体布局 -->
+  <div class="layout-container">
+    <!-- 顶部固定区域（不滚动） -->
+    <div class="fixed-top-area">
+      <!-- 顶部导航栏 -->
+      <div class="flex-col justify-start section-main">
+        <div class="flex-row items-center section-nav">
+          <div class="flex-row items-center nav-left">
+            <img class="shrink-0 img-back" src="/static/project_document/images/preview-review/bg-hero-back.png" />
+            <span class="text-back-home ml-space-nine">返回首页</span>
+          </div>
+          <div class="flex-row items-center nav-center" id="steps-container"></div>
+          <div class="flex-row nav-right">
+            <button class="btn-icon" id="btn-share" type="button" aria-label="分享">
+              <img class="btn-icon-img" src="/static/project_document/images/common/avatar-main.png" alt="" />
+            </button>
+            <button class="ml-space-eight btn-icon" id="btn-download" type="button" aria-label="下载">
+              <img class="btn-icon-img" src="/static/project_document/images/common/avatar-blue.png" alt="" />
+            </button>
+            <div class="ml-space-eight flex-col justify-start items-center btn-back-writing" id="btn-back-writing">
+              <span class="font-btn text-btn-back-writing">返回智能写作</span>
+            </div>
+            <div class="ml-space-eight flex-col justify-start items-center btn-polish" id="btn-polish">
+              <span class="font-btn text-btn-polish">全文AI润色</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Banner -->
+      <div class="hero-wrapper">
+        <div class="hero-content">
+          <div class="flex-row items-center justify-center hero-title-row">
+            <img class="img-decor" src="/static/project_document/images/common/decor-orange.png" />
+            <span class="text-gradient text-main-title" id="article-title">加载中...</span>
+            <img class="img-decor" src="/static/project_document/images/common/decor-blue.png" />
+          </div>
+
+          <!-- 将编辑/保存/取消按钮移到这里，article-word-count的下方 -->
+          <div class="edit-action-top-container" id="edit-action-container">
+            <!-- 动态渲染编辑/保存/取消按钮 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 内容滚动区域（滚动条1） -->
+    <div class="scrollable-content-area">
+      <div class="total" >
+          <div style="font-size: 35px;">整体评审得分（满分10分）</div>
+          <div style="font-size: 40px; color: #0b5ed7;margin-top: 10px" id="total_score">10分</div>
+      </div>
+      <!-- 章节内容容器 -->
+      <div id="chapters-container" class="flex-col items-center chapters-scrollable" style="width: 600px; height: 400px;margin: 0 auto;color: #0b5ed7;"></div>
+      <!-- 底部品牌信息 -->
+
+      <div class="footer-brand">
+        <img class="img-logo" src="/static/project_document/images/common/logo-app.png" alt="" />
+        <span class="text-slogan">精确评估并提升企业工作质量</span>
+      </div>
+
+      <!-- 底部区域 -->
+      {% include "user/footer.html" %}
+    </div>
+
+    <!-- 加载状态 -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">加载中...</div>
+    </div>
+
+    <!-- Toast提示容器 -->
+    <div id="toast-container"></div>
+  </div>
+</body>
+
+</html>

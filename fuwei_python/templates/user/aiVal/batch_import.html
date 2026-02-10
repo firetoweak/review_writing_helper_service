@@ -1,0 +1,413 @@
+<style>
+  .wrong-input{
+    height: 20px;
+    width: 100px;
+    border-width:0px 0px 1px 0px; /* 去除边框 */
+    background-color: #ffffff; /* 设置背景颜色 */
+  }
+  .batch-model-font{
+    width: 50%;
+    float: left;
+    margin-top: 20px;
+    font-family: PingFang SC;
+    font-weight: 550;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0px;
+    color: rgba(34, 34, 34, 1);
+  }
+</style>
+
+<!-- 批量导入成员 -->
+<div class="modal fade" id="batchImportModal" tabindex="-1" aria-hidden="true" >
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 750px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入评估内容</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"></div>
+      <div style="font-size:14px;color:#9CA7BB;margin:16px 24px 10px 24px;">
+        <div class="batch-model-font">
+            <img src="/static/images/fengchi_tag.svg" alt="">先下载空的导入模板，按要求填写评估内容
+        </div>
+        <div style="width: 38%;float: right; cursor: pointer;margin-top: 10px">
+          <button class="btn-batch mr-3" onclick="window.open('/static/download/{{uploadFiles[0]}}')"><img src="/static/images/aival/downloa_tag.svg" alt="" style="padding-bottom: 5px">下载模板1</button>
+          <button class="btn-batch mr-3" onclick="window.open('/static/download/{{uploadFiles[1]}}')"><img src="/static/images/aival/downloa_tag.svg" alt="" style="padding-bottom: 5px">下载模板2</button>
+        </div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between" style="background:#F6FAFF;border:1px dashed #D5E8FF;border-radius:8px;padding:5px 16px;margin:0px 24px">
+        <div style="font-size:15px;color:#9CA7BB;">
+          1.请下载"空的导入模板"导入<br>
+          2.请勿修改导入模板的的表头，否则将导致导入失败<br>
+          3.如有空的数据列，则相应字段信息会被清空，请谨慎填写<br>
+          4.如果你要批量上传的被评估内容没有图片，请下载模板1的excel文件填写<br>
+          5.如果你要批量上传的评估内容有图片，图片必须是html的img标签，img标签内的src可以是能被网络访问的图片连接--此时依然按照模板1标准，下载版本1的excel文件填写即可<br>
+          6.如果你要批量上传的评估内容有图片，但是图片无法直接被外网访问，请按照模板2的标准填写：评估内容的图片依然用以img标签标识，但img标签的src的图片文件必须与excel文件一起打包上传（模板文件内还有详细的说明文档）<br>
+          7.压缩打包路径中不能有文件夹存在，excel文件与图片文件需要直接存在于压缩包中
+        </div>
+      </div>
+      <div style="font-size:14px;color:#9CA7BB;margin:16px 24px 10px 24px;" >
+        <div style="width: 31%;float: left;margin-top: 10px;"  class="batch-model-font">
+          <img src="/static/images/fengchi_tag.svg" alt="">再上传完善后的导入模板
+        </div>
+      </div>
+
+      <div id="wait-upload-div" style="cursor: pointer">
+          <img src="/static/images/aival/batch_upload_pic.png" style="width: 100%;height: 100%;">
+      </div>
+
+      <div class="uploading-box" style="display: none" >
+        <div class="uploading-box-inner">
+          <div class="circle-progress-box">
+            <svg class="circle-progress" width="120" height="120">
+              <defs>
+                <linearGradient id="circle-gradient" x1="0%" y1="10%" x2="100%" y2="10%">
+                  <stop offset="0%" stop-color="#2D8CFF"/>
+                  <stop offset="100%" stop-color="#A259FF"/>
+                </linearGradient>
+              </defs>
+              <circle class="circle-bg" cx="60" cy="60" r="54" stroke-width="12" fill="none"/>
+              <circle class="circle-bar" cx="60" cy="60" r="54" stroke-width="12" fill="none"/>
+            </svg>
+            <img src="/static/images/user-management/batch_file.svg" class="circle-center-icon" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 确认数据导入 -->
+<div class="modal fade" id="batchImportModal2" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" >
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image:url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入成员</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state2.svg" style="width: 378px;height: 46px;"></div>
+      <div style="height:60%;place-items: center;margin:16px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;" >
+        <table class="table">
+          <thead>
+          <tr class="table-header">
+
+            <th width="80">ID</th>
+            <th width="290">真实姓名</th>
+            <th width="200">电子邮件</th>
+            <th width="200">部门</th>
+            <th width="200">职位</th>
+          </tr>
+          </thead>
+          <tbody id="batchImportConfirmTable">
+
+          </tbody>
+        </table>
+      </div>
+      <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+          <button class="btn-batch mr-3">重新上传</button>
+          <button class="btn-submit-continue" id="submitAndImport">确认无误,开始导入</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 错误数据修正 -->
+<div class="modal fade" id="WrongDataImportModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" >
+  <div class="modal-dialog modal-dialog-centered" style="max-width:950px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image:url(/static/images/user-management/batch_header.png);background-size: 100% 120%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入成员</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state2.svg" style="width: 378px;height: 46px;"></div>
+      <div style="width: 100%;height:auto;display: grid;text-align: left;margin-left: 24px;color:red">以下是数据上传后校验出的错误数据，请修正</div>
+
+      <div style="height:60%;place-items: center;margin:0px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;" >
+        <table class="table">
+          <thead>
+          <tr class="table-header">
+            <th width="50">ID</th>
+            <th width="200">真实姓名</th>
+            <th width="200">电子邮件</th>
+            <th width="200">部门</th>
+            <th width="200">职位</th>
+            <th width="350">错误原因</th>
+            <th width="100">操作</th>
+          </tr>
+          </thead>
+          <tbody id="WrongDataConfirmTable">
+
+          </tbody>
+        </table>
+      </div>
+      <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+          <button class="btn-batch mr-3">重新上传</button>
+          <button class="btn-submit-continue" id="confirmUpdate">确认修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 导入进度条 -->
+<div class="modal fade" id="batchImportModal3" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入评估内容</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state3.svg" style="width: 378px;height: 46px;"></div>
+      <div id="progressBarLine" style="height:60%;display: grid;place-items: center;margin:16px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;">
+        <div style="width: 90%; text-align: center;">
+          <!-- 百分比和刷新图标 -->
+          <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+            <img src="/static/images/user-management/refresh-icon.gif" alt="刷新" style="width: 24px; height: 24px; margin-right: 8px;">
+            <span style="font-size: 18px; font-weight: 500; color: #217EFD;" id="progress-percent">0%</span>
+          </div>
+
+          <!-- 进度条 -->
+          <div style="width: 100%; height: 10px; background-color: #EAF2FF; border-radius: 5px; overflow: hidden; margin-bottom: 20px;">
+            <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #2D8CFF 0%, #A259FF 100%); border-radius: 5px;"></div>
+          </div>
+
+          <!-- 提示文字 -->
+          <div style="font-size: 14px; color: #9CA7BB;">
+            <span id="progressText">数据导入中，请耐心等待...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 批量导入结果-->
+<div class="modal fade" id="batchImportModal4" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入评估内容</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state3.svg" style="width: 378px;height: 46px;"></div>
+      <div style="height:60%;place-items: center;margin:16px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;">
+        <div style="width: 55px;height: 65px;display: grid;place-items: center;margin-top: 100px; margin-left: auto; margin-right: auto;">
+          <img src="/static/images/user-management/batch_sucess_icon.svg" style="width: 100%;height: 100%;">
+        </div>
+        <div style="height: auto;display: grid;place-items: center;font-weight: 600;font-size: 20px;color: #222;margin-top: 20px;">
+          数据导入完成,AI评估中...
+        </div>
+        <div style="height: auto;display: grid;place-items: center;font-size: 15px;color: #6b6868;margin-top: 20px;" id="result_num">
+            导入评估内容有可能录入错误，请检查列表中具体已录入的数据
+        </div>
+      </div>
+      <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+              <button class="btn-submit-continue" id="finish" onclick="location.reload()">知道了，现在去检查数据</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 批量导出结果-->
+<div class="modal fade" id="valBatchExportModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+    <div class="modal-content" style="border-radius:16px;height: 300px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导出</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="height:60%;place-items: center;margin:16px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;">
+        <input type="text" id="exportDate" class="layui-input" placeholder="请填写时间范围，不填写则导出全部已评估数据"  style="width: 90%;">
+<!--        <div style="height: auto;display: grid;place-items: center;fonts-weight: 600;fonts-size: 20px;color: #222;margin-top: 20px;">-->
+<!--        </div>-->
+      </div>
+      <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+          <button class="btn-submit-continue" id="exportDone" >批量导出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  layui.use(['jquery', 'layer','upload'], function(){
+    var $ = layui.$ //重点处
+            ,layer = layui.layer;
+
+      var upload = layui.upload;
+      //$('#WrongDataImportModal').modal('show')
+      //执行实例
+      var wrongData = []
+      var importRightData = []
+      var canInviteNum = 0
+      var uploadInst = upload.render({
+        elem: '#wait-upload-div' //绑定元素
+        ,url: '/user/aiVal/batch_add?type={{g.type}}' //上传接口
+        ,accept: 'file'
+        ,exts: 'zip|xlsx|xls'
+        ,size: 1024*5,
+        done: function(res){
+          if (res.code != 1) {
+              if(res.code==-2){
+                  $('#NoMoney').modal('show')
+                  return
+              }
+              showToast("warning",res.msg)
+              return
+          }
+          updateProgress(10, '正在导入数据，请耐心等待...')
+          $('#batchImportModal').modal('hide');
+          $('#batchImportModal3').modal('show');
+          var percent = 10
+          const interval = setInterval(function() {
+            percent = percent + 10
+            updateProgress(percent, '正在导入数据，请耐心等待...')
+            if (percent >= 90) {
+                  updateProgress(100, '已完成录入')
+                  $('#progressText').text('数据导入完成！');
+                  clearInterval(interval);
+                  setTimeout(function() {
+                    $('#batchImportModal3').modal('hide');
+                    $('#batchImportModal4').modal('show');
+                    if(res.errorTag==0) {
+                      $('#result_num').html('')
+                    }
+                  }, 1000);
+            }
+          },1000)
+          // if(res.wrong_data.length>0){
+          //   $('#batchImportModal').modal('hide')
+          //   $('#WrongDataImportModal').modal('show')
+          //   setTimeout(() => setTableWrongData(res.wrong_data), 1000)
+          //   }else {
+          //     $('#WrongDataImportModal').modal('hide')
+          //     $('#batchImportModal').modal('hide')
+          //     $('#batchImportModal2').modal('show')
+          //     setTimeout(() =>  setTableData(res.data), 1000)
+          //   }
+        }
+        ,error: function(){
+          //请求异常回调
+        }
+      });
+
+
+
+    function whichShow(res){
+      importRightData = res.data
+      if(res.wrong_data.length>0){
+        showToast("warning","数据校验后有错误")
+        $('#batchImportModal').modal('hide')
+        $('#WrongDataImportModal').modal('show')
+        setTimeout(() => setTableWrongData(res.wrong_data), 1000)
+      }else {
+        $('#WrongDataImportModal').modal('hide')
+        $('#batchImportModal').modal('hide')
+        $('#batchImportModal2').modal('show')
+        setTimeout(() =>  setTableData(res.data), 1000)
+      }
+    }
+
+
+    function setCircleProgress(percent) {
+      var circle = document.querySelector('.circle-bar');
+      var radius = circle.r.baseVal.value;
+      var circumference = 2 * Math.PI * radius;
+      var offset = circumference * (1 - percent / 100);
+      circle.style.strokeDasharray = circumference;
+      circle.style.strokeDashoffset = offset;
+    }
+
+    $('.btn-batch:contains("重新上传")').click(function(){
+        $('#batchImportModal2').modal('hide')
+        $('#WrongDataImportModal').modal('hide')
+        $('.btn-batch:contains("批量导入")').click()
+    });
+    // 控制进度条函数
+    function updateProgress(percent, text) {
+      // 更新进度条宽度
+      $('#progressBar').css('width', percent + '%');
+
+      // 更新百分比文字
+      $('#progress-percent').text(percent + '%');
+
+      // 更新提示文字（如果提供）
+      if (text) {
+        $('#progressText').text(text);
+      }
+    }
+
+    // 第二个确认导入按钮事件
+    $('#confirmImport2Btn').click(function(){
+      $('#batchImport2Modal').modal('hide');
+      showToast('success', '批量导入成功');
+    });
+
+    // 确认导入按钮事件
+    $('#submitAndImport').click(function() {
+      // 重置进度为0并启动模拟
+      if (parseInt(canInviteNum) < importRightData.length) {
+        showToast("warning","你要邀请的同时数量为：" + importRightData.length + "人,但是你所剩下的邀请机会只剩下" +canInviteNum + "人")
+        return ""
+      }
+      $('#batchImportModal2').modal('hide');
+      $('#batchImportModal3').modal('show');
+
+      updateProgress(0, '开始导入数据，请耐心等待...');
+      var i = 0
+      const interval = setInterval(function() {
+            $.ajax({
+              url: "/user/inner/add?type={{g.type}}&is_batch=1",
+              type: "POST",
+              contentType: "application/json;charset=UTF-8",
+              data: JSON.stringify(importRightData[i]),
+              async: false,
+              success: function (data) {
+                var percent = (i+1)/importRightData.length
+                percent =percent.toFixed(2) *100
+                updateProgress(percent, '开始导入数据，请耐心等待...');
+                if(percent >=100){
+                  clearInterval(interval);
+                  $('#progressText').text('数据导入完成！');
+                  setTimeout(function() {
+                    $('#batchImportModal3').modal('hide');
+                    $('#batchImportModal4').modal('show');
+                    $('#result_num').html(' 导入数据：'+importRightData.length +'  导入成功：'+importRightData.length +'  导入失败：0')
+                  }, 1000);
+                }
+              }
+            })
+            i = i +1
+      }, 1000);
+
+    });
+    // onclick="window.open('/user/aiVal/export?type={{type}}')"
+  })
+</script>

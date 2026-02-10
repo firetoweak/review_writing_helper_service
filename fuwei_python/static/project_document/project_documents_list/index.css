@@ -1,0 +1,1470 @@
+/* static/project_document/project_documents_list/index.css - 更新版 */
+/* 基于产品缺陷管理模块样式统一风格 */
+
+/* 重置样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: PingFang SC, sans-serif !important;
+    background-color: #fff !important;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+}
+.back-link {
+    position: absolute;
+    left: 2.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.back-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.shrink-0 {
+    flex-shrink: 0;
+}
+
+.back-text {
+    margin-left: 0.56rem;
+    color: #217efd;
+    font-size: 1.38rem;
+    font-family: DingTalk JinBuTi;
+    line-height: 1.19rem;
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+/* 页头样式 - 更新为产品缺陷管理风格 */
+.page-header {
+    background: #ffffff;
+    padding: 0 20px;
+    height: 64px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    justify-content: center;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #E9EFF8;
+}
+
+.header-left {
+    align-items: center;
+    gap: 16px;
+}
+
+.header-right {
+    position: absolute; /* 绝对定位到右边 */
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-logo {
+    height: 32px;
+    width: auto;
+}
+
+.header-title {
+    margin: 0;
+    font-family: PingFang SC;
+    font-weight: 600;
+    font-size: 18px;
+    color: #222222;
+    display: flex;
+    align-items: center;
+}
+
+/* 按钮样式 - 统一为产品缺陷管理风格 */
+.btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    height: 40px;
+    font-family: PingFang SC;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);
+    color: white;
+    border: 1px solid #217EFD;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #8A5AFF 0%, #1A71E8 100%);
+}
+
+.btn-secondary {
+    background: white;
+    color: #557496;
+    border: 1px solid #E9EFF8;
+    background-color: #F6FAFF;
+}
+
+.btn-secondary:hover {
+    border-color: #217EFD;
+    color: #217EFD;
+}
+
+.btn-danger {
+    background: linear-gradient(90deg, #FE6380 0%, #FF4757 100%);
+    color: white;
+    border: 1px solid #FE6380;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(90deg, #E85773 0%, #E83E4E 100%);
+}
+
+.btn-warning {
+    background: linear-gradient(90deg, #FF8E25 0%, #FFA940 100%);
+    color: white;
+    border: 1px solid #FF8E25;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(90deg, #E87E1A 0%, #F59535 100%);
+}
+
+/* 按钮加载状态 */
+.btn-loading {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+.btn-secondary .btn-loading {
+    border: 2px solid rgba(102, 102, 102, 0.3);
+    border-top-color: #666;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid #E9EFF8;
+    transition: border-color 0.3s ease;
+}
+
+.user-avatar:hover {
+    border-color: #217EFD;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 搜索和过滤区域 - 更新为产品缺陷管理风格 */
+.search-filter-area {
+    padding: 20px;
+    background: white;
+    margin: 20px;
+    border-radius: 12px;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid #E9EFF8;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    max-width: 600px;
+    width: 100%;
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    opacity: 0.5;
+    z-index: 2;
+}
+
+#search-input {
+    flex: 1;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid #E9EFF8;
+    border-radius: 8px 0 0 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+    height: 40px;
+    background-color: #F6FAFF;
+    font-family: PingFang SC;
+}
+
+#search-input:focus {
+    border-color: #217EFD;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(33, 126, 253, 0.1);
+}
+
+.btn-search {
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);
+    color: white;
+    border: 1px solid #217EFD;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    height: 40px;
+    font-weight: 500;
+    font-family: PingFang SC;
+}
+
+.btn-search:hover {
+    background: linear-gradient(90deg, #8A5AFF 0%, #1A71E8 100%);
+}
+
+/* 过滤器 */
+.filter-options {
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label {
+    font-family: PingFang SC;
+    font-size: 14px;
+    color: #557496;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #E9EFF8;
+    border-radius: 6px;
+    background-color: #F6FAFF;
+    font-size: 14px;
+    min-width: 140px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+    font-family: PingFang SC;
+    height: 40px;
+}
+
+.filter-select:focus {
+    border-color: #217EFD;
+    box-shadow: 0 0 0 3px rgba(33, 126, 253, 0.1);
+}
+
+.filter-select:hover {
+    border-color: #C0D7F4;
+}
+
+/* 统计卡片 - 更新为产品缺陷管理风格 */
+.stats-cards {
+    padding: 0 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 180px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #E9EFF8;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: #217EFD;
+}
+
+.stat-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F6FAFF;
+    border: 1px solid #E9EFF8;
+}
+
+.stat-icon img {
+    width: 20px;
+    height: 20px;
+}
+
+.stat-title {
+    font-family: PingFang SC;
+    font-size: 14px;
+    color: #557496;
+    margin: 0;
+    font-weight: 400;
+}
+
+.stat-value {
+    font-family: PingFang SC;
+    font-size: 28px;
+    font-weight: 600;
+    color: #222222;
+    margin-bottom: 8px;
+}
+
+.stat-trend {
+    font-family: PingFang SC;
+    font-size: 12px;
+    color: #1FAC78;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-trend.negative {
+    color: #FE6380;
+}
+
+/* 项目列表容器 - 更新为产品缺陷管理风格 */
+.projects-list-container {
+    background: white;
+    margin: 20px;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #E9EFF8;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.projects-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #E9EFF8;
+}
+
+.projects-list-header h2 {
+    margin: 0;
+    font-family: PingFang SC;
+    font-size: 18px;
+    color: #222222;
+    font-weight: 600;
+}
+
+.list-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* 项目表格 - 完全重写为产品缺陷管理表格样式 */
+.projects-table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #E9EFF8;
+    margin-bottom: 20px;
+    background: #FFFFFF;
+}
+
+.projects-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+    background: #FFFFFF;
+}
+
+.projects-table thead {
+    background: linear-gradient(180deg, #F8FBFF 0%, #E8F4FF 100%);
+    height: 48px;
+}
+
+.projects-table th {
+    padding: 16px;
+    text-align: left;
+    font-weight: 500;
+    color: #557496;
+    border-bottom: 1px solid #E9EFF8;
+    font-size: 14px;
+    font-family: PingFang SC;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+    background: linear-gradient(180deg, #F8FBFF 0%, #E8F4FF 100%);
+}
+
+.projects-table th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.projects-table th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.projects-table th::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(33, 126, 253, 0.1) 0%, rgba(33, 126, 253, 0.3) 50%, rgba(33, 126, 253, 0.1) 100%);
+}
+
+.projects-table td {
+    padding: 18px 16px;
+    border-bottom: 1px solid #F0F4F8;
+    font-size: 14px;
+    vertical-align: middle;
+    background: #FFFFFF;
+    transition: background-color 0.2s ease;
+    font-family: PingFang SC;
+}
+
+.projects-table tbody tr:hover td {
+    background-color: #F8FBFF;
+}
+
+.projects-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 表格单元格样式 */
+.selection-cell {
+    text-align: center;
+    width: 40px;
+}
+
+.title-cell {
+    min-width: 250px;
+    max-width: 350px;
+}
+
+.project-title {
+    font-weight: 500;
+    cursor: pointer;
+    color: #217EFD;
+    transition: color 0.3s ease;
+    margin-bottom: 4px;
+    font-size: 15px;
+    text-decoration: none;
+}
+
+.project-title:hover {
+    color: #1A71E8;
+    text-decoration: underline;
+}
+
+.project-idea {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.status-cell {
+    white-space: nowrap;
+}
+
+.industry-cell .industry-text {
+    padding: 4px 8px;
+    background: #F6FFED;
+    color: #1FAC78;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: PingFang SC;
+}
+
+.rating-cell {
+    white-space: nowrap;
+}
+
+.rating-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stars-container {
+    display: flex;
+    gap: 2px;
+}
+
+.star-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+.rating-score {
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: PingFang SC;
+}
+
+.date-cell {
+    white-space: nowrap;
+    color: #557496;
+}
+
+.actions-cell {
+    min-width: 200px;
+}
+
+/* 操作按钮 - 更新为产品缺陷管理风格 */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    border: 1px solid #E9EFF8;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    color: #557496;
+    font-weight: 500;
+    outline: none;
+    font-family: PingFang SC;
+    height: 32px;
+    background-color: #F6FAFF;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+.action-btn.view-btn {
+    color: #217EFD;
+    border-color: #217EFD;
+    background: rgba(33, 126, 253, 0.1);
+}
+
+.action-btn.view-btn:hover {
+    background: rgba(33, 126, 253, 0.2);
+}
+
+.action-btn.edit-btn {
+    color: #1FAC78;
+    border-color: #1FAC78;
+    background: rgba(31, 172, 120, 0.1);
+}
+
+.action-btn.edit-btn:hover {
+    background: rgba(31, 172, 120, 0.2);
+}
+
+.action-btn.archive-btn {
+    color: #9767FF;
+    border-color: #9767FF;
+    background: rgba(151, 103, 255, 0.1);
+}
+
+.action-btn.archive-btn:hover {
+    background: rgba(151, 103, 255, 0.2);
+}
+
+.action-btn.delete-btn {
+    color: #FE6380;
+    border-color: #FE6380;
+    background: rgba(254, 99, 128, 0.1);
+}
+
+.action-btn.delete-btn:hover {
+    background: rgba(254, 99, 128, 0.2);
+}
+
+.action-btn img {
+    width: 12px;
+    height: 12px;
+}
+
+/* 复选框样式 */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #217EFD;
+}
+
+input[type="checkbox"]:focus {
+    outline: 2px solid rgba(33, 126, 253, 0.3);
+    outline-offset: 2px;
+}
+
+/* 分页 - 更新为产品缺陷管理风格 */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 16px 0;
+    border-top: 1px solid #E9EFF8;
+}
+
+.pagination-info {
+    color: #557496;
+    font-size: 14px;
+    font-family: PingFang SC;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-btn {
+    padding: 8px 12px;
+    border: 1px solid #E9EFF8;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #557496;
+    font-weight: 500;
+    font-family: PingFang SC;
+    background-color: #F6FAFF;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: #217EFD;
+    color: #217EFD;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-btn img {
+    width: 12px;
+    height: 12px;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: 4px;
+    margin: 0 8px;
+}
+
+.page-number {
+    padding: 8px 12px;
+    border: 1px solid #E9EFF8;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #557496;
+    font-family: PingFang SC;
+    background-color: #F6FAFF;
+}
+
+.page-number:hover:not(.active) {
+    border-color: #217EFD;
+    color: #217EFD;
+}
+
+.page-number.active {
+    background: linear-gradient(90deg, #9767FF 0%, #217EFD 100%);
+    color: white;
+    border-color: #217EFD;
+    font-weight: 600;
+}
+
+.page-ellipsis {
+    padding: 8px 4px;
+    color: #9CA7BB;
+    display: flex;
+    align-items: center;
+}
+
+/* 空状态 - 更新为产品缺陷管理风格 */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+    background: white;
+    border-radius: 12px;
+    margin: 20px;
+    border: 1px solid #E9EFF8;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state img {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 24px;
+    opacity: 0.6;
+}
+
+.empty-state h3 {
+    margin: 0 0 12px;
+    font-family: PingFang SC;
+    font-size: 20px;
+    color: #222222;
+    font-weight: 600;
+}
+
+.empty-state p {
+    margin: 0 0 24px;
+    color: #557496;
+    font-size: 14px;
+    max-width: 400px;
+    line-height: 1.6;
+    font-family: PingFang SC;
+}
+
+/* 模态框样式 - 更新为产品缺陷管理风格 */
+
+/* 删除原有的.modal-overlay和.modal相关样式，替换为以下样式 */
+
+/* 对话框遮罩层 */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+/* 对话框主容器 */
+.dialog-modal {
+    position: relative;
+    padding-top: 3.51rem; /* 为图标留出空间 */
+    width: 20rem; /* 比第一个示例稍宽以适应内容 */
+    background: transparent;
+}
+
+/* 对话框图标 */
+.modal-icon {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 3.51rem;
+    height: 3.51rem;
+    z-index: 1;
+}
+
+/* 对话框内容区域 */
+.modal-content {
+    padding: 2.25rem 1rem 0;
+    background-image: linear-gradient(180deg, #e7f1ff 2%, #ffffff 27.6%);
+    border-radius: 1rem;
+    overflow: hidden;
+    min-height: 10rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 对话框标题 */
+.modal-title {
+    text-align: center;
+    color: #222222;
+    font-size: 1.13rem;
+    font-family: PingFang SC;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+/* 对话框消息内容 */
+.modal-message {
+    text-align: center;
+    color: #557496;
+    font-size: 0.94rem;
+    font-family: PingFang SC;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+    flex: 1;
+}
+
+/* 批量操作列表的特殊样式 */
+.modal-content .batch-action-list {
+    padding: 0.5rem 0;
+    background: transparent;
+}
+
+.modal-content .batch-action-item {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e4f0ff;
+    border-radius: 0.5rem;
+    background: #f6faff;
+    transition: all 0.3s ease;
+}
+
+.modal-content .batch-action-item:hover {
+    border-color: #217efd;
+    background: #e4f0ff;
+    transform: translateY(-2px);
+}
+
+/* 对话框按钮区域 */
+.modal-buttons {
+    display: flex;
+    padding: 1.5rem;
+    background-color: #ffffff;
+    gap: 1rem;
+    margin-top: auto;
+    border-radius: 0 0 1rem 1rem;
+}
+
+.modal-button {
+    padding: 1rem 0;
+    flex: 1;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    height: 3rem;
+    text-align: center;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: PingFang SC;
+    font-weight: 600;
+    line-height: 0.94rem;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.modal-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.modal-button:active {
+    transform: translateY(0);
+}
+
+.modal-button.cancel {
+    background-color: #e4f0ff;
+    color: #217efd;
+}
+
+.modal-button.confirm {
+    background-image: linear-gradient(90deg, #9666ff 0%, #217efd 50%);
+    color: #ffffff;
+}
+
+.modal-button.danger {
+    background-image: linear-gradient(90deg, #fe6380 0%, #ff4757 50%);
+    color: #ffffff;
+}
+
+.modal-button.warning {
+    background-image: linear-gradient(90deg, #ff8e25 0%, #ffa940 50%);
+    color: #ffffff;
+}
+
+/* 更新HTML结构以匹配新样式 */
+
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+
+
+/* 批量操作列表 */
+.batch-action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.batch-action-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid #E9EFF8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    background-color: #F6FAFF;
+}
+
+.batch-action-item:hover {
+    border-color: #217EFD;
+    background: #F0F7FF;
+    transform: translateX(4px);
+}
+
+.batch-action-item img {
+    width: 20px;
+    height: 20px;
+}
+
+.batch-action-item span {
+    font-family: PingFang SC;
+    font-size: 14px;
+    color: #222222;
+    font-weight: 500;
+}
+
+/* Toast提示 - 更新为产品缺陷管理风格 */
+#toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+}
+
+.toast {
+    padding: 16px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 400px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    border-left: 4px solid #217EFD;
+    border: 1px solid #E9EFF8;
+    background-color: #F6FAFF;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-success {
+    border-left-color: #1FAC78;
+    background-color: #F3FEFA;
+}
+
+.toast-error {
+    border-left-color: #FE6380;
+    background-color: #FFF1F0;
+}
+
+.toast-warning {
+    border-left-color: #FF8E25;
+    background-color: #FFFBE6;
+}
+
+.toast-info {
+    border-left-color: #217EFD;
+    background-color: #E6F4FF;
+}
+
+.toast-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-family: PingFang SC;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #222222;
+}
+
+.toast-success .toast-title { color: #1FAC78; }
+.toast-error .toast-title { color: #FE6380; }
+.toast-warning .toast-title { color: #FF8E25; }
+.toast-info .toast-title { color: #217EFD; }
+
+.toast-message {
+    font-family: PingFang SC;
+    font-size: 13px;
+    color: #557496;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #9CA7BB;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    line-height: 1;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.3s ease;
+}
+
+.toast-close:hover {
+    color: #222222;
+}
+
+/* 状态标签 - 更新为产品缺陷管理风格 */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    font-family: PingFang SC;
+    font-size: 12px;
+    border-radius: 100px;
+    font-weight: 500;
+    line-height: 18px;
+    height: 28px;
+    line-height: 20px;
+}
+
+.status-draft {
+    background: linear-gradient(90deg, #E8F4FF 0%, rgba(232, 244, 255, 0.1) 100%);
+    color: #217EFD;
+    border: 1px solid #C0D7F4;
+}
+
+.status-writing {
+    background: linear-gradient(90deg, #E8F6F1 0%, rgba(232, 246, 241, 0.1) 100%);
+    color: #1FAC78;
+    border: 1px solid #B3E6D4;
+}
+
+.status-reviewing {
+    background: linear-gradient(90deg, #FFE7D1 0%, rgba(255, 231, 209, 0.1) 100%);
+    color: #FF8E25;
+    border: 1px solid #FFD5A6;
+}
+
+.status-completed {
+    background: linear-gradient(90deg, #E8F6F1 0%, rgba(232, 246, 241, 0.1) 100%);
+    color: #1FAC78;
+    border: 1px solid #B3E6D4;
+}
+
+.status-archived {
+    background: linear-gradient(270deg, rgba(235, 237, 241, 0) 0%, rgba(235, 237, 241, 0.7) 100%);
+    color: #9CA7BB;
+    border: 1px solid #E0E4EB;
+}
+
+/* 加载状态 */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    color: #9CA7BB;
+    text-align: center;
+    font-family: PingFang SC;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #F3F3F3;
+    border-top: 3px solid #217EFD;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .projects-table-container {
+        margin: 0 -16px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .projects-table th,
+    .projects-table td {
+        padding: 12px 16px;
+    }
+}
+
+@media (max-width: 992px) {
+    .search-filter-area {
+        margin: 16px 8px;
+        padding: 16px;
+    }
+
+    .projects-list-container {
+        margin: 16px 8px;
+        padding: 16px;
+    }
+
+    .stats-cards {
+        padding: 0 8px;
+    }
+
+    .stat-card {
+        min-width: calc(50% - 8px);
+    }
+
+    .filter-options {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .filter-item {
+        justify-content: space-between;
+    }
+
+    .filter-select {
+        flex: 1;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        padding: 0 16px;
+        height: 56px;
+    }
+
+    .header-title {
+        font-size: 16px;
+    }
+
+    .btn span {
+        display: none;
+    }
+
+    .btn {
+        padding: 8px;
+    }
+
+    .btn img {
+        margin: 0;
+    }
+
+    .stat-card {
+        min-width: 100%;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pagination-container {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .pagination-controls {
+        justify-content: center;
+    }
+
+}
+
+@media (max-width: 480px) {
+    .header-title {
+        font-size: 14px;
+    }
+
+    .search-box {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    #search-input {
+        border-radius: 8px;
+        width: 100%;
+    }
+
+    .btn-search {
+        border-radius: 8px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .projects-table th,
+    .projects-table td {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+}
+
+/* 打印样式 */
+@media print {
+    .page-header,
+    .search-filter-area,
+    .stats-cards,
+    .list-actions,
+    .action-buttons,
+    .pagination-container {
+        display: none !important;
+    }
+
+    .projects-list-container {
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+    }
+
+    .projects-table {
+        border: 1px solid #333;
+    }
+
+    .projects-table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+/* 与产品缺陷管理模块保持一致的额外样式 */
+.container-fluid{
+    --bs-gutter-x:0 !important;
+}
+
+.is-invalid {
+    border-color: #ff4757 !important;
+    color: #ff4757 !important;
+}
+
+/* 评分样式 */
+.score {
+    font-size: 20px;
+    font-weight: 700;
+    height: 100%;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-good {
+    background: linear-gradient(135deg, #1FAC78 0%, #34D399 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+}
+
+.score-warning {
+    background: linear-gradient(135deg, #FF8E25 0%, #FFA940 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+}
+
+.score-danger {
+    background: linear-gradient(135deg, #FE6380 0%, #FF4757 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+}
+
+/* 链接样式 */
+.project-title,
+.addxm,
+.history-link {
+    color: #217EFD;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.project-title:hover,
+.addxm:hover,
+.history-link:hover {
+    text-decoration: underline;
+    color: #1A71E8;
+}
+
+/* 滚动条样式 */
+.projects-table-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.projects-table-container::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 3px;
+}
+
+.projects-table-container::-webkit-scrollbar-thumb {
+    background: #d1d1d1;
+    border-radius: 3px;
+    transition: background 0.3s;
+}
+
+.projects-table-container::-webkit-scrollbar-thumb:hover {
+    background: #b1b1b1;
+}
+
+/* 加载占位符 */
+.loading-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #9CA7BB;
+    gap: 16px;
+}
+
+.loading-placeholder img {
+    width: 40px;
+    height: 40px;
+}
+
+.loading-placeholder span {
+    font-family: PingFang SC;
+    font-size: 14px;
+    color: #557496;
+}

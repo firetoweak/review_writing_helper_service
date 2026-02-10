@@ -1,0 +1,469 @@
+<style>
+  .wrong-input{
+    height: 20px;
+    width: 100px;
+    border-width:0px 0px 1px 0px; /* 去除边框 */
+    background-color: #ffffff; /* 设置背景颜色 */
+  }
+</style>
+
+<!-- 批量导入成员 -->
+<div class="modal fade" id="batchImportModal" tabindex="-1" aria-hidden="true" >
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入成员</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state1.svg" style="width: 378px;height: 46px;"></div>
+      <div style="font-size:14px;color:#9CA7BB;margin:16px 24px 10px 24px;">
+        <div style="width: 50%;float: left;margin-top: 20px;"><img src="/static/images/user-management/batch_font1.svg" style="width: 100%;height: 100%;"></div>
+        <div style="width: 30%;float: right; cursor: pointer" onclick="window.open('/static/download/批量导入用户.xlsx')"><img src="/static/images/user-management/batch_download_button.svg"></div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between" style="background:#F6FAFF;border:1px dashed #D5E8FF;border-radius:8px;padding:5px 16px;margin:0px 24px">
+        <div style="font-size:15px;color:#9CA7BB;">
+          1.请下载"空的导入模板"导入<br>
+          2.请勿修改导入模板的的表头，否则将导致导入失败<br>
+          3.如有空的数据列，则相应字段信息会被清空，请谨慎填写<br>
+        </div>
+      </div>
+      <div style="font-size:14px;color:#9CA7BB;margin:16px 24px 10px 24px;" >
+        <div style="width: 31%;float: left;margin-top: 10px;"><img src="/static/images/user-management/batch_font2.svg" style="width: 100%;height: 100%;"></div>
+      </div>
+
+      <div id="wait-upload-div">
+          <img src="/static/images/user-management/batch_upload_pic.svg" style="width: 100%;height: 100%;">
+      </div>
+
+      <div class="uploading-box" style="display: none" >
+        <div class="uploading-box-inner">
+          <div class="circle-progress-box">
+            <svg class="circle-progress" width="120" height="120">
+              <defs>
+                <linearGradient id="circle-gradient" x1="0%" y1="10%" x2="100%" y2="10%">
+                  <stop offset="0%" stop-color="#2D8CFF"/>
+                  <stop offset="100%" stop-color="#A259FF"/>
+                </linearGradient>
+              </defs>
+              <circle class="circle-bg" cx="60" cy="60" r="54" stroke-width="12" fill="none"/>
+              <circle class="circle-bar" cx="60" cy="60" r="54" stroke-width="12" fill="none"/>
+            </svg>
+            <img src="/static/images/user-management/batch_file.svg" class="circle-center-icon" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 确认数据导入 -->
+<div class="modal fade" id="batchImportModal2" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" >
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image:url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入成员</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state2.svg" style="width: 378px;height: 46px;"></div>
+      <div style="height:60%;place-items: center;margin:16px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;" >
+        <table class="table">
+          <thead>
+          <tr class="table-header">
+
+            <th width="80">ID</th>
+            <th width="290">真实姓名</th>
+            <th width="200">电子邮件</th>
+            <th width="200">部门</th>
+            <th width="200">职位</th>
+          </tr>
+          </thead>
+          <tbody id="batchImportConfirmTable">
+
+          </tbody>
+        </table>
+      </div>
+      <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+          <button class="btn-batch mr-3">重新上传</button>
+          <button class="btn-submit-continue" id="submitAndImport">确认无误,开始导入</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 错误数据修正 -->
+<div class="modal fade" id="WrongDataImportModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" >
+  <div class="modal-dialog modal-dialog-centered" style="max-width:950px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image:url(/static/images/user-management/batch_header.png);background-size: 100% 120%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入成员</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state2.svg" style="width: 378px;height: 46px;"></div>
+      <div style="width: 100%;height:auto;display: grid;text-align: left;margin-left: 24px;color:red">以下是数据上传后校验出的错误数据，请修正</div>
+
+      <div style="height:60%;place-items: center;margin:0px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;" >
+        <table class="table">
+          <thead>
+          <tr class="table-header">
+            <th width="50">ID</th>
+            <th width="200">真实姓名</th>
+            <th width="200">电子邮件</th>
+            <th width="200">部门</th>
+            <th width="200">职位</th>
+            <th width="350">错误原因</th>
+            <th width="100">操作</th>
+          </tr>
+          </thead>
+          <tbody id="WrongDataConfirmTable">
+
+          </tbody>
+        </table>
+      </div>
+      <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+          <button class="btn-batch mr-3">重新上传</button>
+          <button class="btn-submit-continue" id="confirmUpdate">确认修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 导入进度条 -->
+<div class="modal fade" id="batchImportModal3" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入成员</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state3.svg" style="width: 378px;height: 46px;"></div>
+      <div id="progressBarLine" style="height:60%;display: grid;place-items: center;margin:16px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;">
+        <div style="width: 90%; text-align: center;">
+          <!-- 百分比和刷新图标 -->
+          <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+            <img src="/static/images/user-management/refresh-icon.gif" alt="刷新" style="width: 24px; height: 24px; margin-right: 8px;">
+            <span style="font-size: 18px; font-weight: 500; color: #217EFD;" id="progress-percent">0%</span>
+          </div>
+
+          <!-- 进度条 -->
+          <div style="width: 100%; height: 10px; background-color: #EAF2FF; border-radius: 5px; overflow: hidden; margin-bottom: 20px;">
+            <div id="progressBar" style="width: 50%; height: 100%; background: linear-gradient(90deg, #2D8CFF 0%, #A259FF 100%); border-radius: 5px;"></div>
+          </div>
+
+          <!-- 提示文字 -->
+          <div style="font-size: 14px; color: #9CA7BB;">
+            <span id="progressText">数据导入中，请耐心等待...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 批量导入结果-->
+<div class="modal fade" id="batchImportModal4" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content" style="border-radius:16px;height: 700px;">
+      <div class="d-flex justify-content-between align-items-center" style="border-radius:16px;text-align: center;">
+        <div style="font-size:20px;font-weight:600;color:#222;width: 100%;height: 114px;background-image: url(/static/images/user-management/batch_header.png);background-size: 100% 100%;background-repeat: no-repeat;">
+          <div style="margin-top: 30px;text-align: center;width: 100%;height: 100%;">🚀批量导入成员</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:20px;"></button>
+      </div>
+      <div style="width: 100%;height:auto;display: grid;place-items: center;"><img src="/static/images/user-management/batch_state3.svg" style="width: 378px;height: 46px;"></div>
+      <div style="height:60%;place-items: center;margin:16px 24px 10px 24px;  border-radius: 8px;overflow-y: auto;">
+        <div style="width: 55px;height: 65px;display: grid;place-items: center;margin-top: 100px;">
+          <!--
+                              <img src="/static/images/user-management/batch_finish_icon.svg" style="width: 100%;height: 100%;">
+
+          -->
+          <img src="/static/images/user-management/batch_sucess_icon.svg" style="width: 100%;height: 100%;">
+
+        </div>
+        <div style="height: auto;display: grid;place-items: center;font-weight: 600;font-size: 20px;color: #222;margin-top: 20px;">
+          导入完成
+        </div>
+        <div style="height: auto;display: grid;place-items: center;font-size: 15px;color: #6b6868;margin-top: 20px;" id="result_num">
+
+        </div>
+      </div>
+      <div style="width: 100%;height: 100px;display: flex;justify-content: center;align-items: center;">
+        <div class="drawer-buttons" style="width: 40%;height: 100px;display: flex;justify-content: center;align-items: center;">
+          <!--
+          <button class="btn-batch mr-3"><img src="/static/images/user-management/down_icon.svg" alt="下载" style="width: 15px; height: 15px;">下载失败数据</button>
+          -->
+          <button class="btn-batch mr-3" id="reflash"><img src="/static/images/user-management/refresh_icon.svg" alt="刷新" style="width: 15px; height: 15px;">刷新</button>
+
+          <button class="btn-submit-continue" id="finish">完成</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  layui.use(['jquery', 'layer','upload'], function(){
+    var $ = layui.$ //重点处
+            ,layer = layui.layer;
+
+      var upload = layui.upload;
+      //$('#batchImportModal4').modal('show')
+      //执行实例
+      var wrongData = []
+      var importRightData = []
+      var canInviteNum = 0
+      var uploadInst = upload.render({
+        elem: '#wait-upload-div' //绑定元素
+        ,url: '/user/inner/batchCheckExcel?type={{g.type}}' //上传接口
+        ,accept: 'file'
+        ,exts: 'xls|xlsx',
+         progress: function(n, elem, res, index){
+          if (parseInt(n)>20){
+            setCircleProgress(50);
+          }
+        },
+        choose: function(obj){
+          console.log("choose")
+          $('#wait-upload-div').hide()
+          $('.uploading-box').show();
+          setCircleProgress(10);
+        },
+        before: function(obj){ //obj参数包含的信息，跟 choose回调完全一致，可参见上文。
+          console.log("before")
+          setCircleProgress(20);
+        },
+        done: function(res){
+          if(res.code==1) {
+            var percent = 50
+            setCircleProgress(percent)
+            const interval = setInterval(function () {
+              setCircleProgress(percent)
+              percent = percent + 5
+              if (percent >= 100) {
+                clearInterval(interval);
+              }
+            }, 500)
+            canInviteNum = res.rest_num
+            setTimeout(function(){
+              whichShow(res)
+            },5000)
+          }else{
+            showToast("warning",res.msg)
+          }
+          // if(res.wrong_data.length>0){
+          //   $('#batchImportModal').modal('hide')
+          //   $('#WrongDataImportModal').modal('show')
+          //   setTimeout(() => setTableWrongData(res.wrong_data), 1000)
+          //   }else {
+          //     $('#WrongDataImportModal').modal('hide')
+          //     $('#batchImportModal').modal('hide')
+          //     $('#batchImportModal2').modal('show')
+          //     setTimeout(() =>  setTableData(res.data), 1000)
+          //   }
+        }
+        ,error: function(){
+          //请求异常回调
+        }
+      });
+
+    function whichShow(res){
+      importRightData = res.data
+      if(res.wrong_data.length>0){
+        showToast("warning","数据校验后有错误")
+        $('#batchImportModal').modal('hide')
+        $('#WrongDataImportModal').modal('show')
+        setTableWrongData(res.wrong_data)
+      }else {
+        $('#WrongDataImportModal').modal('hide')
+        $('#batchImportModal').modal('hide')
+        $('#batchImportModal2').modal('show')
+         setTableData(res.data)
+      }
+    }
+
+    function setTableData(data){
+        if(data.length>0) {
+          var html = ""
+          for(var i=0;i<data.length;i++){
+            html =html+ `
+                          <tr>
+                            <td>${(i+1)}</td>
+                            <td>
+                               ${data[i].real_name}
+                            </td>
+                            <td> ${data[i].email}</td>
+                            <td> ${data[i].dept}</td>
+                            <td> ${data[i].position}</td>
+                          </tr>
+                    `
+          }
+          $('#batchImportConfirmTable').html(html)
+        }
+    }
+    $('#confirmUpdate').click(function(){
+         let data = $('#WrongDataConfirmTable input')
+         let l = data.length
+         let arr = []
+         for(var i=1;i<=l;i=i+4){
+            var tag = i-1
+            arr.push({"real_name":data[tag].value,"email":data[tag+1].value,"dept":data[tag+2].value,"position":data[tag+3].value})
+         }
+        console.log(arr)
+        importRightData =importRightData.concat(arr)
+        $.ajax({
+          url: "/user/inner/batchCheckJson?type={{g.type}}",
+          type: "POST",
+          contentType: "application/json;charset=UTF-8",
+          data: JSON.stringify({"users":importRightData}),
+          async: false,
+          success: function (data) {
+            canInviteNum = data.rest_num
+            whichShow(data)
+          }
+        })
+    })
+
+    function setTableWrongData(data){
+        if(data.length>0) {
+          var html = ""
+          for(var i=0;i<data.length;i++){
+            html =html+ `
+                            <tr>
+                              <td>${(i+1)}</td>
+                            <td>
+                                <input value="${data[i].real_name}" class="wrong-input" >
+                            </td>
+                            <td> <input value="${data[i].email}" class="wrong-input" ></td>
+                            <td> <input value="${data[i].dept}" class="wrong-input"></td>
+                            <td> <input value="${data[i].position}" class="wrong-input"></td>
+                            <td>${data[i].wrongMess}</td>
+                              <td><a style="cursor: pointer" class="wrong-input-del">删除</a></td>
+                            </tr>
+                      `
+          }
+          $('#WrongDataConfirmTable').html(html)
+          $('.wrong-input-del').click(function(){
+            $(this).parent().parent().remove();
+          })
+        }
+    }
+
+
+    $('.btn-batch:contains("重新上传")').click(function(){
+        $('#batchImportModal2').modal('hide')
+        $('#WrongDataImportModal').modal('hide')
+        $('.btn-batch:contains("批量导入")').click()
+    });
+    // 控制进度条函数
+    function updateProgress(percent, text) {
+      // 更新进度条宽度
+      $('#progressBar').css('width', percent + '%');
+
+      // 更新百分比文字
+      $('#progress-percent').text(percent + '%');
+
+      // 更新提示文字（如果提供）
+      if (text) {
+        $('#progressText').text(text);
+      }
+    }
+
+
+    // 模拟进度增长
+    function simulateProgressImport() {
+      let progress = 0;
+      const interval = setInterval(function() {
+        progress += 5;
+        updateProgress(progress);
+
+        // 修改提示文字
+        if (progress < 30) {
+          $('#progressText').text('正在解析Excel文件，请耐心等待...');
+        } else if (progress < 60) {
+          $('#progressText').text('正在验证数据格式，请耐心等待...');
+        } else if (progress < 90) {
+          $('#progressText').text('正在导入数据，请耐心等待...');
+        } else {
+          $('#progressText').text('导入即将完成，请耐心等待...');
+        }
+
+        // 完成时
+        if (progress >= 100) {
+          clearInterval(interval);
+          $('#progressText').text('数据导入完成！');
+          setTimeout(function() {
+            $('#batchImportModal3').modal('hide');
+            showToast('success', '批量导入成功');
+          }, 1000);
+        }
+      }, 500); // 每500毫秒增加5%
+    }
+
+    // 第二个确认导入按钮事件
+    $('#confirmImport2Btn').click(function(){
+      $('#batchImport2Modal').modal('hide');
+      showToast('success', '批量导入成功');
+    });
+
+    // 确认导入按钮事件
+    $('#submitAndImport').click(function() {
+      // 重置进度为0并启动模拟
+      if (parseInt(canInviteNum) < importRightData.length) {
+          $('#NoInvite').modal('show')
+          return ""
+      }
+      $('#batchImportModal2').modal('hide');
+      $('#batchImportModal3').modal('show');
+
+      updateProgress(0, '开始导入数据，请耐心等待...');
+      var i = 0
+      const interval = setInterval(function() {
+            $.ajax({
+              url: "/user/inner/add?type={{g.type}}&is_batch=1",
+              type: "POST",
+              contentType: "application/json;charset=UTF-8",
+              data: JSON.stringify(importRightData[i]),
+              async: false,
+              success: function (data) {
+                var percent = (i+1)/importRightData.length
+                percent =percent.toFixed(2) *100
+                updateProgress(percent, '开始导入数据，请耐心等待...');
+                if(percent >=100){
+                  clearInterval(interval);
+                  $('#progressText').text('数据导入完成！');
+                  setTimeout(function() {
+                    $('#batchImportModal3').modal('hide');
+                    $('#batchImportModal4').modal('show');
+                    $('#result_num').html(' 导入数据：'+importRightData.length +'  导入成功：'+importRightData.length +'  导入失败：0')
+                  }, 1000);
+                }
+              }
+            })
+            i = i +1
+      }, 1000);
+
+    });
+
+    $('#reflash,#finish').click(function(){
+        location.reload();
+    })
+  })
+</script>

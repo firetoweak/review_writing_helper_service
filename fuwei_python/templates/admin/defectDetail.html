@@ -1,0 +1,330 @@
+<!-- templates/defect/detail.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>产品缺陷管理 - 锋矢AI蓝军</title>
+        {% include "defect/bases.html" %}
+        <link href="/static/lib/wang-editor/style.css" rel="stylesheet" type="text/css">
+        <link href="/static/css/ai-val.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+    <header class="header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/user/index">
+                    <img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon">
+                    <img src="/static/images/logo-text.svg" alt="锋矢科技" class="logo-text ms-2">
+                </a>
+            </div>
+        </nav>
+    </header>
+
+
+        <!-- 顶部横幅 -->
+        {% include "components/defect_banner.html" %}
+
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+            <!-- 面包屑导航 -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-custom">
+                    <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="/defect/role_proxy">产品缺陷管理（智能工作流）</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        缺陷详情
+                    </li>
+                </ol>
+            </nav>
+        </div>
+        <!-- 主要内容区域 -->
+        <div class="container-main">
+        <!-- 显示Flash消息 -->
+        <!-- 缺陷基本信息 -->
+        <div class="defect-info-section">
+            <div class="section-header">
+                    <div class="section-title">
+                        <img src="/static/images/fengchi_tag.svg" alt="">
+                        缺陷基本信息
+                    </div>
+            </div>
+            <div class="defect-info-grid">
+                    <div class="info-row">
+                        <div class="info-item">
+                            <label class="info-label">缺陷所属产品线/技术族</label>
+                            <div class="info-value" id="productPlatform">{{project_version_name}}</div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">缺陷影响程度</label>
+                            <div class="info-value">
+                                <span class="status-tag {{ defect.severity | status_class }}">• {{defect.severity}}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">缺陷是否可重现</label>
+                            <div class="info-value" id="reproducible">{{ defect.defect_reproducibility }}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-item">
+                            <label class="info-label">当前处理人</label>
+                            <div class="info-value" id="currentHandler">{{ current_stage.assignee.real_name if current_stage.assignee else '未分配' }}/{{ current_stage.assignee.email if current_stage.assignee.email else '无Email' }}</div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">流程阶段</label>
+                            <div class="info-value" id="processStatus">{{ current_stage_name }}</div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">缺陷单号</label>
+                            <div class="info-value">
+                                <span id="defectNumber">{{ defect.defect_number }}</span>
+                                <div class="history-link">
+                                    <img src="/static/images/defect/p2_01.png" alt="历史记录" style="width: 14px; height: 14px; margin-left: 4px;">
+                                    <span>历史记录</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-item">
+                            <label class="info-label">创建人</label>
+                            <div class="info-value">{{ defect.creator.real_name if defect.creator else '未知' }}/{{ defect.creator.email if defect.creator else '无Email' }}</div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">创建时间</label>
+                            <div class="info-value">{{ defect.created_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">更新时间</label>
+                            <div class="info-value">{{ defect.updated_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-item">
+                            <label class="info-label">缺陷标题</label>
+                            <div class="info-value">{{ defect.title }}</div>
+                        </div>
+                    </div>
+            </div>
+            {% if source_defect %}
+            <div class="test-source">
+                    <span class="source-label">本测试单来自于</span>
+                    <br>
+                    <div class="flex items-center">
+                        <span class="source-info">【{{ source_defect.type }}：{{ source_defect.project_version_name }}】的缺陷单 <a class="defect-link" href="/defect/{{source_defect.id}}">{{ source_defect.defect_number }}</a> </span>
+                    </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 缺陷评估 -->
+        {% if defect_description_list|length > 0 %}
+        <div class="defect-evaluation-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <img src="/static/images/fengchi_tag.svg" alt="">
+                    缺陷评估
+                </div>
+            </div>
+
+            <div class="evaluation-table-container">
+                <table class="ai-val-detail-tb-content">
+                <thead>
+                <tr>
+                    <th style="width: 10%;">评估项</th>
+                    <th style="width: 40%;">
+                        <div class="flex justify-content-between">
+                            <span>内容</span>
+                        </div>
+                    </th>
+                    <th style="width: 40%;">AI 建议 <img src="/static/images/aival/start.svg" alt="AI" class="ai-icon" style="width: 14px; height: 14px; margin-left: 4px;"></th>
+                    <th style="width: 10%;">评分 (满分10分)</th>
+                </tr>
+                </thead>
+                <tbody class="ai-val-tr">
+                <tr>
+                    <td id="content_type1">产品缺陷描述</td>
+                    <td id="defect_description">
+                        {% for item in defect_description_list %}
+                        <div class="description-item">
+                             {% if item.description!='' and  item.description!=none %}
+                            <div class="title-description">
+                                  <b>{{ item.title }}</b>:{{ item.description | safe }}
+                            </div>
+                            {% endif %}
+                            <br>
+                        </div>
+                        {% endfor %}
+                    </td>
+
+                    <td id="AI_advice_for_description">
+                            {% if current_stage.stage_type == "defect_description" and  current_stage.status=="StageStatus.EVALUATING" %}
+                                评估中
+                            {% else %}
+                                {% if description_data|length > 0 %}
+                                    {{ description_data[0].ai_suggestion|default('未评估', true)|safe }}
+                                {% endif %}
+                            {% endif %}
+                     </td>
+                    <td id="description_score" class="score {% if description_data and description_data[0] and description_data[0].ai_score is not none %}{% if description_data[0].ai_score >= 8 %}score-green{% elif description_data[0].ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+                        {% if description_data and description_data[0] and description_data[0].ai_score is not none %}
+                        {{ description_data[0].ai_score}}
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% if analysis_data_list|length > 0 %}
+                <tr>
+                    <td id="content_type2">原因分析</td>
+                    <td id="cause_analysis">
+                        {% for item in analysis_data_list %}
+                        <div class="analysis-item-tb">
+                            <div class="title-description">{{ item | safe }}</div>
+                            <br>
+                        </div>
+                        {% endfor %}
+                    </td>
+                    <td id="AI_advice_for_analysis" >
+                            {% if current_stage.stage_type == "cause_analysis" and  current_stage.status=="StageStatus.EVALUATING" %}
+                                评估中
+                            {% elif current_stage.stage_type == "cause_analysis" and current_stage.status!="StageStatus.COMPLETED" %}
+                                未评估
+                           {% else %}
+                               {% if cause_analysis_ai and cause_analysis_ai.ai_suggestion != None %}
+                                    {{ cause_analysis_ai.ai_suggestion|safe }}
+                               {% endif %}
+                           {% endif %}
+                    </td>
+                    <td id="analysis_score" class="score {% if cause_analysis_ai and cause_analysis_ai.ai_score is not none %}{% if cause_analysis_ai.ai_score >= 8 %}score-green{% elif cause_analysis_ai.ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+                          {% if current_stage.stage_type == "cause_analysis" and  current_stage.status=="StageStatus.EVALUATING" %}
+
+                            {% elif current_stage.stage_type == "cause_analysis" and current_stage.status!="StageStatus.COMPLETED" %}
+
+                           {% else %}
+                               {% if cause_analysis_ai and cause_analysis_ai.ai_score != None %}
+                                    {{ cause_analysis_ai.ai_score  }}
+                               {% endif %}
+                           {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% if solution_data_list|length > 0 %}
+                <tr>
+                    <td id="content_type3">解决措施</td>
+                    <td id="solution_content">
+                        {% for item in solution_data %}
+                            {% if  item['content']['solutions'] |length > 0  %}
+                                <div class="solution-item">
+                                    <div class="title-description">
+                                    <b>修改模块:</b>{{item['module']}}
+                                    <br>
+                                    <b>执行措施:</b>{{item['action_plan']}}
+                                    <br>
+                                    <b>解决措施：</b><br>
+                                        {% for su in item['content']['solutions']%}
+                                             {{ su }}<br>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <br>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td id="AI_advice_for_solution">
+                           {% if current_stage.stage_type == "developer_solution" and  current_stage.status=="StageStatus.EVALUATING" %}
+                                评估中
+                           {% elif current_stage.stage_type == "developer_solution" and current_stage.status!="StageStatus.COMPLETED" %}
+                                未评估
+                           {% else %}
+                                {% if solution_ai and solution_ai != None  %}
+                                    {{ solution_ai.ai_suggestion|safe }}
+                                {% endif %}
+                           {% endif %}
+                    </td>
+                    <td id="solution_score" class="score {% if solution_ai and solution_ai.ai_score is not none %}{% if solution_ai.ai_score >= 8 %}score-green{% elif solution_ai.ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+                           {% if current_stage.stage_type == "developer_solution" and  current_stage.status=="StageStatus.EVALUATING" %}
+
+                           {% elif current_stage.stage_type == "developer_solution" and current_stage.status!="StageStatus.COMPLETED" %}
+
+                           {% else %}
+                                {% if solution_ai and solution_ai != None  %}
+                                    {{ solution_ai.ai_score }}
+                                {% endif %}
+                           {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if test_result_data|length > 0 and test_result_data[0].stage_status %}
+                <tr>
+                    <td id="content_type4">回归测试</td>
+                    <td id="result_content">
+                        {% for item in test_result_data_list %}
+                        <div class="result-item">
+                            <div class="title-description"><b>{{ item.title }}:</b> {{ item.description | safe }}</div>
+                            <br>
+                        </div>
+                        {% endfor %}
+                    </td>
+                    <td id="AI_advice_for_test_result">
+                            {% if current_stage.stage_type == "tester_regression" and  current_stage.status=="StageStatus.EVALUATING" %}
+                                评估中
+                            {% else %}
+                                {% if test_result_data|length > 0 and test_result_data[0] %}
+                                    {{ test_result_data[0].ai_suggestion|safe }}
+                                {% else %}
+                                    未评估
+                                {% endif %}
+                            {% endif %}
+                     </td>
+                    <td id="test_result_score" class="score {% if test_result_data and test_result_data[0] and test_result_data[0].ai_score is not none %}{% if test_result_data[0].ai_score >= 8 %}score-green{% elif test_result_data[0].ai_score >= 6 %}score-blue{% else %}score-red{% endif %}{% else %}score-red{% endif %}">
+                       {% if test_result_data and test_result_data[0] and test_result_data[0].ai_score is not none %}
+                       {{ test_result_data[0].ai_score }}
+                       {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+
+                </tbody>
+                <!-- 张三测试经理核实页面 -->
+                <tfoot>
+                    {% if defect_flow_histories|length > 1 %}
+                    <tr>
+                        <td colspan="4" style="background: #e5f0fd;color: #557496;">
+                            <div class="flex items-start">
+                                <div class="reviewer-info">
+                                    <img src="/static/images/defect/p1_04.png" alt="" class="reviewer-avatar">
+                                    <span class="reviewer-name">{{defect_flow_histories[-2].action_time.replace("T", " ")}} 【{{ defect_flow_histories[-2].action_by_real_name }} ({{ defect_flow_histories[-2].action_by_email }})】 </span>
+                                </div>
+                                <div class="review-comment">{{ defect_flow_histories[-2].notes | safe}}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if defect_flow_histories|length > 0 %}
+                    <tr>
+                        <td colspan="4" style="background: #e5f0fd;color: #557496;">
+                            <div class="flex items-start">
+                                <div class="reviewer-info">
+                                    <img src="/static/images/defect/p1_04.png" alt="" class="reviewer-avatar">
+                                    <span class="reviewer-name">{{defect_flow_histories[-1].action_time.replace("T", " ")}} 【{{ defect_flow_histories[-1].action_by_real_name }} ({{ defect_flow_histories[-1].action_by_email }})】 </span>
+                                </div>
+                                <div class="review-comment">{{ defect_flow_histories[-1].notes }}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tfoot>
+            </table>
+            </div>
+        </div>
+        {% endif %}
+
+    </body>
+</html>
+{% include "defect/base_js.html" %}
+{% include "components/defect_flow_histories.html" %}

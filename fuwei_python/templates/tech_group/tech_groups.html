@@ -1,0 +1,183 @@
+<!-- tech_groups.html -->
+{% extends "tech_group/base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>技术族管理</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active">技术族</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#techGroupModal" onclick="resetTechGroupForm()">
+            <i class="bi bi-plus-circle"></i> 新增
+        </button>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>描述</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for group in tech_groups %}
+        <tr>
+            <td>{{ group.id }}</td>
+            <td>{{ group.name }}</td>
+            <td>{{ group.description or '' }}</td>
+            <td>
+                <a href="{{ url_for('tech_group.get_platforms', group_id=group.id) }}" class="btn btn-sm btn-info">
+                    <i class="bi bi-list"></i> 查看平台
+                </a>
+                <button class="btn btn-sm btn-warning"
+                        data-bs-toggle="modal"
+                        data-bs-target="#techGroupModal"
+                        onclick="editTechGroup({{ group.id }}, '{{ group.name }}', '{{ group.description or '' }}')">
+                    <i class="bi bi-pencil"></i> 编辑
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteTechGroup({{ group.id }}, '{{ group.name }}')">
+                    <i class="bi bi-trash"></i> 删除
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 技术族模态框 -->
+<div class="modal fade" id="techGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="techGroupModalTitle">新增技术族</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="techGroupForm">
+                <input type="hidden" id="techGroupId" name="id" value="">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">名称</label>
+                        <input type="text" class="form-control" id="techGroupName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">描述</label>
+                        <textarea class="form-control" id="techGroupDescription" name="description"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 重置表单
+    function resetTechGroupForm() {
+        document.getElementById('techGroupModalTitle').innerText = '新增技术族';
+        document.getElementById('techGroupId').value = '';
+        document.getElementById('techGroupName').value = '';
+        document.getElementById('techGroupDescription').value = '';
+    }
+
+    // 编辑技术族
+    function editTechGroup(id, name, description) {
+        document.getElementById('techGroupModalTitle').innerText = '编辑技术族';
+        document.getElementById('techGroupId').value = id;
+        document.getElementById('techGroupName').value = name;
+        document.getElementById('techGroupDescription').value = description;
+    }
+
+    // 删除技术族
+    function deleteTechGroup(id, name) {
+        if (confirm(`确定要删除技术族"${name}"吗？此操作不可恢复。`)) {
+            fetch(`/tech_group/groups/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                // 首先检查HTTP状态码
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.error || `服务器错误: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 成功删除后刷新页面
+                alert(data.message || '删除成功');
+                window.location.reload();
+            })
+            .catch(error => {
+                alert('删除失败: ' + error.message);
+            });
+        }
+    }
+
+    // 处理技术族表单提交
+    document.getElementById('techGroupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // 表单验证
+        const nameInput = document.getElementById('techGroupName');
+
+        if (!nameInput.value.trim()) {
+            alert('技术族名称不能为空');
+            nameInput.focus();
+            return;
+        }
+
+        const formData = new FormData(this);
+        const techGroupId = document.getElementById('techGroupId').value;
+        const url = techGroupId ? `/tech_group/groups/${techGroupId}` : '/tech_group/groups';
+        const method = techGroupId ? 'PUT' : 'POST';
+        const action = techGroupId ? '更新' : '创建';
+
+        // 显示加载状态
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+        submitBtn.disabled = true;
+
+        fetch(url, {
+            method: method,
+            body: formData
+        })
+        .then(response => {
+            // 首先检查HTTP状态码
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || `服务器错误: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`${action}成功`);
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('techGroupModal'));
+            modal.hide();
+            // 刷新页面
+            window.location.reload();
+        })
+        .catch(error => {
+            alert(`${action}失败: ` + error.message);
+        })
+        .finally(() => {
+            // 恢复按钮状态
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+{% endblock %}

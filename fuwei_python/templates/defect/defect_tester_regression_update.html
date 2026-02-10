@@ -1,0 +1,457 @@
+<!-- templates/defect/defect_tester_regression_update.html -->
+{% extends "defect/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- 更新回归测试表单 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">缺陷信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">缺陷单号:</div>
+                        <div class="col-md-10">{{ defect.defect_number }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">标题:</div>
+                        <div class="col-md-10">{{ defect.title }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">描述:</div>
+                        <div class="col-md-10">{{ defect.description }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">严重程度:</div>
+                        <div class="col-md-4">{{ defect.severity }}</div>
+                        <div class="col-md-2 fw-bold">复现概率:</div>
+                        <div class="col-md-4">{{ defect.defect_reproducibility }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-2 fw-bold">阶段:</div>
+                        <div class="col-md-4">
+                            <span class="badge bg-{{ 'success' if defect.status == 'CLOSED' else 'warning' if defect.status == 'OPEN' else 'secondary' }}">
+                                {{ current_stage_name }}
+                            </span>
+                        </div>
+                        <div class="col-md-2 fw-bold">创建者:</div>
+                        <div class="col-md-4">{{ defect.creator.real_name if defect.creator else '未知' }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 fw-bold">创建时间:</div>
+                        <div class="col-md-4">{{ defect.created_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                        <div class="col-md-2 fw-bold">更新时间:</div>
+                        <div class="col-md-4">{{ defect.updated_time.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- tester_regression 回归测试阶段 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title">回归测试</h5>
+                </div>
+                <div class="card-body">
+                    <form id="regressionTestForm" method="post"
+                          action="{{ url_for('defect.submit_regression_test', defect_id=defect.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+
+                        <!-- 缺陷描述容器 -->
+                        <div id="descriptionItems">
+                            <!-- 默认三个缺陷描述字段 -->
+                            <div class="description-item mb-3">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">测试环境</h6>
+                                        <button type="button" class="btn btn-sm btn-danger remove-description" disabled>
+                                            <i class="bi bi-dash"></i> 删除
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control description-text" name="description-1" rows="3"
+                                                  placeholder="请描述发现缺陷的具体环境，和软硬件等具体的测试版本"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="description-item mb-3">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">操作步骤和预期结果</h6>
+                                        <button type="button" class="btn btn-sm btn-danger remove-description" disabled>
+                                            <i class="bi bi-dash"></i> 删除
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control description-text" name="description-2" rows="3"
+                                                  placeholder="触发缺陷产生的操作步骤和预期结果"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="description-item mb-3">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">实际测试结果与结论</h6>
+                                        <button type="button" class="btn btn-sm btn-danger remove-description" disabled>
+                                            <i class="bi bi-dash"></i> 删除
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control description-text" name="description-3" rows="3"
+                                                  placeholder="实际测试结果与结论"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 添加缺陷描述按钮 -->
+                        <div class="mt-3">
+                            <button type="button" id="addDescription" class="btn btn-outline-primary">
+                                <i class="bi bi-plus"></i> 添加缺陷描述
+                            </button>
+                            <span class="ms-2 text-muted" id="descriptionCounter">3/10</span>
+                        </div>
+
+                        <!-- 测试结果选择 -->
+                        <div class="mt-4">
+                            <h6>测试结果 <span class="text-danger">*</span></h6>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="test_result" id="testPassed"
+                                       value="passed" required>
+                                <label class="form-check-label" for="testPassed">通过</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="test_result" id="testFailed"
+                                       value="failed">
+                                <label class="form-check-label" for="testFailed">未通过</label>
+                            </div>
+                        </div>
+
+                        <!-- 测试备注 -->
+                        <div class="mt-3">
+                            <label for="test_notes" class="form-label">测试备注</label>
+                            <textarea class="form-control" id="test_notes" name="test_notes" rows="3"
+                                      placeholder="请输入测试备注..."></textarea>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="mt-4 d-flex justify-content-between">
+                            <div>
+                                <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal"
+                                        data-bs-target="#rejectModal">驳回
+                                </button>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary me-2" id="saveDraftBtn">
+                                    保存草稿
+                                </button>
+                                <button type="button" class="btn btn-outline-dark me-2" id="aiReviewBtn">AI自评</button>
+                                <button type="submit" class="btn btn-primary">提交测试审核</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 阶段特定内容 -->
+            {% if stage_data %}
+            <div class="mt-3">
+                <h6>当前阶段内容:</h6>
+                <div class="border p-3 bg-light">
+                    {% if stage_data.data_type == 'DEFECT_DESCRIPTION' %}
+                    <p><strong>标题:</strong> {{ stage_data.content.title }}</p>
+                    <p><strong>描述:</strong> {{ stage_data.content.description }}</p>
+                    <p><strong>严重程度:</strong> {{ defect.severity }}</p>
+                    <p><strong>复现概率:</strong> {{ defect.defect_reproducibility }}</p>
+                    {% elif stage_data.data_type == 'CAUSE_ANALYSIS' %}
+                    <p><strong>原因分析:</strong>
+                        {% if stage_data.content.analyses %}
+                    <ul>
+                        {% for analysis in stage_data.content.analyses %}
+                        <li>{{ analysis }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    暂无分析内容
+                    {% endif %}
+                    </p>
+                    <p><strong>提交时间:</strong> {{ stage_data.content.submitted_at if stage_data.content.submitted_at
+                        else '未知' }}</p>
+                    {% else %}
+                    <!-- 修改这里：避免直接序列化整个对象 -->
+                    <pre>{{ stage_data.content | tojson(indent=2) if stage_data.content is string else stage_data.content | tojson(indent=2) if stage_data.content is mapping else stage_data.content | string }}</pre>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <!-- 阶段历史 -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">阶段历史</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for stage in stages %}
+                        <div class="timeline-item {% if stage.id == defect.current_stage_id %}timeline-item-active{% endif %}">
+                            <div class="timeline-item-marker"></div>
+                            <div class="timeline-item-content">
+                                <h6>{{ stage.stage_type }}</h6>
+                                <p class="mb-1">负责人: {{ stage.assignee.real_name if stage.assignee else '未分配'
+                                    }}</p>
+                                <p class="mb-1">状态:
+                                    <span class="badge bg-{{ 'success' if stage.status == 'COMPLETED' else 'primary' if stage.status == 'IN_PROGRESS' else 'warning' }}">
+                                        {{ stage.status }}
+                                    </span>
+                                </p>
+                                <p class="text-muted small">{{ stage.created_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 20px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .timeline-item-marker {
+        position: absolute;
+        left: -20px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #6c757d;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 2px #6c757d;
+    }
+    .timeline-item-active .timeline-item-marker {
+        background-color: #0d6efd;
+        box-shadow: 0 0 0 2px #0d6efd;
+    }
+    .timeline-item-content {
+        padding: 10px;
+        border-left: 2px solid #dee2e6;
+        margin-left: 10px;
+    }
+    .timeline-item:last-child .timeline-item-content {
+        border-left: 2px solid transparent;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 修改这里：只提取需要的数据，而不是整个stage_data对象
+    const stageData = {% if stage_data and stage_data.content %}
+        {{ stage_data.content | tojson | safe }}
+    {% else %}
+        null
+    {% endif %};
+
+    // tester_regression 阶段（提交回归结果）的JavaScript代码
+    $(document).ready(function() {
+        let descriptionCount = 3; // 初始有三个描述项
+        const maxDescriptions = 10;
+        const minDescriptions = 3; // 最少需要三个描述项
+        updateDescriptionCounter();
+
+        // 初始化表单数据
+        if (stageData) {
+            // 填充测试结果
+            if (stageData.test_result) {
+                $(`input[name="test_result"][value="${stageData.test_result}"]`).prop('checked', true);
+            }
+
+            // 填充测试备注
+            if (stageData.test_notes) {
+                $('#test_notes').val(stageData.test_notes);
+            }
+
+            // 填充描述字段（如果有的话）
+            if (stageData.descriptions && Array.isArray(stageData.descriptions)) {
+                stageData.descriptions.forEach((desc, index) => {
+                    const fieldIndex = index + 1;
+                    if (fieldIndex <= descriptionCount) {
+                        // 更新现有字段
+                        $(`textarea[name="description-${fieldIndex}"]`).val(desc);
+                    } else if (fieldIndex <= maxDescriptions) {
+                        // 添加新字段并填充内容
+                        descriptionCount++;
+                        const newItem = `
+                            <div class="description-item mb-3" data-index="${descriptionCount}">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">附加描述 ${descriptionCount-3}</h6>
+                                        <button type="button" class="btn btn-sm btn-danger remove-description">
+                                            <i class="bi bi-dash"></i> 删除
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea class="form-control description-text" name="description-${descriptionCount}" rows="3" placeholder="请输入附加描述...">${desc}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        $('#descriptionItems').append(newItem);
+                    }
+                });
+
+                // 更新计数器和按钮状态
+                updateRemoveButtons();
+                updateDescriptionCounter();
+            }
+        }
+
+        // 添加缺陷描述项
+        $('#addDescription').click(function() {
+            if (descriptionCount < maxDescriptions) {
+                descriptionCount++;
+                const newIndex = descriptionCount;
+
+                const newItem = `
+                    <div class="description-item mb-3" data-index="${newIndex}">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">附加描述 ${newIndex-3}</h6>
+                                <button type="button" class="btn btn-sm btn-danger remove-description">
+                                    <i class="bi bi-dash"></i> 删除
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <textarea class="form-control description-text" name="description-${newIndex}" rows="3" placeholder="请输入附加描述..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                $('#descriptionItems').append(newItem);
+                updateRemoveButtons();
+                updateDescriptionCounter();
+            } else {
+                alert(`最多只能添加${maxDescriptions}个描述项`);
+            }
+        });
+
+        // 移除缺陷描述项
+        $(document).on('click', '.remove-description:not(:disabled)', function() {
+            if (descriptionCount > minDescriptions) {
+                $(this).closest('.description-item').remove();
+                descriptionCount--;
+
+                // 重新编号所有描述项
+                renumberDescriptions();
+                updateRemoveButtons();
+                updateDescriptionCounter();
+            }
+        });
+
+        // 重新编号描述项
+        function renumberDescriptions() {
+            $('.description-item').each(function(index) {
+                const newIndex = index + 1;
+                $(this).attr('data-index', newIndex);
+
+                // 更新前三个项的标题
+                if (newIndex === 1) {
+                    $(this).find('.card-header h6').text('测试环境');
+                } else if (newIndex === 2) {
+                    $(this).find('.card-header h6').text('操作步骤和预期结果');
+                } else if (newIndex === 3) {
+                    $(this).find('.card-header h6').text('实际测试结果与结论');
+                } else {
+                    $(this).find('.card-header h6').text(`附加描述 ${newIndex-3}`);
+                }
+
+                // 更新表单字段名称
+                $(this).find('textarea').attr('name', `description-${newIndex}`);
+            });
+        }
+
+        // 更新删除按钮状态
+        function updateRemoveButtons() {
+            // 前三个描述项始终禁用删除按钮
+            $('.description-item:lt(3) .remove-description').prop('disabled', true);
+
+            // 额外的描述项可以删除
+            $('.description-item:gt(2) .remove-description').prop('disabled', false);
+
+            // 如果没有额外描述项，隐藏删除按钮
+            if (descriptionCount <= minDescriptions) {
+                $('.description-item:gt(2) .remove-description').hide();
+            } else {
+                $('.description-item:gt(2) .remove-description').show();
+            }
+        }
+
+        // 更新描述计数器
+        function updateDescriptionCounter() {
+            $('#descriptionCounter').text(`${descriptionCount}/${maxDescriptions}`);
+
+            // 禁用或启用添加按钮
+            if (descriptionCount >= maxDescriptions) {
+                $('#addDescription').prop('disabled', true).addClass('disabled');
+            } else {
+                $('#addDescription').prop('disabled', false).removeClass('disabled');
+            }
+        }
+
+        // 保存草稿
+        $('#saveDraftBtn').click(function() {
+            // 这里可以实现保存草稿的逻辑
+            alert('保存草稿功能待实现');
+        });
+
+        // AI自评
+        $('#aiReviewBtn').click(function() {
+            // 这里可以实现AI自评的逻辑
+            alert('AI自评功能待实现');
+        });
+
+        // 表单提交验证
+        $('#regressionTestForm').submit(function(e) {
+            // 验证必填字段
+            let hasContent = false;
+            $('.description-text').each(function() {
+                if ($(this).val().trim() !== '') {
+                    hasContent = true;
+                    return false; // 退出循环
+                }
+            });
+
+            if (!hasContent) {
+                e.preventDefault();
+                alert('请填写至少一个描述字段');
+                return false;
+            }
+
+            // 验证测试结果是否选择
+            if (!$('input[name="test_result"]:checked').val()) {
+                e.preventDefault();
+                alert('请选择测试结果');
+                return false;
+            }
+
+            return true;
+        });
+
+        // 初始化删除按钮状态
+        updateRemoveButtons();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,771 @@
+<!-- writing-workspace.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>智能写作 - AI智能写作</title>
+
+    {% include "project_document/base.html" %}
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/data-service.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/marked.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/markdown-processor.js')}}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/writing-workspace/index.css')}}" />
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/common_functions.js')}}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/writing-workspace/index.js')}}"></script>
+
+  </head>
+  <body>
+    <div class="relative page scrollbar-custom">
+      <div class="flex-row justify-center items-center section page-header">
+        <div class="flex-row items-center header-left-pos">
+          <img class="shrink-0 icon-large" src="/static/project_document/images/writing-workspace/icon-menu-large.png" />
+          <span class="back-home-text ml-space-nine">返回首页</span>
+        </div>
+        <div id="steps-container" class="flex-row items-center"></div>
+        <div class="flex-row header-right-pos">
+          <div class="flex-col justify-start items-center header-btn">
+            <span class="btn-text header-btn-line-height">写作指导</span>
+          </div>
+          <div class="ml-space-eight flex-col justify-start items-center header-btn" id="btn-full-text-review">
+            <span class="btn-text header-btn-line-height">全文评审</span>
+          </div>
+          <div class="ml-space-eight flex-col justify-start items-center header-btn">
+            <span class="btn-text header-btn-line-height">全文预览</span>
+          </div>
+          <div class="ml-space-eight flex-col justify-start items-center header-btn-primary">
+            <span class="btn-text header-btn-primary-text">存档</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex-col justify-start items-center collapse-tooltip collapse-tooltip-pos" id="collapse-tooltip" style="display: none; z-index: 9999;">
+        <span class="tooltip-text">收起</span>
+      </div>
+      <div class="flex-col justify-start float-ball-tooltip float-ball-tooltip-pos" id="float-ball-tooltip" style="display: none;">
+        <span class="tooltip-text float-ball-tooltip-text">鼠标左键双击快捷开启，右键双击快捷关闭</span>
+      </div>
+
+      <!-- 左侧大纲收起后的竖条 -->
+      <div class="outline-panel-collapsed-bar" id="outline-panel-collapsed-bar">
+        <img class="collapse-icon" src="/static/project_document/images/writing-workspace/icon-collapse-section.png" />
+        <div class="collapse-text-wrap">
+          <span class="collapse-text-char">大</span>
+          <span class="collapse-text-char">纲</span>
+          <span class="collapse-text-char">和</span>
+          <span class="collapse-text-char">要</span>
+          <span class="collapse-text-char">点</span>
+        </div>
+      </div>
+
+      <div class="main-layout">
+        <div class="flex-col outline-panel">
+          <div class="flex-col justify-start items-center relative panel-header">
+            <img class="shrink-0 panel-bg-image" src="/static/project_document/images/common/bg-panel-header.png" />
+            <span class="btn-text tab-clickable outline-title-pos">全文大纲</span>
+            <span class="tab-text tab-clickable chapter-points-title-pos">章节要点</span>
+            <img class="shrink-0 icon-medium collapse-outline-pos" src="/static/project_document/images/common/icon-collapse.png" id="collapse-icon" onmouseenter="document.getElementById('collapse-tooltip').style.display='flex'" onmouseleave="document.getElementById('collapse-tooltip').style.display='none'" />
+            <div class="shrink-0 tab-underline tab-underline-outline"></div>
+          </div>
+          <div class="flex-col outline-content tab-pane" id="outline-content">
+            <!-- 大纲内容由 JS 动态生成 -->
+          </div>
+          <div class="flex-col outline-content tab-pane" id="chapter-points-content" style="display: none;">
+            <span class="secondary-text outline-title-margin">chapter-points内容占位</span>
+          </div>
+        </div>
+
+        <div id="resize-handle" class="resize-handle-area"></div>
+
+        <div class="flex-col main-panel">
+          <div class="flex-col justify-start editor-container">
+            <div class="flex-col justify-start items-center relative editor-header">
+              <img class="shrink-0 editor-bg-image" src="/static/project_document/images/writing-workspace/bg-editor.png" />
+              <span class="panel-title chapter-title-pos" id="chapter-title">第一章 文字描述</span>
+              <img class="shrink-0 icon-medium review-chapter-btn-pos" src="/static/project_document/images/common/icon-review.png" />
+              <span class="btn-text review-chapter-text-pos">AI评审本章</span>
+              <div class="shrink-0 toggle-switch float-ball-toggle-pos" id="toggle-float-ball"  style="display:none"></div>
+              <span class="btn-text float-ball-label-pos" style="display:none">悬浮球</span>
+            </div>
+          </div>
+          <div class="flex-col editor-body" id="editor-pane">
+            <div class="flex-col self-stretch relative">
+              <div class="flex-col editor-content-wrapper editor-wrapper" id="editor-wrapper">
+                <div class="writing-toolbar">
+                  <div id="writer-toolbar" class="toolbar-container"></div>
+                </div>
+                <div class="editor-callout" id="writing-point-block">
+                  <div class="editor-callout-header">
+                    <span class="editor-callout-icon">📝</span>
+                    <span class="editor-callout-title">写作要点</span>
+                  </div>
+                  <span class="editor-callout-text" id="writing-point">
+                    这是一段已输入的文字描述。这是一段已输入的文字描述。这是一段已输入的文字描述。这是一段已输入的文字描述。这是一段已输入的文字描述。这是一段已输入的文字描述。这是一段已输入的文字描述。
+                  </span>
+                </div>
+                <div class="editor-content" id="editor-content">
+                  <!-- 富文本内容由 JS 初始化 -->
+                </div>
+              </div>
+            </div>
+            <!-- 选中文字后的悬浮工具栏 - 样式1：操作选择 -->
+            <div class="selection-toolbar" id="selection-toolbar" style="display: none;">
+              <div class="selection-toolbar-row">
+                <!-- <div class="flex-row justify-evenly selection-btn" data-action="续写">
+                  <img class="selection-btn-icon" src="/static/project_document/images/writing-workspace/icon-selection-radio.png" />
+                  <span class="selection-btn-text">续写</span>
+                </div> -->
+                <div class="flex-row justify-evenly selection-btn" data-action="扩写">
+                  <img class="selection-btn-icon" src="/static/project_document/images/writing-workspace/icon-selection-radio.png" />
+                  <span class="selection-btn-text">扩写</span>
+                </div>
+                <div class="flex-row justify-evenly selection-btn" data-action="缩写">
+                  <img class="selection-btn-icon" src="/static/project_document/images/writing-workspace/icon-selection-radio.png" />
+                  <span class="selection-btn-text">缩写</span>
+                </div>
+                <div class="flex-row justify-evenly selection-btn" data-action="改写">
+                  <img class="selection-btn-icon" src="/static/project_document/images/writing-workspace/icon-selection-radio.png" />
+                  <span class="selection-btn-text">改写</span>
+                </div>
+              </div>
+              <div class="selection-toolbar-input-row">
+                <input type="text" class="selection-input" placeholder="请输入问题..." />
+                <img class="selection-send-icon" src="/static/project_document/images/writing-workspace/icon-selection-send.png" />
+              </div>
+            </div>
+            <!-- 选中文字后的悬浮工具栏 - 样式2：采用/弃用 -->
+            <div class="selection-toolbar-result" id="selection-toolbar-result" style="display: none;">
+              <div class="selection-toolbar-row">
+                <div class="flex-row items-center selection-btn-result" id="btn-discard">
+                  <img class="selection-btn-result-icon" src="/static/project_document/images/writing-workspace/icon-result-check.png" />
+                  <span class="selection-btn-text">弃用</span>
+                </div>
+                <div class="flex-row items-center selection-btn-result" id="btn-adopt">
+                  <img class="selection-btn-result-icon" src="/static/project_document/images/writing-workspace/icon-result-cross.png" />
+                  <span class="selection-btn-text">采用</span>
+                </div>
+              </div>
+              <div class="selection-toolbar-input-row">
+                <input type="text" class="selection-input" placeholder="请输入问题..." />
+                <img class="selection-send-icon" src="/static/project_document/images/writing-workspace/icon-selection-send.png" />
+              </div>
+            </div>
+            <div class="flex-row justify-center self-stretch bottom-actions-container">
+              <div class="flex-row ai-writing-btn">
+                <img class="shrink-0 icon-medium" src="/static/project_document/images/common/icon-review.png" />
+                <span class="ml-space-eight btn-text">AI启发式写作</span>
+              </div>
+              <div class="ml-space-sixteen flex-row review-section-btn">
+                <img class="shrink-0 icon-medium" src="/static/project_document/images/common/icon-review.png" />
+                <span class="ml-space-eight btn-text">AI评审本节</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex-col editor-body" id="guide-pane" style="display: none;">
+            <div class="flex-col self-stretch relative" id="guide-content">
+              <!-- 章节写作指导内容由 JS 动态生成 -->
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-col review-panel-container review-panel">
+          <div class="flex-col review-section-container review-section">
+            <div class="flex-col review-default" id="review-default">
+              <div class="justify-start items-center self-stretch relative panel-header">
+                <img class="shrink-0 review-bg-image" src="/static/project_document/images/writing-workspace/bg-review.png" />
+                <div class="review-header-flex">
+                  <div class="review-header-left">
+                    <span class="panel-title">AI 评审建议</span>
+                    <img class="shrink-0 icon-medium" src="/static/project_document/images/writing-workspace/icon-collapse-section.png" id="collapse-review-panel" />
+                  </div>
+                  <div class="review-header-center">
+                    <span id="thisSection" class="active">本节</span>
+                    <span>|</span>
+                    <span id="thisChapter" class="">本章</span>
+                  </div>
+                  <div class="review-header-right">
+                    <img class="shrink-0 icon-medium" src="/static/project_document/images/writing-workspace/icon-review-detail.png" />
+                    <span class="btn-text review-detail-text-pos">详情</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex-row justify-center items-center self-stretch review-score-container">
+                <img class="review-rating-icon" src="/static/project_document/images/writing-workspace/icon-rating-active.png" />
+                <span class="ml-space-ten review-score-text" id="review-score">评分 5</span>
+                <img class="ml-space-ten review-rating-icon" src="/static/project_document/images/writing-workspace/icon-rating-inactive.png" />
+              </div>
+              <span class="self-center secondary-text review-subtitle" id="review-subtitle">小节评审结果 (满分10分)</span>
+              <div class="flex-col self-stretch review-content-container" id="review-content">
+                <!-- AI评审内容由 JS 动态生成 -->
+              </div>
+            </div>
+            <div class="flex-col review-waiting" id="review-waiting" style="display: none;">
+              <div class="review-waiting-header">
+                <img class="review-waiting-bg" src="/static/project_document/images/writing-workspace/review-waiting-bg.png" />
+                <span class="review-waiting-title">改进建议</span>
+                <img class="review-waiting-title-icon" src="/static/project_document/images/writing-workspace/review-waiting-icon-left.png" />
+                <img class="review-waiting-detail-icon" src="/static/project_document/images/writing-workspace/review-waiting-icon-right.png" />
+                <span class="review-waiting-detail">查看详情</span>
+              </div>
+              <div class="review-waiting-body">
+                <img class="review-waiting-clock" src="/static/project_document/images/writing-workspace/review-waiting-clock.png" />
+                <div class="review-waiting-content">
+                  <span class="review-waiting-time">00:59</span>
+                  <div class="review-waiting-text">
+                    <span>AI评审中，请耐心等待</span>
+                    <span>大约 1～3 分钟完成评估</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-space-sixteen flex-col review-section-container notes-panel">
+            <div class="flex-col">
+              <div class="flex-col justify-start items-start relative panel-header">
+                <img class="shrink-0 panel-bg-image" src="/static/project_document/images/common/bg-panel-header.png" />
+                <span class="panel-title notes-title-pos">改进笔记</span>
+                <img class="shrink-0 icon-medium collapse-notes-pos" src="/static/project_document/images/writing-workspace/icon-collapse-section.png" id="collapse-notes-panel" />
+              </div>
+              <div id="notes-content">
+                <!-- 空状态 -->
+                <div class="notes-empty" style="display: none;">
+                  <span class="secondary-text">暂无笔记</span>
+                </div>
+
+                <!-- 笔记列表容器 -->
+                <div class="notes-list">
+                  <!-- 笔记项会通过模板动态添加 -->
+                </div>
+
+                <!-- 笔记项模板 -->
+                <template id="note-item-template">
+                  <div class="mt-space-twenty flex-row justify-evenly notes-checkbox-container note-item">
+                    <div class="notes-checkbox"></div>
+                    <span class="secondary-text notes-text-line-height"></span>
+                    <img class="icon-medium" src="/static/project_document/images/writing-workspace/icon-outline-bullet-active.png" />
+                  </div>
+                </template>
+              </div>
+            </div>
+            <div class="flex-col justify-start items-center merge-btn-container">
+              <span class="btn-text" id="merge-btn" style="cursor: pointer;">一键合入1.1章节正文</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-col ai-panel-container ai-panel" id="ai-panel">
+          <div class="flex-col justify-start items-center relative panel-header">
+            <img class="shrink-0 panel-bg-image" src="/static/project_document/images/common/bg-panel-header.png" />
+            <span class="panel-title ai-title-pos">AI 出谋划策</span>
+            <img class="shrink-0 icon-medium collapse-ai-pos" src="/static/project_document/images/writing-workspace/icon-collapse-section.png" id="collapse-ai-panel" />
+            <div class="shrink-0 toggle-switch ai-toggle-pos" id="toggle-ai-panel"></div>
+            <span class="btn-text history-dialog-pos" id="history-dialog-btn">历史对话</span>
+            <img class="shrink-0 icon-medium material-icon-pos" src="/static/project_document/images/writing-workspace/icon-material.png" />
+            <span class="btn-text material-text-pos">素材库</span>
+          </div>
+          <!-- 历史对话区域 -->
+          <div class="ai-history-section" id="ai-history-section">
+            <div class="ai-history-header">
+              <span class="ai-history-title">历史对话</span>
+              <div class="ai-history-clear" id="ai-history-clear">
+                <img class="ai-history-clear-icon" src="/static/project_document/images/writing-workspace/icon-clear-history.png" />
+                <span class="ai-history-clear-text">清空</span>
+              </div>
+            </div>
+            <div id="ai-history-content">
+              <!-- 历史记录由JS动态生成 -->
+            </div>
+          </div>
+          <!-- 话题选择区域（初始状态） -->
+          <div class="flex-col ai-topics-container ai-topics-section">
+            <div class="flex-row ai-helper-header">
+              <img class="ai-helper-icon" src="/static/project_document/images/writing-workspace/icon-ai-helper.png" />
+              <span class="ml-space-ten ai-helper-title-text ai-helper-title-margin" id="ai-helper-title">关于改进点，我能帮你：</span>
+              <!-- 折叠展开按钮 -->
+              <div class="ai-topics-toggle" id="ai-topics-toggle" title="折叠/展开话题列表">
+                <svg class="ai-topics-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 15L12 9L6 15" stroke="#557496" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div id="ai-topics-content" class="ai-topics-content">
+              <!-- AI话题内容由 JS 动态生成 -->
+            </div>
+            <div class="flex-row items-center ai-add-topic" id="add-topic-btn">
+              <img class="ai-topic-icon" src="/static/project_document/images/writing-workspace/icon-topic.png" />
+              <span class="ml-space-eight link-text">新增话题</span>
+            </div>
+          </div>
+          <!-- 对话区域（对话状态） -->
+          <div class="ai-chat-section" id="ai-chat-section">
+            <!-- 对话消息由 JS 动态生成 -->
+          </div>
+            <div class="flex-col ai-actions-container ai-bottom-actions">
+              <!-- 按钮行 - 只保留"加入改进笔记" -->
+              <div class="flex-row group_3">
+                <div class="flex-col justify-start flex-1 section_6">
+                  <div class="flex-row equal-division">
+                    <div class="flex-row justify-center flex-1 section_9" id="add-to-notebook-btn">
+                      <img class="image_3" src="/static/project_document/images/writing-workspace/icon-add-note.png" />
+                      <span class="font text_9 ml-9">加入改进笔记</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 输入框 + 上传后样式容器 -->
+              <div class="flex-col section_10 ai-input-block" id="ai-input-area">
+                <span class="ai-upload-title" id="ai-upload-title">仅识别附件中的文字</span>
+                <div class="flex-row ai-input-row">
+                  <textarea class="ai-dialog-input" id="ai-input-field" placeholder="请输入问题，向 AI 蓝军提问" rows="3"></textarea>
+                  <div class="flex-row items-center ai-input-icons">
+                    <img class="image_8" src="/static/project_document/images/writing-workspace/icon-link.png" id="ai-upload-file-trigger" />
+                    <input type="file" id="ai-upload-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" style="display: none;" />
+                    <img class="ml-16 image_8" src="/static/project_document/images/writing-workspace/icon-image.png" id="ai-upload-image-trigger" />
+                    <input type="file" id="ai-upload-image-input" accept=".png,.jpg,.jpeg,.gif" style="display: none;" />
+                    <img class="ml-16 image_7" src="/static/project_document/images/writing-workspace/icon-send-new.png" id="ai-send-btn" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧收起后的竖条容器 -->
+      <div class="collapsed-bars-container" id="collapsed-bars-container">
+        <!-- AI评审建议收起后的竖条 -->
+        <div class="review-panel-collapsed-bar" id="review-panel-collapsed-bar">
+          <img class="collapse-icon" src="/static/project_document/images/common/icon-collapse.png" />
+          <div class="collapse-text-wrap">
+            <span class="collapse-text-ai">AI</span>
+            <span class="collapse-text-char">评</span>
+            <span class="collapse-text-char">审</span>
+            <span class="collapse-text-char">建</span>
+            <span class="collapse-text-char">议</span>
+          </div>
+        </div>
+
+        <!-- AI出谋划策收起后的竖条 -->
+        <div class="ai-panel-collapsed-bar" id="ai-panel-collapsed-bar">
+          <img class="collapse-icon" src="/static/project_document/images/common/icon-collapse.png" />
+          <div class="collapse-text-wrap">
+            <span class="collapse-text-ai">AI</span>
+            <span class="collapse-text-char">出</span>
+            <span class="collapse-text-char">谋</span>
+            <span class="collapse-text-char">划</span>
+            <span class="collapse-text-char">策</span>
+          </div>
+        </div>
+
+        <!-- 改进笔记收起后的竖条 -->
+        <div class="notes-panel-collapsed-bar" id="notes-panel-collapsed-bar">
+          <img class="collapse-icon" src="/static/project_document/images/common/icon-collapse.png" />
+          <div class="collapse-text-wrap">
+            <span class="collapse-text-char">改</span>
+            <span class="collapse-text-char">进</span>
+            <span class="collapse-text-char">笔</span>
+            <span class="collapse-text-char">记</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- assets-manager弹窗 -->
+    <div class="material-modal-overlay" id="material-modal-overlay">
+      <div class="material-modal">
+        <div class="material-modal-header">
+          <img class="material-modal-close" id="material-modal-close" src="/static/project_document/images/common/icon-close.png" />
+          <span class="material-modal-title">📎 素材库管理</span>
+          <span class="material-modal-subtitle">AI背景素材库，作为AI出谋划策的背景知识</span>
+        </div>
+        <div class="material-modal-grid" id="material-modal-grid">
+          <!-- 素材项由JS动态生成 -->
+        </div>
+        <input type="file" class="material-file-input" id="material-file-input" accept=".ppt,.pptx,.doc,.docx,.pdf" multiple />
+      </div>
+    </div>
+
+    <!-- 改进建议详情弹窗 -->
+    <div class="review-detail-modal-overlay" id="review-detail-modal-overlay">
+      <div class="review-detail-modal">
+        <div class="review-detail-modal-header">
+          <img class="review-detail-modal-icon" src="/static/project_document/images/writing-workspace/tubiao.png" />
+          <span class="review-detail-modal-title">AI评审建议详情</span>
+          <img class="review-detail-modal-close" id="review-detail-modal-close" src="/static/project_document/images/common/icon-close.png" />
+        </div>
+        <div class="review-detail-content scrollbar-custom" id="review-detail-content">
+          <div class="review-detail-score-row">
+            <img class="review-detail-rating-icon" src="/static/project_document/images/writing-workspace/icon-rating-active.png" />
+            <span id="review-detail-score-text" class="review-detail-score-text">评分 5</span>
+            <img class="review-detail-rating-icon" src="/static/project_document/images/writing-workspace/icon-rating-inactive.png" />
+          </div>
+          <div class="review-detail-caption" id="review-subtitle-dialog">小节评审结果 (满分10分)</div>
+          <div id="review-detail-body" class="review-detail-body">
+            <span class="content-text">暂无评审建议</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除文件确认弹窗 -->
+    <div class="delete-file-modal-overlay" id="delete-file-modal-overlay">
+      <div class="delete-file-modal">
+        <img class="delete-file-modal-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="delete-file-modal-content">
+          <div class="delete-file-modal-title" id="delete-file-modal-title">确定删除该文件吗？</div>
+          <div class="delete-file-modal-buttons">
+            <div class="delete-file-modal-btn cancel" id="delete-file-cancel">不删除</div>
+            <div class="delete-file-modal-btn confirm" id="delete-file-confirm">确定删除</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 确认存档弹窗 -->
+    <div class="save-modal-overlay" id="save-modal-overlay">
+      <div class="save-modal">
+        <img class="save-modal-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="save-modal-content">
+          <div class="save-modal-title">确定存档吗？</div>
+          <div class="save-modal-buttons">
+            <div class="save-modal-btn cancel" id="save-modal-cancel">继续写作</div>
+            <div class="save-modal-btn confirm" id="save-modal-confirm">确定存档</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 存档进度弹窗 -->
+    <div class="archive-progress-overlay" id="archive-progress-overlay">
+      <div class="archive-progress-modal" role="dialog" aria-modal="true">
+        <div class="flex-col justify-start relative page">
+          <div class="group"></div>
+          <div class="flex-col section pos">
+            <div class="flex-col justify-start relative section_2">
+              <div class="ai-dialog-header-bg"></div>
+              <div class="section_3"></div>
+              <img class="image pos_2" id="archive-progress-close-img" src="/static/project_document/images/common/icon-close.png" />
+              <span class="font text pos_3">📝</span>
+              <span class="font text_2 pos_4">存档进度</span>
+            </div>
+            <div class="flex-row group_2">
+              <div class="flex-col flex-1 archive-progress-list scrollbar-custom">
+                <div class="flex-row items-center list-item">
+                  <div class="flex-col justify-start section_4">
+                    <div class="flex-col justify-start items-center image-wrapper">
+                      <img class="image_3" src="/static/project_document/images/writing-workspace/ask.png" />
+                    </div>
+                  </div>
+                  <div class="flex-col flex-1 group_3">
+                    <div class="flex-row items-center">
+                      <span class="font_2">这是一段写作标题</span>
+                      <div class="ml-6 flex-row items-center section_5">
+                        <img class="shrink-0 image_2" src="/static/project_document/images/current.png" />
+                        <span class="ml-4 font_3 text_3">当前存档</span>
+                      </div>
+                    </div>
+                    <div class="flex-row justify-between mt-13">
+                      <span class="font_3 text_4">全文共1300字</span>
+                      <div class="section_6"></div>
+                      <span class="font_3 text_5">创建时间 2025-12-22</span>
+                      <div class="section_6"></div>
+                      <span class="font_3">上次保存时间 2025-12-22</span>
+                    </div>
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_2">
+                    <img class="shrink-0 image_2" src="/static/project_document/images/common/icon-delete.png" />
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_3">
+                    <img class="shrink-0 image_4" src="/static/project_document/images/writing-workspace/edit.png" />
+                  </div>
+                </div>
+                <div class="flex-row items-center list-item_2">
+                  <div class="flex-col justify-start section_4">
+                    <div class="flex-col justify-start items-center image-wrapper">
+                      <img class="image_3" src="/static/project_document/images/writing-workspace/ask.png" />
+                    </div>
+                  </div>
+                  <div class="flex-col flex-1 group_4">
+                    <div class="flex-row items-center">
+                      <span class="font_2">这是一段写作标题</span>
+                      <div class="ml-6 flex-row items-center section_7">
+                        <img class="shrink-0 image_2" src="/static/project_document/images/history.png" />
+                        <span class="font_3 text_6 ml-5">自动保存</span>
+                      </div>
+                    </div>
+                    <div class="flex-row justify-between mt-13">
+                      <span class="font_3 text_7">全文共1300字</span>
+                      <div class="section_6"></div>
+                      <span class="font_3 text_8">创建时间 2025-12-22</span>
+                      <div class="section_6"></div>
+                      <span class="font_3">上次保存时间 2025-12-22</span>
+                    </div>
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_2">
+                    <img class="shrink-0 image_2" src="/static/project_document/images/common/icon-delete.png" />
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_3">
+                    <img class="shrink-0 image_4" src="/static/project_document/images/writing-workspace/edit.png" />
+                  </div>
+                </div>
+                <div class="flex-row items-center list-item_2">
+                  <div class="flex-col justify-start section_4">
+                    <div class="flex-col justify-start items-center image-wrapper">
+                      <img class="image_3" src="/static/project_document/images/writing-workspace/ask.png" />
+                    </div>
+                  </div>
+                  <div class="flex-col flex-1 group_4">
+                    <div class="flex-row items-center">
+                      <span class="font_2">这是一段写作标题</span>
+                      <div class="ml-6 flex-row items-center section_7">
+                        <img class="shrink-0 image_2" src="/static/project_document/images/history.png" />
+                        <span class="font_3 text_6 ml-5">自动保存</span>
+                      </div>
+                    </div>
+                    <div class="flex-row justify-between mt-13">
+                      <span class="font_3 text_7">全文共1300字</span>
+                      <div class="section_6"></div>
+                      <span class="font_3 text_8">创建时间 2025-12-22</span>
+                      <div class="section_6"></div>
+                      <span class="font_3">上次保存时间 2025-12-22</span>
+                    </div>
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_2">
+                    <img class="shrink-0 image_2" src="/static/project_document/images/common/icon-delete.png" />
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_3">
+                    <img class="shrink-0 image_4" src="/static/project_document/images/writing-workspace/edit.png" />
+                  </div>
+                </div>
+                <div class="flex-row items-center list-item_2">
+                  <div class="flex-col justify-start section_4">
+                    <div class="flex-col justify-start items-center image-wrapper">
+                      <img class="image_3" src="/static/project_document/images/writing-workspace/ask.png" />
+                    </div>
+                  </div>
+                  <div class="flex-col flex-1 group_4">
+                    <div class="flex-row items-center">
+                      <span class="font_2">这是一段写作标题</span>
+                      <div class="ml-6 flex-row items-center section_7">
+                        <img class="shrink-0 image_2" src="/static/project_document/images/history.png" />
+                        <span class="font_3 text_6 ml-5">自动保存</span>
+                      </div>
+                    </div>
+                    <div class="flex-row justify-between mt-13">
+                      <span class="font_3 text_7">全文共1300字</span>
+                      <div class="section_6"></div>
+                      <span class="font_3 text_8">创建时间 2025-12-22</span>
+                      <div class="section_6"></div>
+                      <span class="font_3">上次保存时间 2025-12-22</span>
+                    </div>
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_2">
+                    <img class="shrink-0 image_2" src="/static/project_document/images/common/icon-delete.png" />
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_3">
+                    <img class="shrink-0 image_4" src="/static/project_document/images/writing-workspace/edit.png" />
+                  </div>
+                </div>
+                <div class="flex-row items-center list-item_2">
+                  <div class="flex-col justify-start shrink-0 section_4">
+                    <div class="flex-col justify-start items-center image-wrapper">
+                      <img class="image_3" src="/static/project_document/images/writing-workspace/ask.png" />
+                    </div>
+                  </div>
+                  <div class="flex-col flex-1 group_4">
+                    <span class="font_2">这是一段写作标题这是一段写作标题这是一段写作标题这是一段...</span>
+                    <div class="mt-16 flex-row justify-between">
+                      <span class="font_3 text_7">全文共1300字</span>
+                      <div class="section_6"></div>
+                      <span class="font_3 text_8">创建时间 2025-12-22</span>
+                      <div class="section_6"></div>
+                      <span class="font_3">上次保存时间 2025-12-22</span>
+                    </div>
+                  </div>
+                  <div class="flex-col justify-start items-center shrink-0 image-wrapper_2">
+                    <img class="shrink-0 image_2" src="/static/project_document/images/common/icon-delete.png" />
+                  </div>
+                  <div class="flex-col justify-start items-center shrink-0 image-wrapper_3">
+                    <img class="shrink-0 image_4" src="/static/project_document/images/writing-workspace/edit.png" />
+                  </div>
+                </div>
+                <div class="flex-row items-center list-item_3">
+                  <div class="flex-col justify-start section_4">
+                    <div class="flex-col justify-start items-center image-wrapper">
+                      <img class="image_3" src="/static/project_document/images/writing-workspace/ask.png" />
+                    </div>
+                  </div>
+                  <div class="flex-col flex-1 group_5">
+                    <span class="self-start font_2">这是一段写作标题</span>
+                    <div class="mt-16 flex-row justify-between self-stretch">
+                      <span class="font_3 text_9">全文共1300字</span>
+                      <div class="section_6"></div>
+                      <span class="font_3 text_10">创建时间 2025-12-22</span>
+                      <div class="section_6"></div>
+                      <span class="font_3">上次保存时间 2025-12-22</span>
+                    </div>
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_2">
+                    <img class="shrink-0 image_2" src="/static/project_document/images/common/icon-delete.png" />
+                  </div>
+                  <div class="flex-col justify-start items-center image-wrapper_3">
+                    <img class="shrink-0 image_4" src="/static/project_document/images/writing-workspace/edit.png" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="flex-row justify-center group_6">
+              <div class="flex-col justify-start items-center text-wrapper" id="archive-progress-cancel">
+                <span class="font_2 text_11">不存档</span>
+              </div>
+              <div class="ml-16 flex-col justify-start items-center text-wrapper_2" id="archive-progress-confirm">
+                <span class="font_2 text_12">确定存档</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 确定退出写作弹窗 -->
+    <div class="exit-modal-overlay" id="exit-modal-overlay">
+      <div class="exit-modal">
+        <div class="exit-modal-content">
+          <img class="exit-modal-icon" src="/static/project_document/images/writing-workspace/icon-exit.png" />
+          <div class="exit-modal-title">确定退出写作吗？建议存档后退出</div>
+          <div class="exit-modal-buttons">
+            <div class="exit-modal-btn secondary" id="exit-modal-discard">放弃存档退出</div>
+            <div class="exit-modal-btn tertiary" id="exit-modal-continue">继续写作</div>
+            <div class="exit-modal-btn primary" id="exit-modal-save">存档后退出</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 改进笔记生成新正文确认弹窗 -->
+    <div class="unmerged-modal-overlay" id="regenerate-confirm-overlay">
+      <div class="unmerged-modal">
+        <img class="unmerged-modal-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="unmerged-modal-content">
+          <div class="unmerged-modal-title" id="regenerate-confirm-modal-title">将按照改进笔记生成新的正文，请等待...</div>
+
+          <div id="waitingArea" class="review-waiting-body" style="display:none">
+                <img class="review-waiting-clock dialog-waiting-clock" src="/static/project_document/images/writing-workspace/review-waiting-clock.png">
+                <div class="review-waiting-content">
+                  <span class="review-waiting-time">00:00</span>
+                  <div class="review-waiting-text">
+                    <span>AI正在生成正文，请耐心等待</span>
+                    <span>大约 1～3 分钟完成</span>
+                  </div>
+                </div>
+          </div>
+
+          <div class="unmerged-modal-buttons">
+            <div class="unmerged-modal-btn cancel" id="regenerate-confirm-cancel">取消</div>
+            <div class="unmerged-modal-btn confirm" id="regenerate-confirm-continue">继续</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% include "components/product_document/confirm_timer.html" %}
+
+    <!-- 未合入笔记弹窗 -->
+    <div class="unmerged-modal-overlay" id="unmerged-modal-overlay">
+      <div class="unmerged-modal">
+        <img class="unmerged-modal-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="unmerged-modal-content">
+          <div class="unmerged-modal-title">本节还有未合入的笔记，需要合入吗？</div>
+          <div class="unmerged-modal-buttons">
+            <div class="unmerged-modal-btn cancel" id="unmerged-modal-cancel">不合入</div>
+            <div class="unmerged-modal-btn confirm" id="unmerged-modal-confirm">合入</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 未合入笔记确认弹窗 -->
+    <div class="unmerged-confirm-modal-overlay" id="unmerged-confirm-modal-overlay">
+      <div class="unmerged-confirm-modal">
+        <img class="unmerged-confirm-modal-icon" src="/static/project_document/images/writing-workspace/icon-save.png" />
+        <div class="unmerged-confirm-modal-content">
+          <div class="unmerged-confirm-modal-title">本章节还有未合入的笔记，是否继续操作？<br/>如果继续操作，改进笔记中的内容将清空</div>
+          <div class="unmerged-confirm-modal-buttons">
+            <div class="unmerged-confirm-modal-btn cancel" id="unmerged-confirm-modal-cancel">不合入，继续</div>
+            <div class="unmerged-confirm-modal-btn confirm" id="unmerged-confirm-modal-confirm">取消</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI启发式写作对话弹窗 -->
+    <!-- 笔记编辑弹窗（复用 material-modal 样式） -->
+    <div class="material-modal-overlay" id="note-modal-overlay">
+      <div class="material-modal note-edit-modal">
+        <div class="material-modal-header">
+          <img class="material-modal-close" id="note-modal-close" src="/static/project_document/images/common/icon-close.png" />
+          <span class="material-modal-title">编辑笔记</span>
+          <span class="material-modal-subtitle">修改当前笔记内容</span>
+        </div>
+        <div class="material-modal-grid note-modal-body">
+          <textarea class="note-edit-text" id="note-modal-text"></textarea>
+        </div>
+        <div class="save-modal-buttons note-modal-actions">
+          <div class="save-modal-btn cancel" id="note-modal-cancel">取消</div>
+          <div class="save-modal-btn confirm" id="note-modal-save">保存</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI回复编辑弹窗 -->
+    <div class="material-modal-overlay" id="ai-reply-edit-overlay">
+      <div class="material-modal ai-reply-edit-modal">
+        <div class="material-modal-header">
+          <img class="material-modal-close" id="ai-reply-edit-close" src="/static/project_document/images/common/icon-close.png" />
+          <span class="material-modal-title">编辑回复</span>
+          <span class="material-modal-subtitle">支持标题、图片等富文本编辑</span>
+        </div>
+        <div class="ai-reply-edit-body">
+          <div class="toolbar-container ai-reply-edit-toolbar" id="ai-reply-edit-toolbar"></div>
+          <div class="ai-reply-edit-editor editor-body" id="ai-reply-edit-editor"></div>
+        </div>
+        <div class="save-modal-buttons ai-reply-edit-actions">
+          <div class="save-modal-btn cancel" id="ai-reply-edit-cancel">取消</div>
+          <div class="save-modal-btn confirm" id="ai-reply-edit-save">保存</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-dialog-modal-overlay" id="ai-dialog-modal-overlay">
+      <div class="ai-dialog-modal">
+        <div class="ai-dialog-header">
+          <div class="ai-dialog-header-bg"></div>
+          <img class="ai-dialog-close" id="ai-dialog-close" src="/static/project_document/images/common/icon-close.png" />
+          <span class="ai-dialog-emoji">📝</span>
+          <span class="ai-dialog-title">与AI蓝军完成互动，开始启发式写作</span>
+        </div>
+        <div class="ai-dialog-content" id="ai-dialog-content">
+          <!-- 对话内容由JS动态生成 -->
+        </div>
+        <div class="ai-dialog-input-area">
+          <div class="ai-dialog-upload-block" id="ai-dialog-upload-block">
+            <span class="ai-upload-title" id="ai-dialog-upload-title">仅识别附件中的文字</span>
+            <div class="ai-upload-card" id="ai-dialog-upload-card"></div>
+          </div>
+          <div class="ai-dialog-input-row">
+            <!-- 将原有的 input 元素替换为 textarea -->
+            <textarea class="ai-dialog-input" id="ai-dialog-input" placeholder="请输入回答" rows="3"></textarea>
+            <div class="ai-dialog-input-icons">
+              <img class="image_8" src="/static/project_document/images/writing-workspace/icon-link.png" id="ai-dialog-upload-file-trigger" />
+              <input type="file" id="ai-dialog-upload-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" style="display: none;" />
+              <img class="image_8" src="/static/project_document/images/writing-workspace/icon-image.png" id="ai-dialog-upload-image-trigger" />
+              <input type="file" id="ai-dialog-upload-image-input" accept=".png,.jpg,.jpeg,.gif" style="display: none;" />
+              <img class="ai-dialog-send" id="ai-dialog-send" src="/static/project_document/images/writing-workspace/icon-selection-send.png" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

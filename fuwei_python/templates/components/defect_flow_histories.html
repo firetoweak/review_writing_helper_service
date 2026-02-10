@@ -1,0 +1,166 @@
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="add-colleague-drawer" id="addColleagueDrawer-add" style="display: none;" tabindex="-1" aria-hidden="true">
+            <div class="drawer-overlay-list"></div>
+            <div class="drawer-container">
+                <div class="drawer-header">
+                    <div class="drawer-title-container">
+                        <div class="drawer-title"></div>
+                    </div>
+                </div>
+                <div class="drawer-content drawer-content1">
+                    <div class="layui-timeline custom-timeline">
+                        <!-- 时间线将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+<script>
+        window.addEventListener('load',function() {
+        $('.history-link').click(function() {
+            $('#addColleagueDrawer-add').fadeIn(300);
+            $('#addColleagueDrawer-add .drawer-container').animate({right: 0}, 300);
+            $('body').addClass('modal-open');
+        });
+
+    // 点击关闭按钮关闭抽屉
+    $('#closeDrawer, .drawer-overlay-list').click(function() {
+        $('#addColleagueDrawer-add .drawer-container').animate({right: '-500px'}, 300, function() {
+            $('#addColleagueDrawer-add').fadeOut(300);
+        });
+        // 检查是否还有其他模态框显示着
+        if ($('.modal.show').length === 0) {
+            // 移除modal-open类以恢复滚动条
+            $('body').removeClass('modal-open');
+        }
+    });
+
+    // 防止点击抽屉内容时关闭抽屉
+    $('#addColleagueDrawer-add .drawer-container').click(function(e) {
+        e.stopPropagation();
+    });
+
+
+    const flow_histories = {{ defect_flow_histories | default([]) | tojson }};
+    const timelineDataList = convertHistoryToTimeline(flow_histories);
+
+    layui.use(['element'], function(){
+            var element = layui.element;
+            var timelineData = timelineDataList;
+            // 渲染时间线
+            function renderTimeline() {
+                var timelineHtml = '';
+
+                timelineData.forEach(function(item, index) {
+                    var statusClass = '';
+                    var statusTag = '';
+                    var statusIconPath = ''; // 新增变量用于存储SVG图片路径
+
+                    switch (item.status) {
+                        case 'start':
+                            statusClass = 'status1-a';
+                            statusTag = '· 发起';
+                            statusIconPath = '/static/images/defect/success.svg'; // 根据状态设置SVG路径
+                            break;
+                        case 'transfer':
+                            statusClass = 'status1-a';
+                            statusTag = '· 流转';
+                            statusIconPath = '/static/images/defect/success.svg'; // 根据状态设置SVG路径
+                            break;
+                        case 'reject':
+                            statusClass = 'status1-b';
+                            statusTag = '· 驳回';
+                            statusIconPath = '/static/images/defect/error.svg'; // 根据状态设置SVG路径
+                            break;
+                        default:
+                            statusTag = '';
+                            statusIconPath = '/static/images/defect/warning.svg'; // 默认为空
+                    }
+
+                    var avatarClass = '';
+                    if (item.status === 'reject') {
+                        avatarClass = 'error';
+                    } else if (item.status === 'transfer') {
+                        avatarClass = 'warning';
+                    }
+                    var ai_sug_score_link = ""
+                    if(item.ai_sug_score_id!=null&&item.ai_sug_score_id!=""){
+                        {% if is_admin==1  %}
+                        ai_sug_score_link = `&nbsp;<a href='/admin/usersDocs?menu_pid=13&&menu_id=6&type=0&search=${item.ai_sug_score_id}' target="_blank">查看评估记录</a>`
+                        {% else %}
+                        ai_sug_score_link = `&nbsp;<a href='/user/aiVal/list?record_id=${item.ai_sug_score_id}' target="_blank">查看评估记录</a>`
+                        {% endif %}
+                    }
+                    timelineHtml += `
+                        <div class="layui-timeline-item ${statusClass}">
+                            <div class="layui-timeline-axis1">
+                                <div class="${avatarClass}">
+                                    ${item.user.charAt(0)}
+                                </div>
+                                ${statusIconPath ? `<img src="${statusIconPath}" class="timeline-status-icon">` : ''} <!-- 根据状态动态插入SVG图标 -->
+                            </div>
+                            <div class="layui-timeline-content layui-text timeline-content-wrapper">
+                                <div class="user-info">
+                                    <div class="user-job">
+                                        <div class="user-name">${item.user} ${item.role ? '(' + item.role + ')' : ''}</div>
+                                        <div class="status-tag">${statusTag}</div>
+                                    </div>
+                                    <div class="user-job">
+                                        <div class="user-dept">${item.dept} · ${item.job} · ${item.email}</div>
+                                        <div class="timeline-time">${item.time}</div>
+                                    </div>
+                                </div>
+                                <div class="message-box">${item.message}${ai_sug_score_link}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $('.custom-timeline').html(timelineHtml);
+            }
+
+            // 初始化时间线
+            renderTimeline();
+        });
+
+        function convertHistoryToTimeline(historyList) {
+      // 定义action_type到status的映射关系
+      const actionTypeToStatusMap = {
+        '': '',
+        'ActionType.UPDATE': '',
+        'ActionType.REJECT': 'reject',
+        'ActionType.TRANSFER': 'transfer',
+        'ActionType.ASSIGN_DIVISION': '',
+        'ActionType.SUBMIT_SOLUTION': '',
+        'ActionType.CREATE': 'start',
+        'ActionType.APPROVE': 'transfer',
+        'ActionType.TERMINATE': 'reject',
+        'ActionType.INVITE_CO_ANALYZE': '',
+        'ActionType.INVITE_TO_ANALYZE': '',
+        'ActionType.CANCEL': 'reject',
+        'ActionType.REMIND': '',
+        'ActionType.VAL_SELF':'',
+        'ActionType.VAL_SUBMIT':''
+      };
+
+      // 映射函数
+      return historyList.map(item => {
+        // 转换action_type到status
+        const status = actionTypeToStatusMap[item.action_type] || '';
+
+        return {
+          hisroryID: String(item.id || ''), // 转换为字符串，处理可能的空值
+          defectID: String(item.defect_id || ''), // 转换为字符串，处理可能的空值
+          user: item.action_by_real_name || '', // 处理可能的空值
+          role: '', // 固定值
+          dept: item.action_by_dept || '', // 处理可能的空值
+          job: item.position || '', // 处理可能的空值 job
+          email: item.action_by_email || '', // 处理可能的空值
+          time: item.action_time.replace('T', ' ') || '', // 直接使用原始时间格式
+          status: status, // 映射后的状态
+          message: item.notes || '', // 处理可能的空值
+          ai_sug_score_id:item.ai_sug_score_id||''
+        };
+      });
+    }
+        })
+</script>

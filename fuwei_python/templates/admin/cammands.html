@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    {% include "admin/base.html" %}
+    <body class="skin-blue">
+        <!-- header logo: style can be found in header.less -->
+        {% include "admin/header.html" %}
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+            <aside class="left-side sidebar-offcanvas">
+                <!-- sidebar: style can be found in sidebar.less -->
+                <section class="sidebar">
+                    <!-- Sidebar user panel -->
+                    <!-- search form -->
+                    <!-- /.search form -->
+                    <!-- sidebar menu: : style can be found in sidebar.less -->
+                       {% include "admin/menu.html" %}
+                </section>
+                <!-- /.sidebar -->
+            </aside>
+
+            <!-- Right side column. Contains the navbar and content of the page -->
+            <aside class="right-side">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>
+                        指令设置
+                        <small>Preview page</small>
+                    </h1>
+                    <ol class="breadcrumb">
+                        <li><a href="#"><i class="fa fa-dashboard"></i> 登录页</a></li>
+                        <li class="active">指令设置</li>
+                    </ol>
+                </section>
+
+                <!-- Main content -->
+                <section class="content">
+                    <!-- Small boxes (Stat box) -->
+                    <div class="row" style="text-align: center;">
+                        <div style="display: inline-block; margin: 0 auto; width: 1000px;">
+                            <table class="table table-bordered" style="margin-bottom: 5px">
+                                <tbody>
+                                <tr>
+                                    <th style="width: 10%">指令归属</th>
+                                    <th  style="width: 80%">指令内容</th>
+                                    <th  style="width: 10%">操作</th>
+                                </tr>
+                                {% for item in items %}
+                                <tr>
+                                    <td>{{item.name}}</td>
+                                    <td  style="text-align: left">
+                                        <textarea id="all{{item.id}}" class="form-control" rows="20" style="width: 100%;margin-right: 0px" placeholder="指令">{{item.all}}</textarea>
+                                    </td>
+                                    <td style="vertical-align: bottom">
+                                        <button  type="button" class="btn btn-primary" item_id="{{item.id}}">提交</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div><!-- /.row -->
+                </section>
+            </aside>
+    </body>
+</html>
+<script type="text/javascript">
+
+    $('.btn').click(function(){
+        $.ajax({
+            url: "/admin/cammands",
+            type: "POST",
+            contentType: "application/json;charset=UTF-8",
+            data: JSON.stringify({
+                all: $('#all'+$(this).attr('item_id')).val(),
+                id:$(this).attr('item_id')
+            }),
+            dataType: "json",
+            success: function (data) {
+                alert(data.msg);
+            }
+        })
+    })
+
+
+</script>

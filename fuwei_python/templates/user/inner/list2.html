@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+    {% include "user/base.html" %}
+    <body class="skin-blue">
+        <!-- header logo: style can be found in header.less -->
+        {% include "components/header.html" %}
+        <div class="wrapper row-offcanvas row-offcanvas-left">
+
+            <!-- Right side column. Contains the navbar and content of the page -->
+            <aside class="right-side strech">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>
+                        用户管理11111111111
+                        <small>Preview page</small>
+                    </h1>
+                    <ol class="breadcrumb">
+                        <li class="active"><a href="/user/aiVal/list?type={{type}}">{{g.type_content}}评估记录</a></li>
+                        <li class="active">用户管理</li>
+                    </ol>
+                </section>
+<!--                <section class="content">-->
+<!--                    <div style="float: left;width: 100%;margin-bottom: 5px">-->
+<!--                    </div>-->
+<!--                </section>-->
+
+                <section class="content">
+                    <button type="button" class="btn btn-warning" id="upload">批量导入</button>&nbsp
+                    <button type="button" class="btn btn-danger" id="delete_all" url="/user/inner/batch_delete?type={{g.type}}">批量删除</button>&nbsp
+                    <button type="button" class="btn btn-primary" onclick="location.href='/user/inner/add?type={{g.type}}'">新增</button>&nbsp
+                    <div style="float: left;width: 15%;margin-left: 10px">
+                        <input id="email" name="email" class="form-control" placeholder="电子邮件" value="{{email}}">
+                    </div>
+                    <div style="float: left;width: 5%; margin-left: 5px">
+                        <button id="sub" type="button" class="btn btn-primary">搜索</button>
+                    </div>
+                </section>
+
+                <!-- Main content -->
+                <section class="content">
+                    <table id="example1" class="table table-bordered table-striped">
+                        <thead>
+                        <tr>
+                            <th style="width: 3%">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"    class="icheck-me">
+                                    </label>
+                                </div>
+                            </th>
+                            <th>用户id</th>
+                            <th>真实姓名</th>
+                            <th>电子邮件</th>
+                            <th>部门</th>
+                            <th>职位</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tb">
+                        {% for item in items %}
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input row-checkbox"  value="{{item.user_id}}" type="checkbox"  name="id">
+                                    </div>
+                                </td>
+                                <td>{{item.user_id}}</td>
+                                <td>{{item.real_name}}</td>
+                                <td>{{item.email}}</td>
+                                <td>{{item.dept}}</td>
+                                <td>{{item.position}}</td>
+                                <td>
+                                    <a href="/user/inner/edit?user_id={{item.user_id}}&type={{type}}">编辑</a>|
+                                    <a style="cursor: pointer"  onclick="confirm('你确认要删除吗？')?location.href='/user/inner/delete?user_id={{item.user_id}}&type={{type}}':''">删除
+                                </td>
+                            </tr>
+                        {% endfor %}
+                       </tbody>
+                    </table>
+                    <ul class="pagination pagination-sm no-margin pull-right">
+                        {{ pagination.links }}
+                    </ul>
+                </section>
+            </aside>
+    </body>
+</html>
+<script src="{{ url_for('static', filename='js/common.js')}}" type="text/javascript"></script>
+<script>
+layui.use(['jquery', 'layer','upload'], function(){
+        var $ = layui.$ //重点处
+            ,layer = layui.layer;
+        let html = `
+        <div style="float: left;text-align: center;width: 100%;margin-top: 50px">
+            <button type="button" class="layui-btn" id="upload_button">
+                        <i class="layui-icon">&#xe67c;</i>上传文件
+            </button>
+             <button type="button" class="layui-btn" id="download_button" onclick="window.open('/static/download/批量导入用户.xlsx')">
+                        <i class="layui-icon">&#xe601;</i>下载模板
+            </button>
+       </div>
+        `
+        $('#sub').click(function () {
+            location.href = "/user/inner/list?type={{type}}&email=" + $('#email').val();
+        })
+
+
+
+
+    $('#upload').on('click', function(){
+            layer.open({
+                type: 1, // page 层类型
+                area: ['300px', '200px'],
+                title: '批量导入上传',
+                shade: 0.6, // 遮罩透明度
+                shadeClose: true, // 点击遮罩区域，关闭弹层
+                maxmin: true, // 允许全屏最小化
+                anim: 0, // 0-6 的动画形式，-1 不开启
+                content: html
+            });
+            var upload = layui.upload;
+            //执行实例
+            var uploadInst = upload.render({
+                elem: '#upload_button' //绑定元素
+                ,url: '/user/inner/batch_add?type={{type}}' //上传接口
+                ,accept: 'file'
+                ,exts: 'xls|xlsx'
+                ,before: function(obj){
+                    layer.load(); //上传loading
+                }
+                ,done: function(res){
+                    alert(res.msg)
+                    if(res.code == 1){
+                        location.reload()
+                    }
+                }
+                ,error: function(){
+                    //请求异常回调
+                }
+            });
+        })
+    });
+</script>

@@ -1,0 +1,35 @@
+
+<div class="role-box">
+    <img src="/static/images/defect/imga1/ab.png" alt="" />
+    <div style="margin-left: 16px;">
+        <div class="role-label">请选择您的角色<img src="/static/images/defect/imga1/Vector.png" alt="" /></div>
+        <div class="layui-form" style="width: 180px; margin-right: 1rem">
+            <select name="role" id="menu_roles" lay-verify="required" lay-filter="roleSelect">
+
+            </select>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.addEventListener('load', function() {
+         layui.use(['form'], function() {
+                let roles = JSON.parse('{{get_menu_role()|safe}}')
+                let html = ""
+                for(let role of roles){
+                    console.log(role)
+                     if(role[1]==true){
+                         html =html+ '<option value="'+role[0]+'" selected>'+role[0]+'</option>'
+                     }else{
+                         html =html+ '<option value="'+role[0]+'">'+role[0]+'</option>'
+                     }
+                }
+                $('#menu_roles').html(html)
+                var form = layui.form;
+                form.render('select');
+                form.on('select(roleSelect)', function(data){
+                    location.href = "/defect/role_proxy?role_select="+data.value+"&defect_type={{ request.values.get("defect_type") }}"
+                });
+         })
+    });
+</script>

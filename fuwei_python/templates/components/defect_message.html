@@ -1,0 +1,1095 @@
+<!-- components/defect_message.html -->
+<style>
+    /* 消息容器样式 - 调整为相对定位 */
+    .defect-message-container {
+        position: relative;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        height: 56px;
+        overflow: hidden;
+        margin: 10px 0;
+        top: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        /*transition: all 0.3s ease;*/
+    }
+
+    .defect-message-container.expanded {
+        height: 300px;
+        overflow-y: auto;
+    }
+
+    .defect-message-container.maximized {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        height: 80%;
+        overflow-y: auto;
+        z-index: 1001;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    /* 应用您提供的通知样式 */
+    .note-box {
+        display: flex;
+        align-items: center;
+        background: #f0f8ff;
+        border: 1px solid #d1e7ff;
+        border-radius: 6px;
+        margin: 8px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .note-box:hover {
+        background: #e8f4ff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .note-icon {
+        display: flex;
+        align-items: center;
+        margin-right: 12px;
+        font-weight: bold;
+        color: #1890ff;
+        flex-shrink: 0;
+    }
+
+    .note-icon img {
+        width: 16px;
+        height: 16px;
+        margin-right: 6px;
+    }
+
+    .role-note {
+        flex: 1;
+        color: #333;
+        font-size: 14px;
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .close-note {
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-left: 10px;
+        background: none;
+        border: none;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        color: #929292;
+        opacity: 0.8;
+    }
+
+    .close-note:hover {
+        color: #ff4d4f;
+        background: rgba(255,77,79,0.1);
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .close-note:disabled {
+        color: #ccc;
+        cursor: not-allowed;
+        background: none;
+    }
+
+    .close-note.closing {
+        color: #ffc107;
+    }
+
+    /* 消息列表容器 */
+    .defect-message-list {
+        position: relative;
+        transition: transform 0.5s ease;
+    }
+
+    /* 隐藏滚动条但保持滚动功能 */
+    .defect-message-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .defect-message-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .defect-message-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    .defect-message-container::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    .defect-message-item {
+        animation: slideInUp 0.3s ease-out;
+        overflow: hidden;
+        padding: 0 2rem 0 0.5rem;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* 消息内容样式 - 确保单行显示 */
+    .message-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 0 10px;
+        border-radius: 6px;
+        font-size: 14px;
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .message-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+
+    .message-type {
+        font-weight: bold;
+        font-size: 13px;
+        margin-right: 8px;
+    }
+
+    .message-time {
+        font-size: 12px;
+        color: #666;
+        margin-right: 12px;
+    }
+
+    .message-body {
+        flex: 1;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 12px;
+    }
+
+    .message-defect-info {
+        font-size: 12px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 0;
+        max-width: 200px;
+    }
+
+    /* 不同消息类型的样式 */
+    .message-review {
+        color: #856404;
+        border: 0px solid #ffeaa7;
+    }
+
+    .message-reject {
+        color: #721c24;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+    }
+
+    .message-assign {
+        color: #004085;
+        background-color: #cce5ff;
+        border: 1px solid #b8daff;
+    }
+
+    .message-urge {
+        color: #155724;
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+    }
+
+    .message-other {
+        color: #383d41;
+        background-color: #e2e3e5;
+        border: 1px solid #d6d8db;
+    }
+
+    .no-defect-messages {
+        padding: 15px;
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        background: white;
+        border-radius: 6px;
+    }
+
+    .defect-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        color: white;
+        z-index: 1001;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .defect-toast.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .defect-toast.success {
+        background: #28a745;
+    }
+
+    .defect-toast.error {
+        background: #dc3545;
+    }
+
+    .defect-toast.warning {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .defect-message-counter {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(220,53,69,0.4);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .defect-message-counter:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(220,53,69,0.6);
+    }
+
+    /* 容器控制栏 */
+    .defect-container-controls {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        display: flex;
+        gap: 5px;
+        z-index: 10;
+    }
+
+    .defect-control-btn {
+        background: rgba(255, 255, 255, 0.8);
+        border: none;
+        border-radius: 4px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        color: #555;
+        transition: all 0.2s;
+    }
+
+    .defect-control-btn:hover {
+        background: white;
+        color: #333;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* 遮罩层 */
+    .defect-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        display: none;
+        cursor: pointer;
+    }
+
+    /* 缺陷链接样式 */
+    .defect-link {
+        color: #1890ff;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .defect-link:hover {
+        color: #40a9ff;
+        text-decoration: underline;
+    }
+
+    .defect-link.closing {
+        color: #ffc107;
+        pointer-events: none;
+    }
+
+    .defect-link:disabled {
+        color: #ccc;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .defect-message-container {
+            padding: 8px;
+            height: 70px;
+        }
+
+        .defect-message-container.expanded {
+            height: 200px;
+        }
+
+        .note-box {
+            padding: 8px 10px;
+        }
+
+        .message-body {
+            font-size: 12px;
+        }
+
+        .message-defect-info {
+            max-width: 120px;
+            font-size: 11px;
+        }
+    }
+</style>
+
+<div class="defect-message-container" id="defectMessageContainer">
+    <div class="defect-container-controls">
+        <button class="defect-control-btn" id="defectExpandBtn" style="display:none" title="展开/收起">+</button>
+        <button class="defect-control-btn" id="defectMaximizeBtn" style="display:none" title="最大化">□</button>
+    </div>
+    <div class="defect-message-list" id="defectMessageList">
+        <div class="no-defect-messages" id="noDefectMessages">暂无新消息</div>
+    </div>
+    <div class="defect-message-counter" id="defectMessageCounter" style="display: none;"></div>
+</div>
+
+<div id="defectToastContainer"></div>
+
+<!-- 遮罩层 -->
+<div class="defect-overlay" id="defectOverlay"></div>
+
+<script>
+    class DefectMessageManager {
+        constructor() {
+            this.container = document.getElementById('defectMessageContainer');
+            this.messageList = document.getElementById('defectMessageList');
+            this.noMessages = document.getElementById('noDefectMessages');
+            this.toastContainer = document.getElementById('defectToastContainer');
+            this.messageCounter = document.getElementById('defectMessageCounter');
+            this.overlay = document.getElementById('defectOverlay');
+            this.expandBtn = document.getElementById('defectExpandBtn');
+            this.maximizeBtn = document.getElementById('defectMaximizeBtn');
+
+            this.messages = new Map();
+            this.pollingInterval = 30000;
+            this.isLoading = false;
+            this.closingMessages = new Set();
+
+            // 走马灯滚动相关属性
+            this.currentIndex = 0;
+            this.scrollInterval = null;
+            this.scrollSpeed = 3000;
+            this.isExpanded = false;
+            this.isMaximized = false;
+            this.isHovering = false;
+
+            this.init();
+        }
+
+        /**
+         * 初始化消息管理器
+         * 绑定事件监听器并开始轮询消息
+         */
+        init() {
+            // 绑定事件
+            this.container.addEventListener('mouseenter', () => {
+                this.isHovering = true;
+                this.stopScrolling();
+            });
+
+            this.container.addEventListener('mouseleave', () => {
+                this.isHovering = false;
+                if (this.messages.size > 1 && !this.isExpanded && !this.isMaximized) {
+                    this.startScrolling();
+                }
+            });
+
+            this.expandBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleExpand();
+            });
+
+            this.maximizeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMaximize();
+            });
+
+            // 消息计数器点击事件
+            this.messageCounter.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMaximize();
+            });
+
+            // 遮罩层点击事件
+            this.overlay.addEventListener('click', () => {
+                if (this.isMaximized) {
+                    this.toggleMaximize();
+                }
+            });
+
+            // 初始化轮询
+            this.loadMessages();
+            setInterval(() => {
+                if (!this.isLoading) {
+                    this.loadMessages();
+                }
+            }, this.pollingInterval);
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    this.loadMessages();
+                }
+            });
+        }
+
+        /**
+         * 从服务器加载消息数据
+         * 异步获取消息并更新本地消息列表
+         */
+        async loadMessages() {
+            if (this.isLoading) return;
+
+            this.isLoading = true;
+            try {
+                const response = await fetch('/defect_message/api/defect-messages', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.getToken()}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    this.updateMessages(result.data);
+                } else {
+                    console.error('获取消息失败:', result.message);
+                    this.showToast('获取消息失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('加载消息异常:', error);
+            } finally {
+                this.isLoading = false;
+            }
+        }
+
+        /**
+         * 更新消息列表
+         * @param {Array} newMessages - 新消息数组
+         */
+        updateMessages(newMessages) {
+            const previousCount = this.messages.size;
+
+            const currentMessageIds = new Set();
+            newMessages.forEach(msg => {
+                currentMessageIds.add(msg.id);
+                if (!this.messages.has(msg.id)) {
+                    this.messages.set(msg.id, msg);
+                } else {
+                    this.messages.set(msg.id, {...this.messages.get(msg.id), ...msg});
+                }
+            });
+
+            // 删除不存在于新消息中的旧消息
+            for (let [id, msg] of this.messages) {
+                if (!currentMessageIds.has(id)) {
+                    this.messages.delete(id);
+                }
+            }
+
+            this.renderMessages();
+
+            // 如果有新消息到达且之前没有消息，显示通知
+            if (previousCount === 0 && this.messages.size > 0) {
+                this.showToast(`您有 ${this.messages.size} 条新消息`, 'success', 2000);
+            }
+        }
+
+        /**
+         * 渲染消息列表
+         * 根据当前消息数量更新UI状态，包括计数器、控制按钮和滚动功能
+         */
+        renderMessages() {
+            const messageCount = this.messages.size;
+
+            // 根据消息数量更新UI状态
+            if (messageCount === 0) {
+                this.noMessages.style.display = 'block';
+                this.messageList.querySelectorAll('.defect-message-item').forEach(item => item.remove());
+                this.messageCounter.style.display = 'none';
+                this.expandBtn.style.display = 'none';
+                this.maximizeBtn.style.display = 'none';
+                this.stopScrolling();
+                this.container.classList.remove('expanded');
+                this.isExpanded = false;
+                return;
+            }
+
+            this.noMessages.style.display = 'none';
+            this.messageCounter.style.display = 'flex';
+            this.messageCounter.textContent = messageCount > 99 ? '99+' : messageCount.toString();
+
+            // 展开折叠按钮保存隐藏
+            this.expandBtn.style.display = 'none';
+            this.maximizeBtn.style.display = 'none';
+
+            const currentDomIds = new Set();
+            this.messageList.querySelectorAll('.defect-message-item').forEach(item => {
+                currentDomIds.add(parseInt(item.dataset.messageId));
+            });
+
+            // 移除不存在的消息元素
+            this.messageList.querySelectorAll('.defect-message-item').forEach(item => {
+                const messageId = parseInt(item.dataset.messageId);
+                if (!this.messages.has(messageId)) {
+                    item.remove();
+                }
+            });
+
+            // 创建或更新消息元素
+            this.messages.forEach((message, messageId) => {
+                if (!currentDomIds.has(messageId)) {
+                    const messageElement = this.createMessageElement(message);
+                    this.messageList.appendChild(messageElement);
+                } else {
+                    const existingElement = this.messageList.querySelector(`[data-message-id="${messageId}"]`);
+                    if (existingElement) {
+                        this.updateMessageElement(existingElement, message);
+                    }
+                }
+            });
+
+            // 修复：确保在渲染完成后更新滚动控制
+            setTimeout(() => {
+                this.updateScrollControl();
+            }, 0);
+        }
+
+        /**
+         * 更新滚动控制状态
+         * 根据消息数量、展开状态等条件决定是否启动滚动
+         */
+        updateScrollControl() {
+            // 修复：在最大化或展开状态下，停止滚动并重置位置
+            if (this.isMaximized || this.isExpanded) {
+                this.stopScrolling();
+                this.currentIndex = 0;
+                this.updateScrollPosition();
+                return;
+            }
+
+            if (this.messages.size > 1 && !this.isHovering) {
+                this.startScrolling();
+            } else {
+                this.stopScrolling();
+                this.currentIndex = 0;
+                this.updateScrollPosition();
+            }
+        }
+
+        /**
+         * 创建单个消息元素
+         * @param {Object} message - 消息对象
+         * @returns {HTMLElement} 消息DOM元素
+         */
+        createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'defect-message-item';
+            messageDiv.dataset.messageId = message.id;
+
+            const messageTypeClass = this.getMessageTypeClass(message.message_type);
+
+            messageDiv.innerHTML = `
+                <div class="note-box">
+                    <div class="note-icon">
+                        <img src="/static/images/defect/imga1/notice.png">
+                        <span>${this.getMessageTypeText(message.message_type)}</span>
+                    </div>
+                    <div class="message-content ${messageTypeClass}">
+                        <div class="message-header">
+                            <span class="message-time">${message.send_time}</span>
+                        </div>
+                        <div class="message-body">${this.formatMessageContent(message)}</div>
+                        <div class="message-defect-info">
+                            <a class="defect-link" href="/${message.part_link}/${message.defect_id}" data-message-id="${message.id}">${message.defect_number}</a> |
+                            <span title="${message.defect_title}">${message.defect_title}</span>
+                        </div>
+                    </div>
+                    <span class="close-note" data-message-id="${message.id}">
+                        <i class="fa fa-close" aria-hidden="true"></i>
+                    </span>
+                </div>
+            `;
+
+            const closeBtn = messageDiv.querySelector('.close-note');
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.closeMessage(message.id);
+            });
+
+            // 为缺陷链接添加点击事件 - 修复Firefox兼容性问题
+            const defectLink = messageDiv.querySelector('.defect-link');
+            defectLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // 如果消息正在关闭中，不执行任何操作
+                if (this.closingMessages.has(message.id)) {
+                    return;
+                }
+
+                // 先关闭消息，然后跳转
+                const success = await this.closeMessageWithRedirect(message.id, defectLink.href);
+
+                // 如果关闭失败，仍然允许跳转
+                if (!success) {
+                    window.location.href = defectLink.href;
+                }
+            });
+
+            if (this.closingMessages.has(message.id)) {
+                closeBtn.disabled = true;
+                closeBtn.classList.add('closing');
+                defectLink.classList.add('closing');
+            }
+
+            return messageDiv;
+        }
+
+        /**
+         * 更新现有消息元素
+         * @param {HTMLElement} element - 消息DOM元素
+         * @param {Object} message - 消息对象
+         */
+        updateMessageElement(element, message) {
+            const closeBtn = element.querySelector('.close-note');
+            const defectLink = element.querySelector('.defect-link');
+
+            if (this.closingMessages.has(message.id)) {
+                closeBtn.disabled = true;
+                closeBtn.classList.add('closing');
+                if (defectLink) {
+                    defectLink.classList.add('closing');
+                }
+            } else {
+                closeBtn.disabled = false;
+                closeBtn.classList.remove('closing');
+                if (defectLink) {
+                    defectLink.classList.remove('closing');
+                }
+            }
+        }
+
+        /**
+         * 根据消息类型获取对应的CSS类名
+         * @param {string} messageType - 消息类型
+         * @returns {string} CSS类名
+         */
+        getMessageTypeClass(messageType) {
+            if (messageType.includes('review')) return 'message-review';
+            if (messageType.includes('reject')) return 'message-reject';
+            if (messageType.includes('assign') || messageType.includes('invite')) return 'message-assign';
+            if (messageType.includes('urge')) return 'message-urge';
+            return 'message-other';
+        }
+
+        /**
+         * 根据消息类型获取显示文本
+         * @param {string} messageType - 消息类型
+         * @returns {string} 显示文本
+         */
+        getMessageTypeText(messageType) {
+            const typeMap = {
+                'review': '审核',
+                'reject': '驳回',
+                'assign': '指派',
+                'invite': '邀请',
+                'urge': '跟催',
+                'defect_close_confirm': '关闭确认'
+            };
+
+            for (const [key, value] of Object.entries(typeMap)) {
+                if (messageType.includes(key)) {
+                    return value;
+                }
+            }
+            return '消息';
+        }
+
+        /**
+         * 格式化消息内容
+         * @param {Object} message - 消息对象
+         * @returns {string} 格式化后的消息内容
+         */
+        formatMessageContent(message) {
+            let content = message.content;
+            content = content.replace(new RegExp(`单号：${message.defect_id}`, 'g'), '');
+            content = content.replace(new RegExp(`缺陷标题：${message.defect_title}`, 'g'), '');
+            return content.trim();
+        }
+
+        /**
+         * 关闭单条消息
+         * @param {number} messageId - 消息ID
+         */
+        async closeMessage(messageId) {
+            if (this.closingMessages.has(messageId)) {
+                return false;
+            }
+
+            this.closingMessages.add(messageId);
+            this.updateCloseButtonState(messageId, true);
+
+            try {
+                const response = await fetch(`/defect_message/api/defect-messages/${messageId}/close`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.getToken()}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    this.messages.delete(messageId);
+                    this.renderMessages(); // 重新渲染以更新UI状态
+                    this.showToast('消息已关闭', 'success');
+                    return true;
+                } else {
+                    throw new Error(result.message || '关闭消息失败');
+                }
+
+            } catch (error) {
+                console.error('关闭消息异常:', error);
+                this.showToast('关闭消息失败: ' + error.message, 'error');
+                return false;
+            } finally {
+                this.closingMessages.delete(messageId);
+                this.updateCloseButtonState(messageId, false);
+            }
+        }
+
+        /**
+         * 关闭消息并跳转（专门用于defect-link点击）
+         * @param {number} messageId - 消息ID
+         * @param {string} redirectUrl - 跳转URL
+         * @returns {boolean} 是否成功关闭
+         */
+        async closeMessageWithRedirect(messageId, redirectUrl) {
+            if (this.closingMessages.has(messageId)) {
+                return false;
+            }
+
+            this.closingMessages.add(messageId);
+            this.updateCloseButtonState(messageId, true);
+
+            try {
+                const response = await fetch(`/defect_message/api/defect-messages/${messageId}/close`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.getToken()}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    this.messages.delete(messageId);
+                    this.renderMessages();
+                    // 成功关闭后跳转
+                    window.location.href = redirectUrl;
+                    return true;
+                } else {
+                    throw new Error(result.message || '关闭消息失败');
+                }
+
+            } catch (error) {
+                console.error('关闭消息异常:', error);
+                // 即使关闭失败也允许跳转，但不显示错误提示
+                window.location.href = redirectUrl;
+                return false;
+            } finally {
+                this.closingMessages.delete(messageId);
+                this.updateCloseButtonState(messageId, false);
+            }
+        }
+
+        /**
+         * 更新关闭按钮状态
+         * @param {number} messageId - 消息ID
+         * @param {boolean} isClosing - 是否正在关闭中
+         */
+        updateCloseButtonState(messageId, isClosing) {
+            const closeBtn = this.messageList.querySelector(`[data-message-id="${messageId}"] .close-note`);
+            const defectLink = this.messageList.querySelector(`[data-message-id="${messageId}"] .defect-link`);
+
+            if (closeBtn) {
+                if (isClosing) {
+                    closeBtn.disabled = true;
+                    closeBtn.classList.add('closing');
+                } else {
+                    closeBtn.disabled = false;
+                    closeBtn.classList.remove('closing');
+                }
+            }
+
+            if (defectLink) {
+                if (isClosing) {
+                    defectLink.classList.add('closing');
+                } else {
+                    defectLink.classList.remove('closing');
+                }
+            }
+        }
+
+        /**
+         * 显示提示消息
+         * @param {string} message - 提示内容
+         * @param {string} type - 提示类型 (success, error, warning)
+         * @param {number} duration - 显示时长(毫秒)
+         */
+        showToast(message, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `defect-toast ${type}`;
+            toast.textContent = message;
+
+            this.toastContainer.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        /**
+         * 获取认证token
+         * @returns {string} 认证token
+         */
+        getToken() {
+            return localStorage.getItem('auth_token') || '';
+        }
+
+        /**
+         * 手动刷新消息
+         */
+        refresh() {
+            this.loadMessages();
+        }
+
+        /**
+         * 获取当前消息数量
+         * @returns {number} 消息数量
+         */
+        getMessageCount() {
+            return this.messages.size;
+        }
+
+        /**
+         * 关闭所有消息
+         * @returns {number} 成功关闭的消息数量
+         */
+        async closeAllMessages() {
+            const messageIds = Array.from(this.messages.keys());
+            let successCount = 0;
+
+            for (const messageId of messageIds) {
+                try {
+                    await this.closeMessage(messageId);
+                    successCount++;
+                } catch (error) {
+                    console.error(`关闭消息 ${messageId} 失败:`, error);
+                }
+            }
+
+            if (successCount > 0) {
+                this.showToast(`成功关闭 ${successCount} 条消息`, 'success');
+            }
+
+            return successCount;
+        }
+
+        /**
+         * 开始走马灯滚动
+         */
+        startScrolling() {
+            if (this.scrollInterval || this.messages.size < 2) return;
+
+            this.scrollInterval = setInterval(() => {
+                this.currentIndex = (this.currentIndex + 1) % this.messages.size;
+                this.updateScrollPosition();
+            }, this.scrollSpeed);
+        }
+
+        /**
+         * 停止走马灯滚动
+         */
+        stopScrolling() {
+            if (this.scrollInterval) {
+                clearInterval(this.scrollInterval);
+                this.scrollInterval = null;
+            }
+        }
+
+        /**
+         * 更新滚动位置
+         */
+        updateScrollPosition() {
+            if (this.messages.size < 2) return;
+
+            // 修复：在最大化或展开状态下，不应用滚动变换
+            if (this.isMaximized || this.isExpanded) {
+                this.messageList.style.transform = 'none';
+                return;
+            }
+
+            const messageHeight = 54;  // 每一条消息高度+上下外边距
+            const scrollY = -this.currentIndex * messageHeight;
+            this.messageList.style.transform = `translateY(${scrollY}px)`;
+        }
+
+        /**
+         * 切换展开/收起状态
+         */
+        toggleExpand() {
+            this.isExpanded = !this.isExpanded;
+
+            if (this.isExpanded) {
+                this.container.classList.add('expanded');
+                this.expandBtn.textContent = '-';
+                this.stopScrolling();
+                // 修复：展开时重置滚动位置
+                this.currentIndex = 0;
+                this.updateScrollPosition();
+            } else {
+                this.container.classList.remove('expanded');
+                this.expandBtn.textContent = '+';
+                this.updateScrollControl();
+            }
+        }
+
+        /**
+         * 切换最大化/正常状态
+         */
+        toggleMaximize() {
+            this.isMaximized = !this.isMaximized;
+
+            if (this.isMaximized) {
+                this.container.classList.add('maximized');
+                this.overlay.style.display = 'block';
+                this.maximizeBtn.textContent = '❐';
+                this.stopScrolling();
+                // 修复：最大化时重置滚动位置
+                this.currentIndex = 0;
+                this.updateScrollPosition();
+            } else {
+                this.container.classList.remove('maximized');
+                this.overlay.style.display = 'none';
+                this.maximizeBtn.textContent = '□';
+                this.container.scrollTop = 0; // 重置容器滚动条
+                this.updateScrollControl();
+            }
+        }
+    }
+
+    // 初始化消息管理器
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageManager = new DefectMessageManager();
+        window.defectMessageManager = messageManager;
+    });
+
+    // 添加键盘快捷键支持
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'M') {
+            e.preventDefault();
+            if (window.defectMessageManager) {
+                window.defectMessageManager.refresh();
+                window.defectMessageManager.showToast('手动刷新消息', 'info', 1000);
+            }
+        }
+
+        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            if (window.defectMessageManager && window.defectMessageManager.getMessageCount() > 0) {
+                if (confirm(`确定要关闭所有 ${window.defectMessageManager.getMessageCount()} 条消息吗？`)) {
+                    window.defectMessageManager.closeAllMessages();
+                }
+            } else {
+                window.defectMessageManager.showToast('没有可关闭的消息', 'warning', 2000);
+            }
+        }
+    });
+</script>

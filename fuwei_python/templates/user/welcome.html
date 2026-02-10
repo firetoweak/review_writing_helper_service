@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>锋矢AI蓝军</title>
+
+    {% include "user/base.html" %}
+
+</head>
+
+<style>
+    #registerStep2Form .form-group{
+        margin-bottom: 20px;
+    }
+
+</style>
+<body>
+    <!-- 顶部背景图 -->
+    <div class="background-container">
+        <!-- 背景在CSS中设置 -->
+    </div>
+
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/" >
+                    <img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon">
+                    <img src="/static/images/logo-text.svg" alt="锋矢科技" class="logo-text ms-2">
+                </a>
+                
+                <div class="d-flex align-items-center ms-auto" style="position: relative;">
+                    <ul class="navbar-nav me-4">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/open_api" >API 开放平台</a>
+                        </li>
+                        <li class="nav-item ms-3">
+                            <a class="nav-link" id="contactUsLink">联系我们</a>
+                        </li>
+                    </ul>
+                    <a id="btn-login" class="btn-login ms-3"></a>
+                    <div class="free-trial-btn">
+                        <img src="/static/images/index/free-exp.svg">
+                    </div>
+                </div>
+
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="main">
+        <!-- 标题部分 -->
+        <section class="hero-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 text-center">
+                        <div class="logo-large mb-4"></div>
+                        <h1 class="main-title">精确评估并提升企业工作质量</h1>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 产品卡片部分 -->
+        <section class="product-cards">
+            <div class="container" style="position: relative;">
+                <div class="row justify-content-center" style="position: relative;">
+                    <!-- 产品需求管理卡片 -->
+                    <div class="col-lg-4 mb-4" style="position: relative;">
+                        <div class="card product-card card-active" style="position: relative">
+                            <div class="card-status">免费试用</div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/card-image-1.png" alt="产品需求管理" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品需求管理</h3>
+                                        <span class="card-badge">AI评估</span>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">需求描述质量</span>
+                                        <span class="feature-item">需求分析质量</span>
+                                        <span class="feature-item">需求决策质量</span>
+                                        <span class="feature-item">需求验证质量</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 产品缺陷管理卡片 -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card product-card card-free">
+                            <div class="card-status">免费试用</div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/card-image-2.png" alt="产品缺陷管理" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品缺陷管理</h3>
+                                        <span class="card-badge">AI评估</span>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">缺陷描述质量</span>
+                                        <span class="feature-item">原因分析质量</span>
+                                        <span class="feature-item">解决措施质量</span>
+                                        <span class="feature-item">回归测试质量</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 产品立项质量卡片 -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card product-card card-coming">
+                            <div class="card-status">内测招募</div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/card-image-3.png" alt="产品立项质量" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品立项质量</h3>
+                                        <span class="card-badge">AI评估</span>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">市场机会分析质量</span>
+                                        <span class="feature-item">产品价值设定质量</span>
+                                        <span class="feature-item">产品包定义质量</span>
+                                        <span class="feature-item">执行策略输出质量</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 空白占位 -->
+                    <div class="col-lg-4 mb-4"></div>
+
+                    <!-- 产品缺陷跟踪系统卡片 -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card product-card card-free">
+                            <div class="card-status">免费试用</div>
+                            <div class="card-body">
+                                <div class="card-image-container">
+                                    <!-- 图片将由用户自行替换 -->
+                                    <img src="/static/images/defect/p1_01.png" alt="产品缺陷跟踪系统" class="card-image">
+                                </div>
+                                <div class="card-content">
+                                    <div class="card-title-container">
+                                        <h3 class="card-title">产品缺陷跟踪系统(DTS)</h3>
+                                    </div>
+                                    <div class="card-features">
+                                        <span class="feature-item">全流程缺陷管理</span>
+                                        <span class="feature-item">AI评审过程质量</span>
+                                        <span class="feature-item">不止于记录缺陷</span>
+                                        <span class="feature-item">致力于指导改进</span>
+                                    </div>
+                                    <div class="card-start-button" style="display:none">
+                                        <a><img src="/static/images/start.svg" alt=""></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 空白占位 -->
+                    <div class="col-lg-4 mb-4"></div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+
+
+
+
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <!-- 快捷入口 -->
+            <div class="quick-links text-center">
+                <span class="quick-links-title">快捷入口：</span>
+                <a class="quick-link">首页</a>
+                <a class="quick-link">产品立项</a>
+                <a class="quick-link">产品需求管理</a>
+                <a class="quick-link">产品缺陷管理</a>
+                <a class="quick-link" id="contactUsFooterLink">联系我们</a>
+                <a class="quick-link" id="aboutUsLink">关于我们</a>
+            </div>
+
+            <hr class="footer-divider">
+
+            <!-- 版权信息 -->
+            <div class="copyright text-center">
+                <div class="d-inline-flex align-items-center">
+                    <span>Copyright ©2025</span>
+                    <div class="d-flex align-items-center ms-2">
+                        <span><a  class="company-name" target="_blank" href="https://imblade.com/">锋矢科技</a></span>
+                        <i class="bi bi-chevron-right ms-1"></i>
+                    </div>
+                </div>
+                <div class="mt-1" onclick="location.href='https://beian.miit.gov.cn/'"  style="cursor: pointer">粤ICP备2023062980号</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 登录弹框 -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-container" >
+            <div class="login-header" style="justify-content: center">
+                <div class="login-logo" >
+                    <div class="greeting" style="justify-content: center">
+                        <span class="emoji">👋</span>
+                        <span class="greeting-text">你好，我是</span>
+                        <div class="logo-wrapper">
+                            <img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon">
+                            <img src="/static/images/logo-text.svg" alt="锋矢科技" class="logo-text">
+                        </div>
+                    </div>
+                    <div class="slogan">
+                        <div>
+                            <img src="/static/images/forgot-password/line-left.svg" alt="">
+                        </div>
+                        <span>帮你精确评估并提升企业工作质量</span>
+                        <div>
+                            <img src="/static/images/forgot-password/line-right.svg" alt="">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" id="closeLoginModal">
+                    <img src="/static/images/login/close-icon.svg" alt="关闭">
+                </button>
+            </div>
+            <div class="login-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="mobile">手机号/邮箱</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" id="login-mobile" placeholder="请输入">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <div class="input-wrapper password-input">
+                            <input type="password" class="form-control" id="login-password" placeholder="请输入">
+                            <button type="button" class="toggle-password">
+                                <img src="/static/images/login/eye-icon.svg" alt="显示密码">
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button"  id="login"  class="btn-submit">登 录</button>
+                    <div class="login-options">
+                        <span class="register-link">立即注册</span>
+                        <div class="divider-line"></div>
+                        <span class="forgot-password">忘记密码</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录弹框背景遮罩 -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <!-- 忘记密码弹框 -->
+    <div class="forgot-modal" id="forgotModal">
+        <div class="forgot-container">
+            <div class="forgot-header">
+                <div class="forgot-logo">
+                    <div class="greeting" style="justify-content: center">
+                        <span class="emoji">☹️</span>
+                        <span class="greeting-text">忘记密码</span>
+                    </div>
+                    <div class="slogan">
+                        <div>
+                            <img src="/static/images/forgot-password/line-left.svg" alt="">
+                        </div>
+                        <span>新密码将会发送至您的联系方式</span>
+                        <div >
+                            <img src="/static/images/forgot-password/line-right.svg" alt="">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" id="closeForgotModal">
+                    <img src="/static/images/forgot-password/forgot-close-icon.svg" alt="关闭">
+                </button>
+            </div>
+            <div class="forgot-body">
+                <form id="forgotForm">
+                    <div class="form-group">
+                        <label for="user_name">联系方式</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" id="user_name" placeholder="请输入你注册时的电子邮件或手机号">
+                        </div>
+                    </div>
+                    <button type="button" id="forget" class="btn-submit">提 交</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹框 -->
+    <div class="register-modal" id="registerModal">
+        <div class="register-container">
+            <div class="register-header">
+                <div class="register-logo">
+                    <div class="greeting" style="justify-content: center">
+                        <span class="emoji">👋</span>
+                        <span class="greeting-text">2步免费加入</span>
+                        <div class="logo-wrapper">
+                            <img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon">
+                            <img src="/static/images/logo-text.svg" alt="锋矢科技" class="logo-text">
+                        </div>
+                    </div>
+                    <div class="slogan">
+                        <div>
+                            <img src="/static/images/register/line-left.svg" alt="">
+                        </div>
+                        <span>注册新用户</span>
+                        <div>
+                            <img src="/static/images/register/line-right.svg" alt="">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" id="closeRegisterModal">
+                    <img src="/static/images/register/register-close-icon.svg" alt="关闭">
+                </button>
+            </div>
+            <div class="register-body">
+                <div class="register-steps">
+                    <div class="step-item active">
+                        <div class="step-icon">1</div>
+                        <div class="step-title">设置账号</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item">
+                        <div class="step-icon">2</div>
+                        <div class="step-title">填写资料</div>
+                    </div>
+                </div>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="mobile">手机号码</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" id="mobile" placeholder="请输入11位手机号码">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div style="width: 100%;height: 35px;">
+                            <div style="float: left;width: auto;margin-top: 5px">右图验证码: </div>
+                            <div style="float: left;display: flex;margin-top: -8px;cursor: pointer" onclick="generateCaptcha()"  ><canvas id="captchaCanvas" width="100" height="40"></canvas></div>
+                        </div>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" id="pic_code" placeholder="请输入图形验证码">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="mobileCode">短信验证码</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" id="mobileCode" placeholder="请输入4位验证码">
+                            <span class="get-code" id="sendCodeP"> <a id="sendCode">获取验证码</a></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <div class="input-wrapper password-input">
+                            <input type="password" class="form-control" id="password" placeholder="请输入，至少6位">
+                            <button type="button" class="toggle-password">
+                                <img src="/static/images/register/eye-icon.svg" alt="显示密码">
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password2">确认密码</label>
+                        <div class="input-wrapper password-input">
+                            <input type="password" class="form-control" id="password2" placeholder="再次输入密码，至少6位">
+                            <button type="button" class="toggle-password">
+                                <img src="/static/images/register/eye-icon.svg" alt="显示密码">
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button"  id="register" class="btn-submit" style="margin-top:8px ">下一步</button>
+                    <div class="login-link">我有帐号，去登录</div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册第二步弹框 -->
+    <div class="register-step2-modal" id="registerStep2Modal">
+        <div class="register-container">
+            <div class="register-header">
+                <div class="register-logo">
+                    <div class="greeting" style="justify-content: center">
+                        <span class="emoji">👋</span>
+                        <span class="greeting-text">2步免费加入</span>
+                        <div class="logo-wrapper">
+                            <img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon">
+                            <img src="/static/images/logo-text.svg" alt="锋矢科技" class="logo-text">
+                        </div>
+                    </div>
+                    <div class="slogan">
+                        <div>
+                            <img src="/static/images/register/line-left.svg" alt="">
+                        </div>
+                        <span>注册新用户</span>
+                        <div>
+                            <img src="/static/images/register/line-right.svg" alt="">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" id="closeRegisterStep2Modal">
+                    <img src="/static/images/register/register-close-icon.svg" alt="关闭">
+                </button>
+            </div>
+            <div class="register-body">
+                <div class="register-steps">
+                    <div class="step-item">
+                        <div class="step-icon">1</div>
+                        <div class="step-title">设置账号</div>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step-item active">
+                        <div class="step-icon">2</div>
+                        <div class="step-title">填写资料</div>
+                    </div>
+                </div>
+                <form id="registerStep2Form">
+                    <div class="form-group">
+                        <label for="company_name">您的企业是？</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" id="company_name" placeholder="请输入您的真实企业名称">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="real_name">怎么称呼您？</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-control" id="real_name" placeholder="请输入真是姓名">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">您的企业有多少人使用？</label>
+                        <div class="form-input-container dropdown-container">
+                            <select class="form-input select-input" id="employees_num">
+                                <option value="">请选择</option>
+                                {% for e in allEmployeesNum %}
+                                <option value="{{e}}">{{e}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">您的企业属于什么行业？</label>
+                        <div class="form-input-container dropdown-container">
+                            <select class="form-input select-input" id="sense">
+                                <option value="" disabled selected>请选择</option>
+                                {% for s in allSense %}
+                                <option value="{{s}}">{{s}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">您的职位是？</label>
+                        <div class="form-input-container dropdown-container">
+                            <select class="form-input select-input" id="position">
+                                <option value="">请选择</option>
+                                {% for p in allPosition %}
+                                <option value="{{p}}">{{p}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button"  id="record" class="btn-submit">开始体验锋矢AI蓝军</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 联系我们弹框 -->
+    <div class="contact-modal" id="contactModal" >
+        <div class="contact-container" style="background-image: url(/static/images/link_us.png); background-repeat: no-repeat; background-position: center top; background-size: 100% auto;">
+            <div class="contact-header">
+                <button type="button" class="btn-close" id="closeContactModal" style="top: 16px;right: 16px;">
+                    <img src="/static/images/register/register-close-icon.svg" alt="关闭">
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    {% include "user/base_js.html" %}
+    {% include "user/base_toast.html" %}
+    <script>
+        $(function () {
+            $('.card.product-card.card-active,.card.product-card.card-free,.card.product-card.card-coming').click(function (){
+                $('#btn-login').click()
+            })
+
+            $('.login-link').click(function (){
+                $('#registerModal').fadeOut(300);
+                $('#btn-login').click()
+            })
+            $('#register').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/user/register",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify({
+                        mobile: $('#mobile').val(),
+                        password: $('#password').val(),
+                        password2: $('#password2').val(),
+                        mobileCode: $('#mobileCode').val()
+                    }),
+                    async:false,
+                    success: function (data) {
+                        if (data.code == 1) {
+                            showToast('success', data.msg);
+                            $('#registerModal').fadeOut(300);
+                            $('#registerStep2Modal').fadeIn(300);
+                        }else {
+                            showToast('warning', data.msg);
+                        }
+                    }
+                })
+            })
+            $('#sendCode').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/user/send_mobile_code",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify({
+                        mobile: $('#mobile').val(),
+                        verifyCode: $('#pic_code').val(),
+                    }),
+                    async:true,
+                    success: function (data) {
+                        if(data.code==1) {
+                            showToast('success', data.msg);
+                            $('#sendCodeP').html(`<span style="color: grey;font-size: 13px">已发送剩余<span  style="color: red" id="sec">300s</span>失效</span>`)
+                            execSecond(300)
+                        }else {
+                            showToast('warning', data.msg);
+                        }
+                    }
+                })
+            })
+            $('#record').click(function () {
+                $(this).attr('disabled', true);
+                $.ajax({
+                    type: "POST",
+                    url: "/user/record_company",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify({
+                        company_name:  $('#company_name').val(),
+                        real_name:  $('#real_name').val(),
+                        sense:  $('#sense').val(),
+                        position: $('#position').val(),
+                        employees_num:$('#employees_num').val()
+                    }),
+                    async:false,
+                    success: function (data) {
+                        $('#record').attr('disabled', false);
+                        if (data.code == 1) {
+                            showToast('success', data.msg);
+                            $('#registerStep2Modal').fadeOut(300);
+                            $('#btn-login').click()
+                        }else{
+                            showToast('warning', data.msg);
+                        }
+                    }
+                })
+            })
+            $("#company_name").autocomplete({
+                source: function(request, response) {
+                            $.ajax({
+                                type: "GET",
+                                url: "/user/search_company?keyword="+request.term,
+                                contentType: "application/json;charset=UTF-8",
+                                async:true,
+                                success: function (data) {
+                                    response(data)
+                                }
+                            })
+                },
+                minLength: 1,
+                autoFocus: true,
+                delay: 300,
+                position: { my: "left top+5", at: "left bottom" }
+            }).on("focus", function() {
+                // 当输入框获得焦点时，如果有内容则显示下拉列表
+                if ($(this).val().length > 0) {
+                    $(this).autocomplete("search");
+                }
+            });
+            function execSecond(x){
+                x = x - 1
+                var s = x.toString();
+                $('#sec').html(s+"s")
+                if(x>0) {
+                    setTimeout(() => execSecond(x), 1000)
+                }else{
+                    $('#sendCodeP').html(`<a style="cursor: pointer;font-size: 11px" id="sendCode" >发送短信验证码</a>`)
+                }
+            }
+
+            $('#forget').click(function () {
+                user_name = $('#user_name').val()
+                $.ajax({
+                    type: "POST",
+                    url: "/user/forget",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify({
+                        user_name: user_name,
+                    }),
+                    async:false,
+                    success: function (data) {
+                        if (data.code == 1) {
+                            showToast('success', data.msg);
+                            $('#forgotModal').fadeOut(300);
+                            $('#btn-login').click()
+                        }else {
+                            showToast('warning', data.msg);
+                            return false;
+                        }
+                    }
+                })
+            })
+            $('#login').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/user/login",
+                    contentType: "application/json;charset=UTF-8",
+                    data: JSON.stringify({
+                        mobile: $('#login-mobile').val(),
+                        password: $('#login-password').val(),
+                    }),
+                    async:false,
+                    success: function (data) {
+                        if (data.code == 1) {
+                            showToast('success', data.msg);
+                            window.location.href = "/user/index";
+                        }else {
+                            showToast('warning', data.msg);
+                            return false;
+                        }
+                    }
+                })
+            })
+
+        })
+        let verifyCodeArr = {{code}}
+        function generateCaptcha() {
+            const canvas = document.getElementById('captchaCanvas');
+            if (canvas.getContext) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空画布
+                ctx.font = '20px Arial'; // 设置字体和大小
+                ctx.fillStyle = '#0a0'; // 设置字体颜色
+                if (verifyCodeArr.length ==0) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/user/get_code',
+                        async:false,
+                        success: function (res) {
+                            verifyCodeArr = res
+                        }
+                    })
+                }
+                const text = generateRandomText(); // 生成随机文本
+                ctx.fillText(text, 10, 30); // 在画布上绘制文本
+            }
+        }
+
+        function generateRandomText() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < verifyCodeArr.length; i++) { // 生成6个字符的验证码
+                const randomIndex = verifyCodeArr[i]
+                result += chars[randomIndex];
+            }
+            verifyCodeArr = []
+            return result;
+        }
+        window.onload = generateCaptcha;
+
+
+        $('.quick-link:contains("产品需求管理"),.quick-link:contains("产品缺陷管理"),.quick-link:contains("产品立项"),.quick-link:contains("首页")').click(function(){
+            $('#btn-login').click()
+        });
+
+    </script>
+
+</body>
+</html>

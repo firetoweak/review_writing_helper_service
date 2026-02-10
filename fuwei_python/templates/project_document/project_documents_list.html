@@ -1,0 +1,203 @@
+<!-- templates/project_document/project_documents_list.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的项目文档 - AI智能写作</title>
+    {% include "project_document/base.html" %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='project_document/project_documents_list/index.css')}}">
+    <script type="text/javascript" src="{{ url_for('static', filename='project_document/project_documents_list/index.js')}}" defer></script>
+</head>
+<body>
+    <div class="flex-col projects-page">
+        <!-- 页头 -->
+        <div class="flex-row page-header">
+            <!-- 返回按钮 -->
+            <div class="flex-row items-center back-link">
+              <img class="shrink-0 back-icon" src="/static/project_document/images/outline-draft/icon-back-solid.png" />
+              <span class="back-text">返回首页</span>
+            </div>
+            <div class="flex-row header-left">
+                <h1 class="header-title">我的项目文档</h1>
+            </div>
+            <div class="flex-row header-right">
+                <button class="btn btn-primary" id="create-project-btn">
+                    <span>新建项目</span>
+                </button>
+                <div class="user-avatar">
+                    <img src="/static/project_document/images/common/avatar-default.png" alt="用户头像">
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜索和过滤区域 -->
+        <div class="flex-row search-filter-area">
+            <!-- 搜索框 -->
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索项目名称或关键词...">
+                <button class="btn-search" id="search-btn">搜索</button>
+            </div>
+
+            <!-- 过滤选项 -->
+            <div class="flex-row filter-options">
+                <div class="filter-item">
+                    <span class="filter-label">状态：</span>
+                    <select id="status-filter" class="filter-select">
+                        <option value="">全部状态</option>
+                        <option value="draft">草稿</option>
+                        <option value="writing">写作中</option>
+                        <option value="reviewing">评审中</option>
+                        <option value="completed">已完成</option>
+                        <option value="archived">已归档</option>
+                    </select>
+                </div>
+                <div style="display:none" class="filter-item">
+                    <span class="filter-label">行业：</span>
+                    <select id="industry-filter" class="filter-select">
+                        <option value="">全部行业</option>
+                        <!-- 行业选项将通过JS动态加载 -->
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <span class="filter-label">排序：</span>
+                    <select id="sort-filter" class="filter-select">
+                        <option value="updated_at_desc">最近更新</option>
+                        <option value="created_at_desc">最新创建</option>
+                        <option value="title_asc">名称A-Z</option>
+                        <option value="title_desc">名称Z-A</option>
+                        <option value="review_score_desc">评分最高</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <div style="display:none" class="flex-row stats-cards" id="stats-cards">
+            <!-- 统计信息将通过JS动态生成 -->
+        </div>
+
+        <!-- 项目列表 -->
+        <div class="projects-list-container">
+            <div class="projects-list-header">
+                <h2>项目文档列表</h2>
+                <div class="list-actions">
+                    <button class="btn btn-primary" id="refresh-btn">
+                        <span>刷新</span>
+                    </button>
+                    <button class="btn btn-secondary" id="export-selected-btn" style="display: none;">
+                        <img src="/static/project_document/images/common/icon-export.svg" alt="导出">
+                        <span>导出选中</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 项目表格 -->
+            <div class="projects-table-container">
+                <table class="projects-table" id="projects-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="select-all-checkbox">
+                            </th>
+                            <th style="width: 250px;">项目名称</th>
+                            <th style="width: 100px;">状态</th>
+                            <th style="width: 120px;">行业</th>
+                            <th style="width: 80px;">评分</th>
+                            <th style="width: 120px;">创建时间</th>
+                            <th style="width: 120px;">更新时间</th>
+                            <th style="width: 150px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projects-tbody">
+                        <!-- 项目数据将通过JS动态加载 -->
+                        <tr id="loading-row">
+                            <td colspan="8">
+                                <div class="loading-placeholder">
+                                    <img src="/static/project_document/images/common/loading.gif" alt="加载中">
+                                    <span>加载项目中...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页控件 -->
+            <div class="pagination-container" id="pagination-container">
+                <!-- 分页将通过JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 空状态 -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <img src="/static/project_document/images/common/empty-folder.png" alt="空文件夹">
+            <h3>暂无项目文档</h3>
+            <p>点击"新建项目"按钮开始创建您的第一个项目文档</p>
+            <button class="btn btn-primary" id="create-first-project-btn">
+                <span>新建项目</span>
+            </button>
+        </div>
+    </div>
+
+<!-- 删除确认模态框 -->
+<div id="delete-confirm-modal" class="modal-overlay">
+    <div class="dialog-modal">
+        <img class="modal-icon" src="/static/project_document/images/common/icon-delete.png" alt="警告">
+        <div class="modal-content">
+            <div class="modal-title">确认删除</div>
+            <div class="modal-message" id="delete-message">确定要删除项目吗？此操作不可恢复。</div>
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="cancel-delete-btn">取消</button>
+                <button class="modal-button danger" id="confirm-delete-btn">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 归档确认模态框 -->
+<div id="archive-confirm-modal" class="modal-overlay">
+    <div class="dialog-modal">
+        <img class="modal-icon" src="/static/project_document/images/common/icon-info.svg" alt="信息">
+        <div class="modal-content">
+            <div class="modal-title">确认归档</div>
+            <div class="modal-message" id="archive-message">确定要将项目归档吗？归档后项目将不再显示在默认列表中。</div>
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="cancel-archive-btn">取消</button>
+                <button class="modal-button warning" id="confirm-archive-btn">确认归档</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量操作弹窗 -->
+<div class="modal-overlay" id="batch-action-modal">
+    <div class="dialog-modal">
+        <img class="modal-icon" src="/static/project_document/images/writing-workspace/icon-save.png" alt="批量操作">
+        <div class="modal-content">
+            <div class="modal-title">批量操作</div>
+            <div class="batch-action-list">
+                <div class="batch-action-item" data-action="archive">
+                    <span class="font text pos_3">📝</span>
+                    <span>归档选中项目</span>
+                </div>
+                <div class="batch-action-item" data-action="delete">
+                    <img src="/static/project_document/images/common/icon-delete.png" alt="删除">
+                    <span>删除选中项目</span>
+                </div>
+                <div class="batch-action-item" data-action="export">
+                    <img src="/static/project_document/images/common/icon-export.svg" alt="导出">
+                    <span>导出选中项目</span>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="close-batch-modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Toast提示 -->
+    <div id="toast-container"></div>
+</body>
+</html>

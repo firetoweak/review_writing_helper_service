@@ -1,0 +1,54 @@
+<!-- 删除确认弹框 -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;height: 180px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+            <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;">确认删除该同事？</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="min-width:100px;border-radius:8px;">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" user_id="" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteAllConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;height: 180px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+            <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;">确认删除所选同事？</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="min-width:100px;border-radius:8px;">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmAllDeleteBtn"  url="/user/inner/batch_delete?type={{g.type}}" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="NoInvite" aria-hidden="true" style="z-index: 10000">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border-radius:16px;width: 80%;height: 220px;background: linear-gradient(180deg, #E1DEFF 1.97%, #FFFFFF 27.61%);padding: 0 20px;">
+            <div style="position: absolute;right: 45%;top:-12%"><img src="/static/images/logo-icon.svg" alt="锋矢科技" class="logo-icon"></div>
+            <div class="text-center">
+                <div style="font-size:20px;font-weight:400;color:#222;margin-bottom:8px;margin-top: 50px;" class="del-text1">抱歉，您所在企业账号可邀请用户数量不足，没有权限进行本次邀请。</div>
+                <div class="d-flex justify-content-center gap-3" style="margin-top: 40px;">
+                    <button  del_id="" type="button" class="btn btn-danger" id="confirmNoInvite" style="min-width:100px;border-radius:8px;background:linear-gradient(90deg,#9767FF 0%,#217EFD 100%);border:none;">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#confirmNoInvite').on('click', function() {
+        $('#NoInvite').modal('hide')
+    })
+</script>

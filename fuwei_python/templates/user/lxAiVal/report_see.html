@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI评估 - 锋矢AI蓝军</title>
+    {% include "user/base.html" %}
+    <link href="{{ url_for('static', filename='lib/jsmind/jsmind.css') }}" rel="stylesheet" type="text/css">
+    <style>
+        .container-report-title {
+            max-width: 1280px;
+            margin-top: 20px;
+            height: 104px;
+            font-family: PingFang SC;
+            line-height: 36px;
+            letter-spacing: 0%;
+            margin: 0 auto;
+            position: relative;
+            margin-top: -10px;
+        }
+        .select-1-show{
+            width: auto;
+            float: left;
+            border-radius: 5px;
+            background: linear-gradient(180deg, #FFC97A -11.11%, #FFE8BA 111.11%);
+            font-size: 14px;
+            margin-top: 5px;
+            height: 22px;
+            color:rgba(156, 53, 2, 1);
+            padding: 3px 5px;
+            font-weight: 400;
+            line-height: 100%;
+            vertical-align: middle;
+            display: flex;
+            align-items: center;
+        }
+        .select-2-show{
+            width: auto;
+            float: left;
+            border-radius: 5px;
+            background: rgba(232, 246, 241, 1);
+            font-size: 14px;
+            color: rgba(31, 172, 120, 1);
+            margin-left: 6px;
+            margin-top: 5px;
+            height: 22px;
+            padding: 3px 5px;
+            font-weight: 400;
+            line-height: 100%;
+            vertical-align: middle;
+            display: flex;
+            align-items: center;
+        }
+        .title-text{
+            width:100%;
+            font-weight: 600;
+            font-size: 28px;
+            line-height: 42px;
+            vertical-align: middle;
+        }
+        .bg-blue-color{
+            background: linear-gradient(90deg, #9767FF 0%, #217EFD 50%);
+            -webkit-background-clip: text;  /* 兼容Webkit内核浏览器 */
+            background-clip: text;          /* 标准语法 */
+            color: transparent;             /* 关键：将文字颜色设为透明 */
+            display: inline-block;          /* 确保渐变效果正确应用 */
+        }
+
+        .container-report-title-img{
+            float: left;
+            width: 104px;
+            height: 104px
+        }
+        .title-text-select{
+            float: left;
+            height: 104px;
+            width: 500px;
+            margin-left: 10px;
+
+        }
+        .container-report-paragraph{
+            max-width: 1280px;
+            height:auto;
+            line-height: 36px;
+            margin: 36px auto 0 auto;
+        }
+
+        .container-report-paragraph-box{
+            max-width: 1280px;
+            height:auto;
+            line-height: 36px;
+            margin: 0px auto 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: stretch;
+            min-height: 0;
+        }
+        .container-report-paragraph-box img{
+            margin: 0 15px;
+            align-self: center;
+            height: auto;
+            width: auto;
+
+        }
+
+        .container-report-paragraph-text{
+            float: left;
+            font-weight: 600;
+            font-size: 20px;
+            line-height: 50px;
+            vertical-align: middle;
+            width: 100%;
+        }
+
+        .container-report-paragraph-text-m{
+            float: left;
+            font-family: PingFang SC;
+            font-weight: 600;
+            font-size: 20px;
+            leading-trim: NONE;
+            line-height: 30px;
+            vertical-align: middle;
+            width: 100%;
+            text-align: center;
+            width: 100%;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+
+        .container-report-paragraph-text img{
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+        .container-report-paragraph-text-s{
+            font-weight: 400;
+            font-style: normal;
+            font-size: 14px;
+            line-height: 26px;
+            letter-spacing: 0px;
+            text-align: justify;
+            color: rgba(85, 116, 150, 1);
+            margin-bottom: 36px;
+        }
+        .mind-map{
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid rgba(235, 237, 241, 1);
+            height:300px;
+            float: left;
+        }
+        .sorce{
+            font-weight: 500;
+            font-size: 20px;
+            line-height: 24px;
+            vertical-align: middle;
+            font-family: "优设标题黑", sans-serif;
+            font-style: italic;
+            width: 100%;
+        }
+        .full-sorce{
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 22px;
+            vertical-align: middle;
+            color: rgba(146, 146, 146, 1);
+        }
+        .container-split-content{
+            float: left;
+            width:auto;
+            height: 30px;
+            margin: 7px 0px
+        }
+        .container-split-content-m{
+            height: 30px;
+            margin: 7px auto;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 22px;
+            line-height: 36px;
+            vertical-align: middle;
+        }
+
+        .container-split-content-m img{
+            margin: 0px 15px;
+        }
+
+        .green-score{
+            position: absolute;
+            transform: translateX(-50%);
+            width: 125px;
+            height: 38px;
+            border-radius: 6px;
+            background-color:rgba(41, 203, 149, 1);
+            padding: 8px 6px;
+            font-family: PingFang SC;
+            font-weight: 500;
+            font-size: 24px;
+            leading-trim: NONE;
+            line-height: 22px;
+            letter-spacing: 0px;
+            color: rgba(255, 255, 255, 1);
+        }
+        .green-score img{
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            position: absolute
+        }
+        .green-score span{
+            font-family: PingFang SC;
+            font-weight: 500;
+            font-size: 14px;
+            leading-trim: NONE;
+            line-height: 22px;
+            letter-spacing: 0px;
+
+        }
+
+        .step-content-box-left{
+            float: left;
+            width:584px;
+            border-radius: 6px;
+            border: 1px solid rgba(235, 237, 241, 1);
+            color: rgba(85, 116, 150, 1);
+            overflow: auto;
+            height: auto;
+            max-height:248px;
+            background: rgba(246, 250, 255, 1);
+        }
+        .step-content-box-right{
+            float: right;
+            width:584px;
+            border-radius: 6px;
+            border: 1px solid rgba(235, 237, 241, 1);
+            color: rgba(85, 116, 150, 1);
+            overflow: auto;
+            height: auto;
+            max-height:248px;
+            background: rgba(246, 250, 255, 1);
+        }
+        .container-report-paragraph-box-center {
+            width: 95px;
+            height: auto;
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            justify-content: center; /* 垂直居中（可选，如果容器有固定高度） */
+            gap: 8px; /* 可选：增加间距 */
+        }
+
+        .container-report-paragraph-box-center img {
+            max-width: 100%; /* 防止图片溢出 */
+            height: auto;
+        }
+
+        .container-report-paragraph-box-center button {
+            white-space: nowrap; /* 防止按钮文字换行 */
+            height: 40px;
+            background-color: #E4F0FF;
+            border: none;
+            border-radius: 8px;
+            color: #217EFD;
+            font-weight: 600;
+            padding: 4px;
+            margin-right: 5px;
+        }
+        body{
+            background-color: white;
+        }
+        .add-margin{
+            margin-top: 10px;
+        }
+        .fish-box{
+            height: 364px;
+            border-radius: 6px;
+            border: 1px solid rgba(235, 237, 241, 1);
+            position: relative;
+            margin-top: 10px;
+            background: rgba(246, 250, 255, 1);
+        }
+        .container-all-content{
+            width: 100%;
+            background-color: white;
+            height: auto;
+            position: relative
+        }
+        .right-link-div{
+            position: absolute;
+            right: 20px;
+            top:350px;
+            width: 64px;
+            height: auto
+        }
+        .right-link-div-circle{
+            width: 100%;
+            height: 64px;
+            float: left;
+            cursor: pointer
+        }
+        .right-link-div-circle img{
+            width: 64px;
+            height: 64px
+        }
+    </style>
+</head>
+<body>
+    {% include "components/header.html" %}
+
+    <section class="banner" style="position: relative">
+        <div class="banner-content">
+            <div class="d-flex align-items-center mb-3">
+                <h1 class="banner-title mb-0">产品立项质量</h1>
+                <img src="/static/images/aival/3star.png" alt="" style="margin-bottom: 35px;margin-left: 10px">
+            </div>
+            <p class="banner-subtitle">AI蓝军为您定制的详细评估报告</p>
+            <div style="width: 380px;height: 300px;position: absolute;right: 10%;top: 40%;">
+                <img src="/static/images/aival/banner-report.png" alt="">
+            </div>
+        </div>
+    </section>
+
+    <div class="container-all-content">
+        <div class="right-link-div">
+            <div style="margin-bottom: 20px;" class="right-link-div-circle"  onclick="location.href='/user/lxAiVal/report?type=2&id={{item.id}}&view=0'">
+                <img src="/static/images/aival/right_link2.png" alt="" style="width: 64px;height: 64px">
+            </div>
+            <div  class="right-link-div-circle">
+                <img src="/static/images/aival/right_link2-2.png" alt="" style="width: 64px;height: 64px">
+            </div>
+        </div>
+        <div class="container-fluid" style="max-width: 1280px; margin-top: 20px;">
+            <!-- 面包屑导航 -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-custom">
+                    <li class="breadcrumb-item"><a href="/user/index">首页</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="{{g.type_list_url}}?type={{g.type}}">{{g.type_content}}AI评估</a>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        AI评估报告
+                    </li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="container-report-paragraph" style="height: 80px;margin-top: 70px">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/bWing-left.png" style="float: right;height: 71px">
+                    <div style="float: right;height: 71px">
+                        <p class="title-text bg-blue-color"> {{item.title}}</p>
+                        <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
+                                <div class="select-1-show" >
+                                    <img src="/static/images/aival/select-1-tag.png" style="width: 20px;height: 20px;margin:0px 1px">{{select_1}}
+                                </div>
+                                <div class="select-2-show" >
+                                    <img src="/static/images/aival/select-2-tag.png" style="width: 20px;height: 20px;margin:0px 1px;">{{select_2}}
+                                </div>
+                        </div>
+                    </div>
+                    <img src="/static/images/aival/bWing-right.png" style="float: right;height: 71px">
+                </div>
+            </div>
+        </div>
+
+        <div class="container-report-paragraph" style="height: 44px;margin-top: 44px">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/Part1.png" alt="">AI蓝军对文档进行全貌理解
+                </div>
+            </div>
+        </div>
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/1.1.png" alt="">文档原始内容总结</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.summarize_text|safe}}
+            </div>
+            <div class="container-report-paragraph-text"  style="flex: 1;"><img src="/static/images/aival/1.2.png" alt="">基于原始文档内容的思维导图</div>
+            <div class="mind-map" id="jsmind_container"></div>
+        </div>
+
+        <div class="container-report-paragraph" style="height: 100px;margin-top: 44px;">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/Part2.png" alt="">{{report_titles[0][0]}}
+                </div>
+            </div>
+            <div class="container-report-paragraph-text-m add-margin">
+                    <div class="container-split-content-m">
+                        <img src="/static/images/aival/wing-left.png" style="float: right;height: 44px">
+                        <div style="float: right;height: 68px;width: 60px;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+                            <p class="sorce  bg-blue-color">评分&nbsp;{{item.step_1_score|default("", true)}}</p>
+                            <p class="full-sorce"> 满分10分</p>
+                        </div>
+                        <img src="/static/images/aival/wing-right.png" style="float: right;height: 44px">
+                    </div>
+            </div>
+        </div>
+
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/2.1.png" alt="">{{report_titles[0][1]}}</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_1|safe}}
+            </div>
+        </div>
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/2.2.png" alt="">工作质量评估依据与改进建议</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_1_ai|safe}}
+            </div>
+        </div>
+
+
+
+
+
+        <div class="container-report-paragraph" style="height: 100px;margin-top: 44px;">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/Part3.png" alt="">{{report_titles[1][0]}}
+                </div>
+            </div>
+            <div class="container-report-paragraph-text-m add-margin">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/wing-left.png" style="float: right;height: 44px">
+                    <div style="float: right;height: 68px;width: 60px;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+                        <p class="sorce  bg-blue-color">评分&nbsp;{{item.step_2_score|default("", true)}}</p>
+                        <p class="full-sorce"> 满分10分</p>
+                    </div>
+                    <img src="/static/images/aival/wing-right.png" style="float: right;height: 44px">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/3.1.png" alt="">{{report_titles[1][1]}}</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_2|safe}}
+            </div>
+        </div>
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/3.2.png" alt="">工作质量评估依据与改进建议</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_2_ai|safe}}
+            </div>
+        </div>
+
+
+
+        <div class="container-report-paragraph" style="height: 100px;margin-top: 44px;">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/Part4.png" alt="">{{report_titles[2][0]}}
+                </div>
+            </div>
+            <div class="container-report-paragraph-text-m add-margin">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/wing-left.png" style="float: right;height: 44px">
+                    <div style="float: right;height: 68px;width: 60px;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+                        <p class="sorce  bg-blue-color">评分&nbsp;{{item.step_3_score|default("", true)}}</p>
+                        <p class="full-sorce"> 满分10分</p>
+                    </div>
+                    <img src="/static/images/aival/wing-right.png" style="float: right;height: 44px">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/4.1.png" alt="">{{report_titles[2][1]}}</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_3|safe}}
+            </div>
+        </div>
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/4.2.png" alt="">工作质量评估依据与改进建议</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_3_ai|safe}}
+            </div>
+        </div>
+
+
+
+
+
+        <div class="container-report-paragraph" style="height: 100px;margin-top: 44px;">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/Part5.png" alt="">{{report_titles[3][0]}}
+                </div>
+            </div>
+            <div class="container-report-paragraph-text-m add-margin">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/wing-left.png" style="float: right;height: 44px">
+                    <div style="float: right;height: 68px;width: 60px;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+                        <p class="sorce  bg-blue-color">评分&nbsp;{{item.step_4_score|default("", true)}}</p>
+                        <p class="full-sorce"> 满分10分</p>
+                    </div>
+                    <img src="/static/images/aival/wing-right.png" style="float: right;height: 44px">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/5.1.png" alt="">{{report_titles[3][1]}}</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_4|safe}}
+            </div>
+        </div>
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/5.2.png" alt="">工作质量评估依据与改进建议</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_4_ai|safe}}
+            </div>
+        </div>
+
+
+
+
+        <div class="container-report-paragraph" style="height: 100px;margin-top: 44px;">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/Part6.png" alt="">{{report_titles[4][0]}}
+                </div>
+            </div>
+            <div class="container-report-paragraph-text-m add-margin">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/wing-left.png" style="float: right;height: 44px">
+                    <div style="float: right;height: 68px;width: 60px;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+                        <p class="sorce  bg-blue-color">评分&nbsp;{{item.step_5_score|default("", true)}}</p>
+                        <p class="full-sorce"> 满分10分</p>
+                    </div>
+                    <img src="/static/images/aival/wing-right.png" style="float: right;height: 44px">
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/6.1.png" alt="">{{report_titles[4][1]}}</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_5|safe}}
+            </div>
+        </div>
+
+        <div class="container-report-paragraph" style="display: flex;flex-direction: column;">
+            <div class="container-report-paragraph-text" style="flex: 1;"><img src="/static/images/aival/6.2.png" alt="">工作质量评估依据与改进建议</div>
+            <div class="container-report-paragraph-text-s"  style="flex: 1;">
+                {{item.step_5_ai|safe}}
+            </div>
+        </div>
+
+
+
+        <div class="container-report-paragraph" style="height: 100px;margin-top: 44px;">
+            <div class="container-report-paragraph-text-m">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/Part7.png" alt="">产品立项整体工作质量评估
+                </div>
+            </div>
+            <div class="container-report-paragraph-text-m add-margin">
+                <div class="container-split-content-m">
+                    <img src="/static/images/aival/wing-left.png" style="float: right;height: 44px">
+                    <div style="float: right;height: 68px;width: 80px;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+                        <p class="sorce  bg-blue-color">评分&nbsp;{{item.total_score}}</p>
+                        <p class="full-sorce"> 满分10分</p>
+                    </div>
+                    <img src="/static/images/aival/wing-right.png" style="float: right;height: 44px">
+                </div>
+            </div>
+        </div>
+        {% include "user/lxAiVal/report-8.html" %}
+    </div>
+    <!-- 底部区域 -->
+    {% include "user/base_js.html" %}
+    {% include "user/footer.html" %}
+    <script src="{{ url_for('static', filename='lib/jsmind/jsmind.js')}}"></script>
+    {% include "user/lxAiVal/xmind_js.html" %}
+<script>
+
+    window.onload = function() {
+        var options = {
+            container: 'jsmind_container',
+            theme: 'primary',
+            mode: 'full',  // 修改为full模式
+            direction: 'horizontal',  // 方向改为horizontal
+            editable: true,
+        };
+        var data = JSON.parse('{{xmind|safe}}')
+        var mindData = {
+            "meta": {
+                "name": "示例思维导图",
+                "author": "jsMind",
+                "version": "0.1"
+            },
+            "format": "node_array",
+            "data": data
+        };
+
+        var jm = new jsMind(options);
+        jm.show(mindData);
+        $('#jsmind_container').css('height',(parseInt($('.theme-primary').css('height'))+20).toString())
+
+        // document.getElementById("expandBtn").addEventListener("click", function() {
+        //     const rightBox = document.querySelector(".step-content-box-right");
+        //     if (rightBox.style.maxHeight === "200px") {
+        //         // 展开：移除 max-height 限制
+        //         rightBox.style.maxHeight = "none";
+        //         this.textContent = "收起内容";
+        //     } else {
+        //         // 收起：恢复 max-height
+        //         rightBox.style.maxHeight = "200px";
+        //         this.textContent = "展开内容";
+        //     }
+        // });
+
+        $(".expandBtn").click(function() {
+            // 找到当前按钮对应的 .step-content-box-right
+            var $contentBox = $(this).closest(".container-report-paragraph-box").find(".step-content-box-right");
+            var $contentBox2 = $(this).closest(".container-report-paragraph-box").find(".step-content-box-left");
+
+            if($contentBox.css("max-height")=="none"){
+                $contentBox.css("max-height","248px")
+                $(this).html('展开')
+            }else{
+                $contentBox.css("max-height","none")
+                $(this).html('收起')
+            }
+            if($contentBox2.css("max-height")=="none"){
+                $contentBox2.css("max-height","248px")
+            }else{
+                $contentBox2.css("max-height","none")
+            }
+
+        });
+
+
+
+    };
+
+</script>
+</body>
+</html> 
