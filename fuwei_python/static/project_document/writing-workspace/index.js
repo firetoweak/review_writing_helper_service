@@ -1660,22 +1660,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (mainEditor) {
-            // 检查内容是否为Markdown格式并转换
             let contentToRender = '';
             if (workspaceData.editorData.paragraphs && workspaceData.editorData.paragraphs.length > 0) {
                 contentToRender = workspaceData.editorData.paragraphs.join('');
-
-                // 处理Markdown内容
-                contentToRender = processEditorContent(contentToRender);
             } else {
                 contentToRender = '请开始写作...';
             }
+
+            const isMarkdownContent = typeof markdownProcessor.isMarkdown === 'function'
+                ? markdownProcessor.isMarkdown(contentToRender)
+                : false;
+
             try {
-                if (mainEditor.setMarkdown) {
-                    // 默认非流式：一次性 setContent(markdown, 'markdown') 导入
+                if (isMarkdownContent && mainEditor.setMarkdown) {
+                    // Markdown 内容直接加载为 Markdown，不做 HTML 预转换
                     mainEditor.setMarkdown(contentToRender);
                 } else if (mainEditor.setHtml) {
+                    // HTML 内容直接加载为 HTML
                     mainEditor.setHtml(contentToRender);
+                } else if (mainEditor.setMarkdown) {
+                    // 无法识别格式时，优先回退到 Markdown
+                    mainEditor.setMarkdown(contentToRender);
                 } else if (mainEditor.setText) {
                     mainEditor.setText(contentToRender);
                 }
