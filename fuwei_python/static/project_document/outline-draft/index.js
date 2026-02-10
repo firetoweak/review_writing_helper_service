@@ -624,40 +624,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 富文本编辑器（简要构想）
   let editorInstance = null;
-  if (window.wangEditor) {
-    const { createEditor, createToolbar } = window.wangEditor;
-    const editor = createEditor({
-      selector: '#editor-idea',
-      config: {
-        placeholder: '对于这篇立项报告，您有些什么想法？',
-        MENU_CONF: {
-          uploadImage: {
-            server: '/user/aiVal/upload_pic', // 替换为你的图片上传接口地址
-            fieldName: 'file', // 上传文件的字段名（与后端一致）
-            maxFileSize: 5 * 1024 * 1024, // 5MB
-            maxNumberOfFiles: 1, // 最多上传 5 张图片
-            customInsert(res, insertFn) {
-                if (res.code == 1) {
-                    insertFn(res.url); // 插入图片 URL
-                } else {
-                    alert(res.msg || '上传失败');
-                }
-            }
-          },
-        },
-      },
-      mode: 'default',
-    });
-    createToolbar({
-      editor,
-      selector: '#tb-idea',
-      config: {
-        // 使用默认全量工具栏，展示完整表头
-      },
-      mode: 'default',
-    });
-    editorInstance = editor;
-  }
+  (async () => {
+    if (!window.TiptapEditorFactory) {
+      console.warn('TiptapEditorFactory 未加载');
+      return;
+    }
+    try {
+      editorInstance = await window.TiptapEditorFactory.createEditor({
+        selector: '#editor-idea',
+        toolbarSelector: '#tb-idea'
+      });
+    } catch (e) {
+      console.error('初始化 Tiptap 编辑器失败:', e);
+    }
+  })();
 
   // 下一步按钮点击事件 - 调用生成大纲接口
   const nextButton = document.getElementById('next-button');
