@@ -246,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==================== 初始化函数 ====================
-    function initialize() {
+    async function initialize() {
         // 从URL获取文档ID
         documentId = getDocumentIdFromUrl();
         if (!documentId) {
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 初始化页面
-        initPage();
+        await initPage();
 
         // 加载工作区数据
         loadWorkspaceData();
@@ -298,9 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    function initPage() {
+    async function initPage() {
         // 初始化编辑器
-        initEditor();
+        await initEditor();
 
         // 初始化步骤条
         initSteps();
@@ -312,122 +312,22 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoading();
     }
 
-    function initEditor() {
-        if (window.wangEditor) {
-            const { createEditor, createToolbar } = window.wangEditor;
+    async function initEditor() {
+        if (!window.TiptapEditorFactory) {
+            console.warn('TiptapEditorFactory 未加载，使用简易编辑器');
+            return;
+        }
 
-            // 自定义粘贴处理器
-            const customPasteHandler = (editor, event) => {
-                event.preventDefault();
-                event.stopPropagation();  // 阻止事件冒泡
-
-                const clipboardData = event.clipboardData || window.clipboardData;
-                if (!clipboardData) return;
-
-                let text = clipboardData.getData('text/plain') || '';
-                let html = clipboardData.getData('text/html') || '';
-
-                // 如果没有HTML但有文本，检查是否为Markdown
-                if (!html && text) {
-                    if (markdownProcessor.isMarkdown(text)) {
-                        html = markdownProcessor.markdownToHtml(text);
-                        console.log('Markdown已转换为HTML');
-                        flash('Markdown格式已自动转换为HTML');
-                    }
-                }
-
-                // 如果有HTML，使用dangerouslyInsertHtml
-                if (html) {
-                    try {
-                        // 只使用一种方法插入，避免重复
-                        if (editor.dangerouslyInsertHtml) {
-                            editor.dangerouslyInsertHtml(html);
-                        } else if (editor.insertHTML) {
-                            editor.insertHTML(html);
-                        } else if (editor.commands && editor.commands.insertHTML) {
-                            editor.commands.insertHTML(html);
-                        }
-                    } catch (error) {
-                        console.error('插入HTML失败:', error);
-                    }
-                } else if (text) {
-                    // 如果没有HTML，直接插入文本
-                    if (editor.insertText) {
-                        editor.insertText(text);
-                    }
-                }
-
-                return false;  // 防止默认行为
-            };
-
-            mainEditor = createEditor({
+        try {
+            mainEditor = await window.TiptapEditorFactory.createEditor({
                 selector: '#editor-content',
-                html: '',
-                config: {
-                    placeholder: '请输入正文...',
-                    hoverbarKeys: {
-                        text: { menuKeys: [] },
-                    },
-                    MENU_CONF: {
-                        uploadImage: {
-                            server: '/user/aiVal/upload_pic',
-                            fieldName: 'file',
-                            maxFileSize: MAX_IMAGE_SIZE, // 5MB
-                            maxNumberOfFiles: 1,
-                            // 添加自定义验证函数
-                            customValidate: (file) => {
-                                if (file.size > MAX_IMAGE_SIZE) {
-                                    return '图片大小不能超过5MB';
-                                }
-                                return null;
-                            },
-                            // 修改错误处理
-                            onError: (error, file) => {
-                                console.error('图片上传失败:', error, file);
-                                let message = '上传失败';
-
-                                if (error instanceof Error) {
-                                    if (error.message.includes('exceeds maximum allowed size')) {
-                                        message = '图片大小不能超过5MB';
-                                    } else {
-                                        message = error.message;
-                                    }
-                                } else if (typeof error === 'string') {
-                                    message = error;
-                                } else if (error.size && error.size>MAX_IMAGE_SIZE) {
-                                    message = '图片大小不能超过5MB';
-                                }
-
-                                flash(message);
-                            },
-                            customInsert(res, insertFn) {
-                                if (res.code == 1) {
-                                    insertFn(res.url);
-                                } else {
-                                    alert(res.msg || '上传失败');
-                                }
-                            }
-                        },
-                    },
-                    customPaste: customPasteHandler,
-                },
-                mode: 'default',
-            });
-
-            createToolbar({
-                editor: mainEditor,
-                selector: '#writer-toolbar',
-                mode: 'default',
-            });
-
-            if (mainEditor.onChange) {
-                mainEditor.onChange(() => {
-                    // 标记内容已修改
+                toolbarSelector: '#writer-toolbar',
+                onChange: () => {
                     markContentAsModified();
-                });
-            }
-        } else {
-            console.warn('wangEditor 未加载，使用简易编辑器');
+                }
+            });
+        } catch (error) {
+            console.error('Tiptap 初始化失败:', error);
         }
     }
 
@@ -504,7 +404,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let content = '';
             if (mainEditor) {
-                if (typeof mainEditor.getHtml === 'function') {
+                if (typeof mainEditor.getMarkdown === 'function') {
+                    // Markdown 导出闭环：editor.storage.markdown.getMarkdown()
+                    content = mainEditor.getMarkdown();
+                } else if (typeof mainEditor.getHtml === 'function') {
                     content = mainEditor.getHtml();
                 } else if (typeof mainEditor.getText === 'function') {
                     content = mainEditor.getText();
@@ -1768,7 +1671,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 contentToRender = '请开始写作...';
             }
             try {
-                if (mainEditor.setHtml) {
+                if (mainEditor.setMarkdown) {
+                    // 默认非流式：一次性 setContent(markdown, 'markdown') 导入
+                    mainEditor.setMarkdown(contentToRender);
+                } else if (mainEditor.setHtml) {
                     mainEditor.setHtml(contentToRender);
                 } else if (mainEditor.setText) {
                     mainEditor.setText(contentToRender);
@@ -4892,50 +4798,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function initAiReplyEditEditor() {
-        if (aiReplyEditEditor || !window.wangEditor) return;
+    async function initAiReplyEditEditor() {
+        if (aiReplyEditEditor || !window.TiptapEditorFactory) return;
 
-        const { createEditor, createToolbar } = window.wangEditor;
-
-        aiReplyEditEditor = createEditor({
+        aiReplyEditEditor = await window.TiptapEditorFactory.createEditor({
             selector: '#ai-reply-edit-editor',
-            html: '',
-            config: {
-                placeholder: '编辑AI回复内容...',
-                MENU_CONF: {
-                    uploadImage: {
-                        maxFileSize: MAX_IMAGE_SIZE, // 5MB限制
-                        async customUpload(file, insertFn) {
-                            try {
-                                // 检查图片大小
-                                if (file.size > MAX_IMAGE_SIZE) {
-                                    flash('图片大小不能超过5MB');
-                                    return;
-                                }
-
-                                // 修改：使用 uploadImg 而不是 uploadFile
-                                const result = await DataService.uploadImg(file);
-                                if (result.code === 200 || result.code === 1) {
-                                    const url = result.data?.url || result.url;
-                                    insertFn(url, file.name);
-                                    flash('图片上传成功');
-                                } else {
-                                    flash('图片上传失败');
-                                }
-                            } catch (error) {
-                                flash('上传失败: ' + error.message);
-                            }
-                        },
-                    },
-                },
-            },
-            mode: 'default',
-        });
-
-        createToolbar({
-            editor: aiReplyEditEditor,
-            selector: '#ai-reply-edit-toolbar',
-            mode: 'default',
+            toolbarSelector: '#ai-reply-edit-toolbar',
+            simpleMode: true
         });
     }
 
